@@ -1,0 +1,19 @@
+{
+  "name": "heat-transfer-app",
+  "version": "1.0.0",
+  "description": "A simple Electron app to read heat transfer data from COM port",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "keywords": ["electron", "com-port", "heat-transfer", "serial"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "dependencies": {
+    "serialport": "^12.0.0"
+  }
+}
