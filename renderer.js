@@ -844,15 +844,12 @@ function parseAndDisplayData(dataArray) {
 					heaterEl.textContent = (extraIndex === 0 ? 'Heater Left: ' : 'Heater Right: ') + etemp.toFixed(2) + '\u00B0C';
 				}
 				
-				// Store heater temperatures for button display
+				// Store heater temperatures for display
 				if (extraIndex === 0) {
 					heaterLeftTemp = etemp;
 				} else {
 					heaterRightTemp = etemp;
 				}
-				
-				// Update heater buttons with temperature values
-				updateHeaterButtons();
 			}
 		}
 
@@ -1449,14 +1446,6 @@ function updateHeaterButtons() {
     if (heaterOffBtn) heaterOffBtn.classList.remove('active');
     if (heaterLeftBtn) heaterLeftBtn.classList.remove('active');
     if (heaterRightBtn) heaterRightBtn.classList.remove('active');
-    
-    // Update button text with temperature values
-    if (heaterLeftBtn) {
-        heaterLeftBtn.textContent = '🔥 Left ' + heaterLeftTemp.toFixed(1) + '°C';
-    }
-    if (heaterRightBtn) {
-        heaterRightBtn.textContent = '🔥 Right ' + heaterRightTemp.toFixed(1) + '°C';
-    }
     
     // Add active class to current heater mode
     if (heaterMode === 0 && heaterOffBtn) {
