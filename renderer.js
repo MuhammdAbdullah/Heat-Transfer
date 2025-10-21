@@ -422,6 +422,8 @@ const heaterLeftBtn = document.getElementById('heaterLeft');
 const heaterRightBtn = document.getElementById('heaterRight');
 const coolerBtn = document.getElementById('coolerBtn');
 var heaterMode = 0; // 0=off,1=left,2=right,3=cooler
+var heaterLeftTemp = 0; // Store left heater temperature
+var heaterRightTemp = 0; // Store right heater temperature
 
 function addToLog(message) {
 	const timestamp = new Date().toLocaleTimeString();
@@ -841,6 +843,16 @@ function parseAndDisplayData(dataArray) {
 				if (heaterEl) {
 					heaterEl.textContent = (extraIndex === 0 ? 'Heater Left: ' : 'Heater Right: ') + etemp.toFixed(2) + '\u00B0C';
 				}
+				
+				// Store heater temperatures for button display
+				if (extraIndex === 0) {
+					heaterLeftTemp = etemp;
+				} else {
+					heaterRightTemp = etemp;
+				}
+				
+				// Update heater buttons with temperature values
+				updateHeaterButtons();
 			}
 		}
 
@@ -1437,6 +1449,14 @@ function updateHeaterButtons() {
     if (heaterOffBtn) heaterOffBtn.classList.remove('active');
     if (heaterLeftBtn) heaterLeftBtn.classList.remove('active');
     if (heaterRightBtn) heaterRightBtn.classList.remove('active');
+    
+    // Update button text with temperature values
+    if (heaterLeftBtn) {
+        heaterLeftBtn.textContent = '🔥 Left ' + heaterLeftTemp.toFixed(1) + '°C';
+    }
+    if (heaterRightBtn) {
+        heaterRightBtn.textContent = '🔥 Right ' + heaterRightTemp.toFixed(1) + '°C';
+    }
     
     // Add active class to current heater mode
     if (heaterMode === 0 && heaterOffBtn) {
