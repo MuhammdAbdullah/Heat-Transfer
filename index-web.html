@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Heat Transfer Data Reader - Web App</title>
+        <meta name="description" content="Heat Transfer Data Reader for Android Tablets">
+        <meta name="theme-color" content="#000000">
+        <link rel="manifest" href="manifest.json">
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                margin: 0; 
+                background: var(--bg, #000000); 
+                color: var(--text, #ffffff); 
+                min-height: 100vh;
+                touch-action: manipulation; /* Better touch support */
+            }
+            .container { width: 100%; max-width: 100vw; margin: 0; padding: 0; }
+            .header-container { 
+                display: flex; 
+                align-items: center; 
+                gap: 2vw; 
+                padding: 1vh 2vw; 
+                background: var(--panel, #333); 
+                border-bottom: 2px solid var(--border, #444); 
+            }
+            .header-matrix { 
+                height: 8vh; 
+                width: auto; 
+                max-width: 20vw; 
+                object-fit: contain; 
+            }
+            .header-heat-transfer { 
+                height: 8vh; 
+                width: auto; 
+                max-width: 60vw; 
+                object-fit: contain; 
+                flex: 1; 
+            }
+            .system-status-indicator {
+                text-align: center;
+                font-weight: bold;
+                padding: 1vh;
+                font-size: 2vh;
+                background: var(--panel, #333);
+                border-bottom: 2px solid #333;
+                transition: border-bottom-color 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+                color: var(--text, #eee);
+            }
+            .system-status-indicator.online {
+                border-bottom-color: #00ff00 !important;
+                color: #00ff00 !important;
+                text-shadow: 0 0 10px #00ff00 !important;
+                box-shadow: 0 2px 10px rgba(0, 255, 0, 0.3);
+            }
+            .system-status-indicator.offline {
+                border-bottom-color: #ff4d4f !important;
+                color: #ff4d4f !important;
+                text-shadow: 0 0 10px #ff4d4f !important;
+                box-shadow: 0 2px 10px rgba(255, 77, 79, 0.3);
+            }
+            .connection-panel, .data-panel { 
+                background: var(--panel, #575656); 
+                margin: 1vh 1vw; 
+                padding: 2vh 2vw; 
+                border-radius: 8px; 
+                box-shadow: 0 1px 4px rgba(0,0,0,0.06); 
+            }
+            .connection-panel h2, .data-panel h2, .data-panel h3 { color: #ffffff; }
+            .form-group { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+            label { font-weight: bold; }
+            select, input { 
+                padding: 8px 12px; 
+                border: 1px solid #ccc; 
+                border-radius: 4px; 
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+            /* Heat Transfer Themed Controls */
+            .control-group { 
+                background: transparent; 
+                border-radius: 12px; 
+                padding: 2vh 2vw; 
+                margin: 1vh 0; 
+                box-shadow: none; 
+                border: 1px solid var(--border, #444); 
+            }
+            .control-label { 
+                display: flex; 
+                align-items: center; 
+                gap: 8px; 
+                color: var(--text, #eee); 
+                font-weight: bold; 
+                font-size: 1.1em; 
+            }
+            .control-icon { font-size: 1.5em; }
+            .slider-container { display: flex; align-items: center; gap: 1vw; flex: 1; }
+            
+            /* Responsive Sliders - Keep Default Style, Scale with Screen */
+            input[type="range"] {
+                width: 100%;
+                min-width: 200px;
+                max-width: 80vw;
+                height: 1.5vh;
+                min-height: 12px;
+                max-height: 24px;
+            }
+            
+            /* Fan Slider - Customizable */
+            #fanSpeed {
+                -webkit-appearance: none;
+                appearance: none;
+                background: transparent;
+                border: none;
+                outline: none;
+            }
+            
+            #fanSpeed::-webkit-slider-track {
+                height: 12px;
+                background: transparent;
+                border-radius: 6px;
+                border: none;
+                position: relative;
+            }
+            
+            .slider-wrapper {
+                position: relative;
+                width: 100%;
+                height: 12px;
+                background: #e6e6fa;
+                border-radius: 6px;
+            }
+            
+            .slider-fill {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 12px;
+                width: var(--fill-percent, 0%);
+                background: #4169e1;
+                border-radius: 6px;
+                pointer-events: none;
+                z-index: 1;
+            }
+            
+            #fanSpeed {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 12px;
+                z-index: 2;
+                margin: 0;
+                padding: 0;
+            }
+            
+            #fanSpeed::-moz-range-track {
+                height: 12px;
+                background: #e6e6fa;
+                border-radius: 6px;
+                border: none;
+            }
+            
+            /* Heater Slider - Customizable */
+            #heaterTemp {
+                -webkit-appearance: none;
+                appearance: none;
+                background: transparent;
+                border: none;
+                outline: none;
+            }
+            
+            #heaterTemp::-webkit-slider-track {
+                height: 12px;
+                background: transparent;
+                border-radius: 6px;
+                border: none;
+                position: relative;
+            }
+            
+            .heater-slider-wrapper {
+                position: relative;
+                width: 100%;
+                height: 12px;
+                background: #e6e6fa;
+                border-radius: 6px;
+            }
+            
+            .heater-slider-fill {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 12px;
+                width: var(--fill-percent, 0%);
+                background: #ff4757;
+                border-radius: 6px;
+                pointer-events: none;
+                z-index: 1;
+            }
+            
+            #heaterTemp {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 12px;
+                z-index: 2;
+                margin: 0;
+                padding: 0;
+            }
+            
+            #heaterTemp::-moz-range-track {
+                height: 12px;
+                background: #e6e6fa;
+                border-radius: 6px;
+                border: none;
+            }
+            
+            /* Fan Slider Thumb - Customizable */
+            #fanSpeed::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: #ffffff;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                border: none;
+                position: relative;
+            }
+            
+            #fanSpeed::-moz-range-thumb {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: #ffffff;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                border: none;
+            }
+            
+            /* Fan Icon for Thumb */
+            .fan-thumb-icon {
+                position: absolute;
+                top: 50%;
+                left: 0;
+                transform: translate(-50%, -50%);
+                font-size: 12px;
+                color: #4169e1;
+                transition: left 0.1s ease;
+                pointer-events: none;
+                z-index: 3;
+                width: 12px;
+                height: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* Fan spinning animation */
+            @keyframes fanSpin {
+                from { transform: translate(-50%, -50%) rotate(0deg); }
+                to { transform: translate(-50%, -50%) rotate(360deg); }
+            }
+            
+            /* Fan spinning animation for text */
+            @keyframes fanTextSpin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            
+            /* Fan Icon for Text Display */
+            #fanTextIcon {
+                display: inline-block;
+                transition: transform 0.1s ease;
+                margin-right: 5px;
+            }
+            
+            /* Heater Slider Thumb - Customizable */
+            #heaterTemp::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: #ffffff;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                border: none;
+                position: relative;
+            }
+            
+            #heaterTemp::-moz-range-thumb {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: #ffffff;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                border: none;
+            }
+            
+            /* Heater Icon for Thumb */
+            .heater-thumb-icon {
+                position: absolute;
+                top: 50%;
+                left: 0;
+                transform: translate(-50%, -50%);
+                font-size: 12px;
+                color: #ff4757;
+                transition: left 0.1s ease;
+                pointer-events: none;
+                z-index: 3;
+                width: 12px;
+                height: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .value-display { 
+                background: var(--panel, #333); 
+                color: var(--text, #eee); 
+                padding: 4px 12px; 
+                border-radius: 20px; 
+                font-weight: bold; 
+                min-width: 60px; 
+                text-align: center; 
+                border: 1px solid var(--border, #444); 
+            }
+            .heater-btn { 
+                background: linear-gradient(45deg, #ff4757, #ff3742); 
+                color: #fff; 
+                border: none; 
+                padding: 12px 20px; 
+                border-radius: 25px; 
+                font-weight: bold; 
+                cursor: pointer; 
+                box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4); 
+                transition: all 0.3s ease; 
+            }
+            .heater-btn:hover { 
+                transform: translateY(-2px); 
+                box-shadow: 0 6px 16px rgba(255, 71, 87, 0.6); 
+            }
+            .heater-btn.active { 
+                background: linear-gradient(45deg, #2ed573, #1e90ff); 
+            }
+            
+            /* Basic Fan Speed Slider */
+            .fan-control { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                gap: 1vh; 
+                padding: 2vh 2vw; 
+                background: transparent; 
+                border: 1px solid var(--border, #444); 
+                border-radius: 12px; 
+                margin: 1vh 0; 
+            }
+            .fan-percentage { 
+                font-size: 2vh; 
+                font-weight: bold; 
+                color: #ffffff; 
+                text-align: center; 
+                margin: 0; 
+            }
+            .fan-slider-container { 
+                width: 100%; 
+                max-width: 60vw; 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                gap: 0.5vh; 
+            }
+            .fan-control-title { 
+                color: #ffffff; 
+                font-size: 1.5vh; 
+                font-weight: bold; 
+                text-transform: uppercase; 
+                letter-spacing: 1px; 
+                margin: 0; 
+            }
+            .button-group { display: flex; gap: 8px; margin-top: 8px; }
+            button { 
+                padding: 12px 16px; 
+                border: none; 
+                border-radius: 4px; 
+                cursor: pointer; 
+                font-size: 16px; /* Better touch targets */
+                min-height: 44px; /* iOS touch target size */
+            }
+            .connect-btn { background: #28a745; color: #fff; }
+            .disconnect-btn { background: #dc3545; color: #fff; }
+            .clear-btn { background: #6c757d; color: #fff; }
+            .status-disconnected { margin-top: 8px; color: #dc3545; font-weight: bold; }
+            .status-connected { margin-top: 8px; color: #28a745; font-weight: bold; }
+            .data-info { display: flex; gap: 24px; margin: 12px 0; flex-wrap: wrap; }
+            .info-item .label { font-weight: bold; margin-right: 6px; }
+            .raw-data, .parsed-data, .data-log { 
+                background: #0b1021; 
+                color: #cde3ff; 
+                font-family: Consolas, "Courier New", monospace; 
+                padding: 12px; 
+                border-radius: 6px; 
+                white-space: pre; 
+                overflow: auto; 
+                min-height: 90px; 
+            }
+            .data-log { max-height: 300px; overflow-y: auto; }
+            .tiles { 
+                display: grid; 
+                grid-template-columns: repeat(auto-fill, minmax(15vw, 1fr)); 
+                gap: 1vh; 
+                margin-top: 1vh; 
+            }
+            .tile { 
+                background: #ffffff; 
+                border: 1px solid #e6e6e6; 
+                border-left-width: 6px; 
+                border-radius: 8px; 
+                padding: 12px; 
+                box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
+                font-weight: bold; 
+            }
+            #t1{ border-left-color: #ff4d4f;} #t2{ border-left-color: #40a9ff;} #t3{ border-left-color: #73d13d;} #t4{ border-left-color: #fa8c16;} #t5{ border-left-color: #b37feb;} #t6{ border-left-color: #36cfc9;} #t7{ border-left-color: #f759ab;} #t8{ border-left-color: #9254de;} #heaterLeft{ border-left-color: #faad14;} #heaterRight{ border-left-color: #1f7a8c;} #timeTile{ border-left-color: #1e90ff;}
+            .tile.accent { background: #fff7e6; border-color: #ffd591; }
+            .tile.subtle { background: #f6f7fb; border-color: #e6e8f0; font-weight: normal; }
+            .graph-section { 
+                margin-top: 2vh; 
+                background: var(--panel, #575656); 
+                border: 1px solid #e6e6e6; 
+                border-radius: 8px; 
+                padding: 2vh 2vw; 
+                box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
+                display: flex; 
+                gap: 2vw; 
+            }
+            .graph-content { flex: 1; position: relative; }
+            .axis-label { text-align: center; color: #ffffff; font-size: 12px; margin: 4px 0; }
+            .y-label { 
+                writing-mode: vertical-rl; 
+                position: absolute; 
+                left: -28px; 
+                top: 50%; 
+                transform: translateY(-50%) rotate(180deg);
+                margin: 0;
+            }
+            .y-label-right { 
+                position: absolute; 
+                right: 6px; 
+                top: 50%; 
+                transform: translateY(-50%);
+                color: #ffffff; 
+                font-size: 12px; 
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+            }
+            .series-toggles { 
+                display: flex; 
+                flex-direction: column; 
+                gap: 8px; 
+                font-size: 12px; 
+                color: #444; 
+                background: var(--panel, rgba(255,255,255,0.8));
+                padding: 1vh 1vw;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                min-width: 150px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+            .series-toggles label { 
+                display: flex; 
+                align-items: center; 
+                gap: 6px; 
+                background: transparent; 
+                border: none; 
+                padding: 4px 8px; 
+                border-radius: 16px; 
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+            .series-toggles label:hover {
+                background: rgba(255,255,255,0.1);
+            }
+            .series-toggles input[type="checkbox"] {
+                position: absolute;
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .series-toggles label::before {
+                content: '';
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                border: 2px solid currentColor;
+                margin-right: 8px;
+                background-color: transparent;
+                transition: background-color 0.2s ease, border-color 0.2s ease;
+                flex-shrink: 0;
+            }
+            .series-toggles input[type="checkbox"]:checked + label::before {
+                background-color: currentColor;
+                border-color: currentColor;
+            }
+            .series-toggles input[type="checkbox"]:checked + label {
+                opacity: 1;
+            }
+            .series-toggles input[type="checkbox"]:not(:checked) + label {
+                opacity: 0.6;
+            }
+            .series-toggles label[data-series="0"]{ color: #ff4d4f;} .series-toggles label[data-series="1"]{ color: #40a9ff;} .series-toggles label[data-series="2"]{ color: #73d13d;} .series-toggles label[data-series="3"]{ color: #fa8c16;} .series-toggles label[data-series="4"]{ color: #b37feb;} .series-toggles label[data-series="5"]{ color: #36cfc9;} .series-toggles label[data-series="6"]{ color: #f759ab;} .series-toggles label[data-series="7"]{ color: #9254de;} .series-toggles label[data-series="8"]{ color: #faad14;} .series-toggles label[data-series="9"]{ color: #1f7a8c;} .series-toggles label[data-series="10"]{ color: #000000;} .series-toggles label[data-series="11"]{ color: #ff007a;}
+            .raw-data-section, .parsed-data-section, .data-log-section { margin-top: 16px; }
+            .graph-controls { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 12px; color: #ffffff; }
+            .hover-info { color: #ffffff; }
+
+            @media (max-width: 600px) {
+                .form-group { flex-direction: column; align-items: stretch; }
+                .button-group { flex-direction: column; }
+                .tiles { grid-template-columns: repeat(auto-fill, minmax(25vw, 1fr)); }
+                .header-container { flex-direction: column; gap: 1vh; }
+                .header-matrix, .header-heat-transfer { max-width: 80vw; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header-container">
+                <img src="Matrix 2024 White_Thermodynamics.png" alt="Matrix Thermodynamics" class="header-matrix">
+                <img src="Heat_Transfer.png" alt="Heat Transfer Header" class="header-heat-transfer">
+            </div>
+            <div id="systemStatusIndicator" class="system-status-indicator offline">SYSTEM OFFLINE</div>
+            <!-- Connection Panel -->
+            <div class="connection-panel">
+                <h2>Connection Settings</h2>
+                <div class="form-group">
+                    <label for="comPort">COM Port:</label>
+                    <select id="comPort">
+                        <option value="">Select COM Port...</option>
+                    </select>
+                    <button id="refreshPorts">Refresh Ports</button>
+                </div>
+                <div class="button-group">
+                    <button id="connectBtn" class="connect-btn">Connect</button>
+                    <button id="disconnectBtn" class="disconnect-btn" disabled>Disconnect</button>
+                </div>
+                <div id="connectionStatus" class="status-disconnected">Disconnected</div>
+                <div class="fan-control">
+                    <div class="fan-percentage" id="fanSpeedValue">
+                        <span id="fanTextIcon">🌀</span> <span id="fanTextPercentage">0%</span>
+                    </div>
+                    <div class="fan-slider-container">
+                        <div class="slider-wrapper">
+                            <div class="slider-fill" id="fanSliderFill"></div>
+                            <input type="range" id="fanSpeed" min="0" max="100" value="0" step="1">
+                            <div class="fan-thumb-icon" id="fanThumbIcon">🌀</div>
+                        </div>
+                    </div>
+                    <div class="fan-control-title">FAN SPEED CONTROL</div>
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="control-icon">🔥</span>
+                        <span>Heater Temperature Control</span>
+                    </div>
+                    <div class="slider-container">
+                        <div class="heater-slider-wrapper">
+                            <div class="heater-slider-fill" id="heaterSliderFill"></div>
+                            <input type="range" id="heaterTemp" min="20" max="70" value="20" step="1">
+                            <div class="heater-thumb-icon" id="heaterThumbIcon">🔥</div>
+                        </div>
+                        <div class="value-display" id="heaterTempValue">20°C</div>
+                        <button id="heaterToggle" class="heater-btn">🔥 Heater: Off</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-panel">
+                <h2>Received Data</h2>
+                <div class="data-info">
+                    <div class="info-item">
+                        <span class="label">Total Packets:</span>
+                        <span id="packetCount">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Last Update:</span>
+                        <span id="lastUpdate">Never</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Connection:</span>
+                        <span id="connectionInfo">No device connected</span>
+                    </div>
+                </div>
+
+                <div class="tiles">
+                    <div class="tile" id="t1">T1: --.-°C</div>
+                    <div class="tile" id="t2">T2: --.-°C</div>
+                    <div class="tile" id="t3">T3: --.-°C</div>
+                    <div class="tile" id="t4">T4: --.-°C</div>
+                    <div class="tile" id="t5">T5: --.-°C</div>
+                    <div class="tile" id="t6">T6: --.-°C</div>
+                    <div class="tile" id="t7">T7: --.-°C</div>
+                    <div class="tile" id="t8">T8: --.-°C</div>
+                    <div class="tile accent" id="heaterLeft">Heater Left: --.-°C</div>
+                    <div class="tile accent" id="heaterRight">Heater Right: --.-°C</div>
+                    <div class="tile subtle" id="timeTile">Time: --.-s</div>
+                    <div class="tile" id="powerTile">Power: --.- W</div>
+                </div>
+
+                <div class="graph-section">
+                    <div class="graph-content">
+                        <h3>Temperatures vs Time</h3>
+                        <div class="axis-label y-label">Temperature (°C)</div>
+                        <canvas id="tempChart" width="90vw" height="50vw"></canvas>
+                        <div class="axis-label x-label">Time (s)</div>
+                        <div class="axis-label y-label-right">Power (W)</div>
+                    </div>
+                    <div class="series-toggles" id="seriesToggles">
+                        <input type="checkbox" data-series="0" checked id="series0">
+                        <label for="series0" data-series="0">T1</label>
+                        <input type="checkbox" data-series="1" checked id="series1">
+                        <label for="series1" data-series="1">T2</label>
+                        <input type="checkbox" data-series="2" checked id="series2">
+                        <label for="series2" data-series="2">T3</label>
+                        <input type="checkbox" data-series="3" checked id="series3">
+                        <label for="series3" data-series="3">T4</label>
+                        <input type="checkbox" data-series="4" checked id="series4">
+                        <label for="series4" data-series="4">T5</label>
+                        <input type="checkbox" data-series="5" checked id="series5">
+                        <label for="series5" data-series="5">T6</label>
+                        <input type="checkbox" data-series="6" checked id="series6">
+                        <label for="series6" data-series="6">T7</label>
+                        <input type="checkbox" data-series="7" checked id="series7">
+                        <label for="series7" data-series="7">T8</label>
+                        <input type="checkbox" data-series="8" checked id="series8">
+                        <label for="series8" data-series="8">Heater Left</label>
+                        <input type="checkbox" data-series="9" checked id="series9">
+                        <label for="series9" data-series="9">Heater Right</label>
+                        <input type="checkbox" data-series="10" checked id="series10">
+                        <label for="series10" data-series="10">Power</label>
+                        <input type="checkbox" data-series="11" checked id="series11">
+                        <label for="series11" data-series="11">Target Temp</label>
+                    </div>
+                </div>
+                <div class="graph-controls">
+                    <label><input type="checkbox" id="pauseGraph"> Pause</label>
+                    <span id="hoverInfo" class="hover-info">Hover for details…</span>
+                </div>
+
+                <div class="raw-data-section">
+                    <h3>Raw Data (56 bytes)</h3>
+                    <div id="rawDataDisplay" class="raw-data">
+                        <p>No data received yet</p>
+                    </div>
+                </div>
+
+                <div class="parsed-data-section">
+                    <h3>Parsed Data</h3>
+                    <div id="parsedDataDisplay" class="parsed-data">
+                        <p>Data will be parsed and displayed here</p>
+                    </div>
+                </div>
+
+                <div class="data-log-section">
+                    <h3>Data Log</h3>
+                    <div id="dataLog" class="data-log">
+                        <p>Connection log will appear here</p>
+                    </div>
+                    <button id="clearLogBtn" class="clear-btn">Clear Log</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="renderer-web.js"></script>
+    </body>
+</html>
+
+
