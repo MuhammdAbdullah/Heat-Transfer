@@ -733,6 +733,8 @@ function displayRawData(dataArray) {
 function parseAndDisplayData(dataArray) {
 	var parsedInfo = '';
 	var actualData = dataArray.slice(2, 54);
+	console.log('Full data array length:', dataArray.length);
+	console.log('Actual data length:', actualData.length);
 	parsedInfo += 'Packet Structure:\n';
 	parsedInfo += 'Header: 0x' + dataArray[0].toString(16).padStart(2, '0') + ' 0x' + dataArray[1].toString(16).padStart(2, '0') + '\n';
 	parsedInfo += 'Data Length: ' + actualData.length + ' bytes\n';
@@ -761,6 +763,43 @@ function parseAndDisplayData(dataArray) {
 				tileEl.textContent = 'T' + (9 - labelIndex) + ': ' + temp.toFixed(2) + '\u00B0C';
 			}
 			parsedInfo += 'Sensor ' + (sensorIndex + 1) + ': ' + temp.toFixed(2) + '\u00B0C\n';
+		}
+		
+		// Display heater temperatures in tiles (bytes 36-43)
+		if (actualData.length >= 44) {
+			console.log('Parsing heater data, actualData length:', actualData.length);
+			// Heater Left (bytes 36-39)
+			var hb0 = actualData[36], hb1 = actualData[37], hb2 = actualData[38], hb3 = actualData[39];
+			var hbuf1 = new ArrayBuffer(4);
+			var hdv1 = new DataView(hbuf1);
+			hdv1.setUint8(0, hb0); hdv1.setUint8(1, hb1); hdv1.setUint8(2, hb2); hdv1.setUint8(3, hb3);
+			heaterLeftTemp = hdv1.getFloat32(0, true);
+			console.log('Heater Left temp:', heaterLeftTemp);
+			var heaterLeftEl = document.getElementById('heaterLeftTile');
+			console.log('Heater Left element found:', !!heaterLeftEl);
+			if (heaterLeftEl) {
+				heaterLeftEl.textContent = 'Heater Left: ' + heaterLeftTemp.toFixed(2) + '°C';
+				console.log('Updated heater left tile:', heaterLeftEl.textContent);
+			}
+			
+			// Heater Right (bytes 40-43)
+			var hb4 = actualData[40], hb5 = actualData[41], hb6 = actualData[42], hb7 = actualData[43];
+			var hbuf2 = new ArrayBuffer(4);
+			var hdv2 = new DataView(hbuf2);
+			hdv2.setUint8(0, hb4); hdv2.setUint8(1, hb5); hdv2.setUint8(2, hb6); hdv2.setUint8(3, hb7);
+			heaterRightTemp = hdv2.getFloat32(0, true);
+			console.log('Heater Right temp:', heaterRightTemp);
+			var heaterRightEl = document.getElementById('heaterRightTile');
+			console.log('Heater Right element found:', !!heaterRightEl);
+			if (heaterRightEl) {
+				heaterRightEl.textContent = 'Heater Right: ' + heaterRightTemp.toFixed(2) + '°C';
+				console.log('Updated heater right tile:', heaterRightEl.textContent);
+			}
+			
+			// Update button text with temperatures
+			updateHeaterButtons();
+		} else {
+			console.log('Not enough data for heaters, length:', actualData.length);
 		}
 
 		// Bytes 34..37 (actualData[32..35]): time as float32 (little-endian)
@@ -825,6 +864,7 @@ function parseAndDisplayData(dataArray) {
 
 		// Bytes 38..45 (actualData[36..43]): two more temperature sensors as float32
 		if (actualData.length >= 44) {
+			console.log('Parsing heater sensor data, data length: ' + actualData.length);
 			for (var extraIndex = 0; extraIndex < 2; extraIndex++) {
 				var ebase = 36 + extraIndex * 4;
 				var eb0 = actualData[ebase + 0];
@@ -839,10 +879,8 @@ function parseAndDisplayData(dataArray) {
 				edv.setUint8(3, eb3);
 				var etemp = edv.getFloat32(0, true);
 				parsedInfo += 'Sensor ' + (9 + extraIndex) + ': ' + etemp.toFixed(2) + '\u00B0C\n';
-				var heaterEl = document.getElementById(extraIndex === 0 ? 'heaterLeft' : 'heaterRight');
-				if (heaterEl) {
-					heaterEl.textContent = (extraIndex === 0 ? 'Heater Left: ' : 'Heater Right: ') + etemp.toFixed(2) + '\u00B0C';
-				}
+				console.log('Heater sensor ' + extraIndex + ' temperature: ' + etemp.toFixed(2) + '°C');
+				// Heater elements are now handled in the main parsing section
 				
 				// Store heater temperatures for display
 				if (extraIndex === 0) {
@@ -1078,6 +1116,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	var apiAvailable = ensureElectronAPI();
 
 	addToLog('Heat Transfer Data Reader started');
+	
+	// Initialize heater buttons with temperature display
+	updateHeaterButtons();
 
 	if (!apiAvailable) {
 		addToLog('Warning: electronAPI bridge not found. Running in limited mode.');
@@ -1444,8 +1485,14 @@ if (heaterTempInput && heaterTempValue) {
 function updateHeaterButtons() {
     // Remove active class from heater buttons only (cooler is independent)
     if (heaterOffBtn) heaterOffBtn.classList.remove('active');
-    if (heaterLeftBtn) heaterLeftBtn.classList.remove('active');
-    if (heaterRightBtn) heaterRightBtn.classList.remove('active');
+    if (heaterLeftBtn) {
+        heaterLeftBtn.classList.remove('active');
+        heaterLeftBtn.textContent = '🔥 Heater Right ' + heaterRightTemp.toFixed(1) + '°C';
+    }
+    if (heaterRightBtn) {
+        heaterRightBtn.classList.remove('active');
+        heaterRightBtn.textContent = '🔥 Heater Left ' + heaterLeftTemp.toFixed(1) + '°C';
+    }
     
     // Add active class to current heater mode
     if (heaterMode === 0 && heaterOffBtn) {

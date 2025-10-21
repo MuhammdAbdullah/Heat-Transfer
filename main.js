@@ -73,6 +73,80 @@ function createWindow() {
   });
 
   // Handle window closed
+  mainWindow.on('close', async (event) => {
+    // Prevent immediate closing to allow safety commands to complete
+    event.preventDefault();
+    
+    // Safety: Send shutdown commands before window closes
+    try {
+      if (serialPort && serialPort.isOpen) {
+        console.log('Safety: Sending shutdown commands before window close...');
+        
+        // 1. Fan speed 0
+        const fanBytes = [0x3A, 0x46, 0x00, 0x3B, 0x0A]; // :F0;\n
+        console.log('Sending fan stop bytes:', fanBytes);
+        const fanPayload = Buffer.from(fanBytes);
+        await new Promise((resolve, reject) => {
+          serialPort.write(fanPayload, (err) => {
+            if (err) reject(err); else resolve();
+          });
+        });
+        console.log('Fan stop command sent');
+        
+        // Delay between commands
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // 2. Left cooler value 1 (turn on cooler)
+        const coolerBytes = [0x3A, 0x50, 0x01, 0x3B, 0x0A]; // :P1;\n
+        console.log('Sending cooler on bytes:', coolerBytes);
+        const coolerPayload = Buffer.from(coolerBytes);
+        await new Promise((resolve, reject) => {
+          serialPort.write(coolerPayload, (err) => {
+            if (err) reject(err); else resolve();
+          });
+        });
+        console.log('Cooler on command sent');
+        
+        // Delay between commands
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // 3. Heater temperature to 20°C
+        const heaterTempBytes = [0x3A, 0x54, 0x14, 0x3B, 0x0A]; // :T20;\n
+        console.log('Sending heater temp 20°C bytes:', heaterTempBytes);
+        const heaterTempPayload = Buffer.from(heaterTempBytes);
+        await new Promise((resolve, reject) => {
+          serialPort.write(heaterTempPayload, (err) => {
+            if (err) reject(err); else resolve();
+          });
+        });
+        console.log('Heater temp 20°C command sent');
+        
+        // Delay between commands
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // 4. Heater off
+        const heaterOffBytes = [0x3A, 0x48, 0x00, 0x3B, 0x0A]; // :H0;\n
+        console.log('Sending heater off bytes:', heaterOffBytes);
+        const heaterOffPayload = Buffer.from(heaterOffBytes);
+        await new Promise((resolve, reject) => {
+          serialPort.write(heaterOffPayload, (err) => {
+            if (err) reject(err); else resolve();
+          });
+        });
+        console.log('Heater off command sent');
+        
+        console.log('All safety shutdown commands sent successfully');
+      } else {
+        console.log('Serial port not available during window close');
+      }
+    } catch (error) {
+      console.error('Error sending safety shutdown commands:', error);
+    }
+    
+    // Now allow the window to close
+    mainWindow.destroy();
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -103,6 +177,8 @@ app.whenReady().then(() => {
     }
   });
 });
+
+
 
 // Quit when all windows are closed
 app.on('window-all-closed', () => {
@@ -443,6 +519,8 @@ ipcMain.handle('connect-to-port', async (event, portPath, baudRate) => {
 ipcMain.handle('disconnect-from-port', async () => {
   try {
     if (serialPort && serialPort.isOpen) {
+      // Safety commands are handled in before-quit event
+      
       await new Promise((resolve) => {
         serialPort.close(() => resolve());
       });
