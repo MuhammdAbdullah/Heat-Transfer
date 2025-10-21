@@ -837,7 +837,7 @@ function parseAndDisplayData(dataArray) {
 				edv.setUint8(3, eb3);
 				var etemp = edv.getFloat32(0, true);
 				parsedInfo += 'Sensor ' + (9 + extraIndex) + ': ' + etemp.toFixed(2) + '\u00B0C\n';
-				var heaterEl = document.getElementById(extraIndex === 0 ? 'heaterRight' : 'heaterLeft');
+				var heaterEl = document.getElementById(extraIndex === 0 ? 'heaterLeft' : 'heaterRight');
 				if (heaterEl) {
 					heaterEl.textContent = (extraIndex === 0 ? 'Heater Left: ' : 'Heater Right: ') + etemp.toFixed(2) + '\u00B0C';
 				}
