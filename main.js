@@ -352,6 +352,27 @@ async function connectSerial(portPath, baudRate) {
 
 // Process received data buffer
 function processRxBuffer() {
+  // First, check for 4-byte fan speed packets [0x11, 0x11, 0x11, data]
+  while (rxBuffer.length >= 4) {
+    // Check if this is a 4-byte fan speed packet
+    if (rxBuffer[0] === 0x11 && rxBuffer[1] === 0x11 && rxBuffer[2] === 0x11) {
+      const fanSpeedPacket = rxBuffer.slice(0, 4);
+      console.log('4-byte fan speed packet received:', fanSpeedPacket.toString('hex'));
+      
+      // Send to renderer
+      if (mainWindow) {
+        mainWindow.webContents.send('data-received', fanSpeedPacket);
+      }
+      
+      // Remove the 4-byte packet from buffer
+      rxBuffer = rxBuffer.slice(4);
+      continue;
+    } else {
+      // Not a 4-byte packet, break to check for 56-byte packets
+      break;
+    }
+  }
+  
   // Look for complete 56-byte packets with proper headers and footers
   while (rxBuffer.length >= 56) {
     // Find sync header 0x55 0x55

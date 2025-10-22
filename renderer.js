@@ -622,6 +622,9 @@ function updateConnectionStatus(connected, portInfo) {
 	if (portInfo === undefined) {
 		portInfo = '';
 	}
+	
+	// Check if connection status actually changed
+	var wasConnected = isConnected;
 	isConnected = connected;
 	
 	// Update system status indicator
@@ -647,10 +650,12 @@ function updateConnectionStatus(connected, portInfo) {
 		if (connectBtn) connectBtn.disabled = true;
 		if (disconnectBtn) disconnectBtn.disabled = false;
 		
-		// Send safety shutdown commands when hardware reconnects (with delay)
-		setTimeout(() => {
-			sendShutdownCommandsOnReconnect();
-		}, 1000); // Wait 1 second before sending safety commands
+		// Send safety shutdown commands only when hardware actually reconnects (not on every packet)
+		if (!wasConnected && connected) {
+			setTimeout(() => {
+				sendShutdownCommandsOnReconnect();
+			}, 1000); // Wait 1 second before sending safety commands
+		}
 	} else {
 		if (connectionStatus) {
 		connectionStatus.textContent = 'Disconnected';
@@ -660,8 +665,10 @@ function updateConnectionStatus(connected, portInfo) {
         if (connectBtn) connectBtn.disabled = true;
         if (disconnectBtn) disconnectBtn.disabled = true;
         
-        // Set safe values when hardware goes offline
-        setSafeValuesOffline();
+        // Set safe values only when hardware actually goes offline (not on every disconnection check)
+        if (wasConnected && !connected) {
+            setSafeValuesOffline();
+        }
 	}
 }
 
@@ -796,6 +803,42 @@ function handleIncomingData(data) {
 		}
 	})(data);
 	console.log('Data array length:', dataArray.length); // Debug log
+	
+	// Debug: Log all incoming data to see what's being received
+	if (dataArray.length > 0) {
+		var hexString = dataArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+		addToLog('DEBUG: All incoming data (length: ' + dataArray.length + '): ' + hexString);
+		
+		// Check if this looks like a 4-byte packet
+		if (dataArray.length === 4) {
+			addToLog('DEBUG: This is a 4-byte packet!');
+			if (dataArray[0] === 0x11 && dataArray[1] === 0x11 && dataArray[2] === 0x11) {
+				addToLog('DEBUG: This matches the 11 11 11 pattern!');
+			} else {
+				addToLog('DEBUG: This does NOT match the 11 11 11 pattern');
+			}
+		}
+	}
+	
+	// Check for fan speed data - format: [0x11, 0x11, 0x11, data] (exactly 4 bytes)
+	if (dataArray.length === 4 && dataArray[0] === 0x11 && dataArray[1] === 0x11 && dataArray[2] === 0x11) {
+		var fanSpeed = dataArray[3]; // Fan speed value (0-100)
+		
+		// Debug: Print the received data
+		var hexString = dataArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+		addToLog('DEBUG: Received 4-byte fan speed data: ' + hexString);
+		addToLog('DEBUG: Fan speed value: ' + fanSpeed);
+		
+		// Validate fan speed range
+		if (fanSpeed >= 0 && fanSpeed <= 100) {
+			updateFanSliderFromHardware(fanSpeed);
+			addToLog('Fan speed received from hardware: ' + fanSpeed + '%');
+		} else {
+			addToLog('Invalid fan speed value: ' + fanSpeed);
+		}
+		return; // Exit early since this is a 4-byte packet
+	}
+	
 	if (dataArray.length >= 56) {
 		if (dataArray[0] === 0x55 && dataArray[1] === 0x55) {
 			if (dataArray[54] === 0xAA && dataArray[55] === 0xAA) {
@@ -817,6 +860,40 @@ function handleIncomingData(data) {
 	} else {
 		addToLog('Incomplete data received: ' + dataArray.length + ' bytes (expected 56)');
 	}
+}
+
+// Function to update fan slider when receiving data from hardware
+function updateFanSliderFromHardware(fanSpeed) {
+    // Ensure fan speed is within valid range (0-100)
+    fanSpeed = Math.max(0, Math.min(100, fanSpeed));
+    
+    addToLog('DEBUG: Updating fan slider to: ' + fanSpeed + '%');
+    addToLog('DEBUG: fanSpeedInput element found: ' + (fanSpeedInput ? 'YES' : 'NO'));
+    addToLog('DEBUG: fanSpeedDisplay element found: ' + (fanSpeedDisplay ? 'YES' : 'NO'));
+    
+    // Update the fan speed input slider
+    if (fanSpeedInput) {
+        fanSpeedInput.value = fanSpeed;
+        addToLog('DEBUG: Set fanSpeedInput.value to: ' + fanSpeedInput.value);
+        
+        // Update the display text
+        if (fanSpeedDisplay) {
+            fanSpeedDisplay.textContent = fanSpeed + '%';
+            addToLog('DEBUG: Set fanSpeedDisplay.textContent to: ' + fanSpeedDisplay.textContent);
+        }
+        
+        // Update the visual slider fill
+        updateSliderFill(fanSpeed);
+        addToLog('DEBUG: Called updateSliderFill with: ' + fanSpeed);
+        
+        // Update the fan icon animation
+        updateFanIcon(fanSpeed);
+        addToLog('DEBUG: Called updateFanIcon with: ' + fanSpeed);
+        
+        addToLog('Fan slider updated from hardware: ' + fanSpeed + '%');
+    } else {
+        addToLog('ERROR: fanSpeedInput element not found!');
+    }
 }
 
 function addRawData(data) {
