@@ -424,6 +424,8 @@ const coolerBtn = document.getElementById('coolerBtn');
 var heaterMode = 0; // 0=off,1=left,2=right,3=cooler
 var heaterLeftTemp = 0; // Store left heater temperature
 var heaterRightTemp = 0; // Store right heater temperature
+var safetyCommandsSent = false; // Track if safety commands were sent after reconnection
+var wasInUnsafeState = false; // Track if system was in unsafe state when disconnected
 
 function addToLog(message) {
 	const timestamp = new Date().toLocaleTimeString();
@@ -513,6 +515,109 @@ async function closeWebSerial() {
     webSerialReader = null; webSerialPort = null;
 }
 
+// Safety function: Set safe values when hardware goes offline
+function setSafeValuesOffline() {
+    addToLog('Hardware offline - Setting safe values...');
+    
+    // Check if system was in unsafe state (heater on or high fan speed)
+    var currentFanSpeed = fanSpeedInput ? parseInt(fanSpeedInput.value, 10) : 0;
+    var currentHeaterTemp = heaterTempInput ? parseInt(heaterTempInput.value, 10) : 20;
+    
+    wasInUnsafeState = (heaterMode !== 0 || currentFanSpeed > 30 || currentHeaterTemp > 30);
+    
+    if (wasInUnsafeState) {
+        addToLog('System was in unsafe state - will send shutdown commands on reconnection');
+    } else {
+        addToLog('System was in safe state - no shutdown commands needed on reconnection');
+    }
+    
+    // Reset safety commands flag for next reconnection
+    safetyCommandsSent = false;
+    
+    // Set fan speed to 0
+    if (fanSpeedInput) {
+        fanSpeedInput.value = 0;
+        if (fanSpeedDisplay) fanSpeedDisplay.textContent = '0%';
+        updateSliderFill(0);
+        updateFanIcon(0);
+    }
+    
+    // Set heater temperature to 20°C (safe room temperature)
+    if (heaterTempInput) {
+        heaterTempInput.value = 20;
+        addToLog('Setting heater temp to 20°C (minimum safe temperature)');
+        updateHeaterSliderFill(20);
+        updateHeaterIcon(20);
+        // Also update the display value
+        var heaterTempValue = document.getElementById('heaterTempValue');
+        if (heaterTempValue) heaterTempValue.textContent = '20°C';
+        addToLog('Heater slider set to 20°C (minimum position)');
+    }
+    
+    // Turn heater off (mode 0)
+    heaterMode = 0;
+    updateHeaterButtons();
+    
+    // Turn cooler on (for safety cooling)
+    if (coolerBtn) {
+        coolerBtn.classList.add('active');
+    }
+    
+    addToLog('Safe values set: Fan=0%, Heater=20°C, Heater=OFF, Cooler=ON');
+}
+
+// Safety function: Send shutdown commands when hardware reconnects (only if system was unsafe)
+async function sendShutdownCommandsOnReconnect() {
+    if (!isConnected || safetyCommandsSent) {
+        if (safetyCommandsSent) {
+            addToLog('Safety commands already sent, skipping...');
+        }
+        return;
+    }
+    
+    // Only send shutdown commands if system was in unsafe state
+    if (!wasInUnsafeState) {
+        addToLog('System was in safe state - no shutdown commands needed');
+        safetyCommandsSent = true; // Mark as sent so we don't try again
+        return;
+    }
+    
+    addToLog('Hardware reconnected - System was unsafe, sending shutdown commands...');
+    safetyCommandsSent = true; // Set flag immediately to prevent multiple calls
+    
+    try {
+        // Send fan stop command
+        var fanResult = await window.electronAPI.sendFanSpeed(0);
+        if (fanResult && fanResult.success) {
+            addToLog('Fan stop command sent');
+        }
+        
+        // Send cooler on command
+        var coolerResult = await window.electronAPI.sendCooler(1);
+        if (coolerResult && coolerResult.success) {
+            addToLog('Cooler on command sent');
+        }
+        
+        // Send heater temperature to 20°C
+        var heaterTempResult = await window.electronAPI.sendHeaterTemp(20);
+        if (heaterTempResult && heaterTempResult.success) {
+            addToLog('Heater temp 20°C command sent');
+        }
+        
+        // Send heater off command
+        var heaterOffResult = await window.electronAPI.setHeaterMode(0);
+        if (heaterOffResult && heaterOffResult.success) {
+            addToLog('Heater off command sent');
+        }
+        
+        addToLog('All safety shutdown commands sent successfully');
+        
+    } catch (error) {
+        addToLog('Error sending shutdown commands: ' + error.message);
+        safetyCommandsSent = false; // Reset flag if there was an error
+    }
+}
+
 function updateConnectionStatus(connected, portInfo) {
 	if (portInfo === undefined) {
 		portInfo = '';
@@ -541,6 +646,11 @@ function updateConnectionStatus(connected, portInfo) {
 		if (connectionInfoDisplay) connectionInfoDisplay.textContent = portInfo;
 		if (connectBtn) connectBtn.disabled = true;
 		if (disconnectBtn) disconnectBtn.disabled = false;
+		
+		// Send safety shutdown commands when hardware reconnects (with delay)
+		setTimeout(() => {
+			sendShutdownCommandsOnReconnect();
+		}, 1000); // Wait 1 second before sending safety commands
 	} else {
 		if (connectionStatus) {
 		connectionStatus.textContent = 'Disconnected';
@@ -549,6 +659,9 @@ function updateConnectionStatus(connected, portInfo) {
 		if (connectionInfoDisplay) connectionInfoDisplay.textContent = 'No device connected';
         if (connectBtn) connectBtn.disabled = true;
         if (disconnectBtn) disconnectBtn.disabled = true;
+        
+        // Set safe values when hardware goes offline
+        setSafeValuesOffline();
 	}
 }
 
@@ -1487,11 +1600,11 @@ function updateHeaterButtons() {
     if (heaterOffBtn) heaterOffBtn.classList.remove('active');
     if (heaterLeftBtn) {
         heaterLeftBtn.classList.remove('active');
-        heaterLeftBtn.textContent = '🔥 Heater Right ' + heaterRightTemp.toFixed(1) + '°C';
+        heaterLeftBtn.textContent = '🔥 Heater Right 🔥' + heaterRightTemp.toFixed(1) + '°C';
     }
     if (heaterRightBtn) {
         heaterRightBtn.classList.remove('active');
-        heaterRightBtn.textContent = '🔥 Heater Left ' + heaterLeftTemp.toFixed(1) + '°C';
+        heaterRightBtn.textContent = '🔥 Heater Left 🔥' + heaterLeftTemp.toFixed(1) + '°C';
     }
     
     // Add active class to current heater mode
