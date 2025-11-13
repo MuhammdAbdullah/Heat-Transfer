@@ -1,6 +1,7 @@
 // --- Plotly graph state ---
 var chartData = { time: [], series: Array.from({ length: 12 }, function() { return []; }), enabled: Array.from({ length: 12 }, function() { return true; }) };
 var maxPoints = 50; // show last 50 points by default
+var chartDisplayMode = 'limited'; // 'limited' or 'all' - controls whether to limit points or show all data
 var isSavingCsv = false; // flag to track if CSV saving is active
 var csvData = []; // array to store data for CSV export
 var csvSavePath = null; // path where CSV will be saved
@@ -12,12 +13,23 @@ var popInitialized = false;
 var chartDivRef = null;
 var chartJsRef = null;
 
+// --- Temperature vs Distance graph state ---
+var distanceChartData = { samples: [] }; // Each sample is an array of 8 {x: distance, y: temperature} points in order T1-T8
+var distanceChartJsRef = null;
+var lastTemperatureValues = Array.from({ length: 8 }, function() { return null; }); // Store last T1-T8 values
+
 function initChart() {
     // Initialize Chart.js chart if canvas exists
     var canvas = document.getElementById('testChart');
     if (canvas && window.Chart && !chartJsRef) {
         var ctx = canvas.getContext('2d');
-        var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
+		var themeColors = getChartThemeColors();
+		canvas.style.background = themeColors.background;
+		canvas.style.borderColor = themeColors.border;
+		var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
+		if (document.body.classList.contains('theme-dark')) {
+			colors[10] = '#ffffff';
+		}
         var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Heater Left','Heater Right','Power','Target Temp'];
         var datasets = [];
         for (var i = 0; i < 12; i++) {
@@ -42,25 +54,25 @@ function initChart() {
                 animation: false,
                 scales: {
                     x: { 
-                        grid: { color: '#e0e0e0' },
-                        ticks: { color: '#333' }
+						grid: { color: themeColors.grid },
+						ticks: { color: themeColors.text }
                     },
                     y: { 
                         type: 'linear', 
                         position: 'left', 
-                        title: { display: true, text: 'Temperature (°C)', color: '#333' },
-                        grid: { color: '#e0e0e0' },
-                        ticks: { color: '#333' }
+						title: { display: true, text: 'Temperature (°C)', color: themeColors.text },
+						grid: { color: themeColors.grid },
+						ticks: { color: themeColors.text }
                     },
                     y2: { 
                         type: 'linear', 
                         position: 'right', 
-                        grid: { drawOnChartArea: false, color: '#e0e0e0' }, 
-                        title: { display: true, text: 'Power (W)', color: '#333' },
-                        ticks: { color: '#333' }
+						grid: { drawOnChartArea: false, color: themeColors.grid }, 
+						title: { display: true, text: 'Power (W)', color: themeColors.text },
+						ticks: { color: themeColors.text }
                     }
                 },
-                plugins: { legend: { position: 'right' } }
+				plugins: { legend: { position: 'right', labels: { color: themeColors.text } } }
             }
         });
         
@@ -70,6 +82,7 @@ function initChart() {
                 chartJsRef.resize();
             }
         });
+		updateChartTheme();
     }
 
     var chartDiv = document.getElementById('tempChart');
@@ -186,26 +199,40 @@ function initChart() {
 	});
 }
 
-function addPoint(timeSec, valuesArray11) {
+function addPoint(timeSec, valuesArray13) {
 	chartData.time.push(timeSec);
+	// Only add first 12 values to chart (T1-T8, Heater Left, Heater Right, Power, Target Temp)
+	// Air Speed (index 12) is excluded from charts but kept in CSV
     for (var i = 0; i < 12; i++) {
-		chartData.series[i].push(valuesArray11[i]);
+		chartData.series[i].push(valuesArray13[i]);
 	}
-	if (chartData.time.length > maxPoints) {
+	// Store last temperature values for T1-T8 (indices 0-7)
+	for (var i = 0; i < 8; i++) {
+		var tempValue = valuesArray13[i];
+		if (typeof tempValue === 'number' && isFinite(tempValue)) {
+			lastTemperatureValues[i] = tempValue;
+		}
+	}
+	// Only limit points if in 'limited' mode
+	if (chartDisplayMode === 'limited' && chartData.time.length > maxPoints) {
 		chartData.time.shift();
         for (var j = 0; j < 12; j++) chartData.series[j].shift();
 	}
+	
+	// Automatically update distance chart in real-time
+	updateDistanceChartRealTime();
 	
 	// If CSV saving is active, store this data point
 	if (isSavingCsv) {
 		var fanSpeed = fanSpeedInput ? parseInt(fanSpeedInput.value, 10) : 0;
 		var dataRow = {
 			time: timeSec,
-			temps: valuesArray11.slice(0, 8), // T1-T8
-			heaterL: valuesArray11[8],
-			heaterR: valuesArray11[9],
-			power: valuesArray11[10],
-			target: valuesArray11[11],
+			temps: valuesArray13.slice(0, 8), // T1-T8
+			heaterL: valuesArray13[8],
+			heaterR: valuesArray13[9],
+			power: valuesArray13[10],
+			target: valuesArray13[11],
+			airSpeed: valuesArray13[12],
 			fanSpeed: fanSpeed
 		};
 		csvData.push(dataRow);
@@ -216,12 +243,18 @@ function addPoint(timeSec, valuesArray11) {
         if (lc) {
             lc.data.labels.push(timeSec.toFixed(1));
             // Map to 10 temps + power + target (indices 0..9 temps, 8..9 heaters, 10 power, 11 target)
+            // Air Speed (index 12) is excluded from charts
             for (var d = 0; d < 12; d++) {
-                var v = (d < 10) ? valuesArray11[d] : (d === 10 ? valuesArray11[10] : valuesArray11[11]);
+                var v = (d < 10) ? valuesArray13[d] : (d === 10 ? valuesArray13[10] : valuesArray13[11]);
                 lc.data.datasets[d].data.push(typeof v === 'number' && isFinite(v) ? v : null);
-                if (lc.data.datasets[d].data.length > maxPoints) lc.data.datasets[d].data.shift();
+                // Only limit points if in 'limited' mode
+                if (chartDisplayMode === 'limited' && lc.data.datasets[d].data.length > maxPoints) {
+                    lc.data.datasets[d].data.shift();
+                }
             }
-            if (lc.data.labels.length > maxPoints) lc.data.labels.shift();
+            if (chartDisplayMode === 'limited' && lc.data.labels.length > maxPoints) {
+                lc.data.labels.shift();
+            }
             lc.update('none');
         }
     } catch (e) { /* ignore */ }
@@ -229,13 +262,17 @@ function addPoint(timeSec, valuesArray11) {
     try {
         if (chartJsRef) {
             chartJsRef.data.labels.push(timeSec.toFixed(1));
+            // Only add first 12 values to chart (exclude air speed)
             for (var d = 0; d < 12; d++) {
-                chartJsRef.data.datasets[d].data.push(valuesArray11[d]);
-                if (chartJsRef.data.datasets[d].data.length > maxPoints) {
+                chartJsRef.data.datasets[d].data.push(valuesArray13[d]);
+                // Only limit points if in 'limited' mode
+                if (chartDisplayMode === 'limited' && chartJsRef.data.datasets[d].data.length > maxPoints) {
                     chartJsRef.data.datasets[d].data.shift();
                 }
             }
-            if (chartJsRef.data.labels.length > maxPoints) chartJsRef.data.labels.shift();
+            if (chartDisplayMode === 'limited' && chartJsRef.data.labels.length > maxPoints) {
+                chartJsRef.data.labels.shift();
+            }
             chartJsRef.update('none');
         }
     } catch (e) { /* ignore */ }
@@ -244,12 +281,15 @@ function addPoint(timeSec, valuesArray11) {
         var PlotlyRef = window.Plotly;
         if (chartInitialized && PlotlyRef && chartDivRef) {
             var xArr = []; var yArr = []; var idx = [];
+            // Only add first 12 values to Plotly chart (exclude air speed)
             for (var k = 0; k < 12; k++) {
                 xArr.push([timeSec]);
-                yArr.push([valuesArray11[k]]);
+                yArr.push([valuesArray13[k]]);
                 idx.push(k);
             }
-            PlotlyRef.extendTraces(chartDivRef, { x: xArr, y: yArr }, idx, maxPoints);
+            // Use maxPoints only in limited mode, otherwise use a very large number (effectively no limit)
+            var plotlyMaxPoints = chartDisplayMode === 'limited' ? maxPoints : 1000000;
+            PlotlyRef.extendTraces(chartDivRef, { x: xArr, y: yArr }, idx, plotlyMaxPoints);
         }
     } catch (e) { /* ignore */ }
 	redrawChart();
@@ -360,6 +400,206 @@ function redrawChart() {
             try { PlotlyRef.relayout(popDiv, { 'xaxis.autorange': true, 'yaxis.autorange': true, 'yaxis2.autorange': true }); } catch (e) {}
         }
 	}
+	
+	// Initialize Temperature vs Distance chart
+	initDistanceChart();
+}
+
+// Initialize Temperature vs Distance chart using Chart.js
+function initDistanceChart() {
+	var canvas = document.getElementById('tempDistanceChart');
+	if (!canvas) return;
+	if (!window.Chart) return;
+	if (distanceChartJsRef) return; // Already initialized
+	
+	var ctx = canvas.getContext('2d');
+	var themeColors = getChartThemeColors();
+	canvas.style.background = themeColors.background;
+	canvas.style.borderColor = themeColors.border;
+	
+	// Create a single dataset that will connect all points T1->T2->T3->...->T8
+	var datasets = [{
+		label: 'Temperature vs Distance',
+		data: [],
+		borderColor: '#40a9ff',
+		backgroundColor: '#40a9ff',
+		borderWidth: 2,
+		pointRadius: 4,
+		pointHoverRadius: 6,
+		tension: 0.2,
+		fill: false,
+		showLine: true
+	}];
+	
+	// Create Chart.js chart
+	distanceChartJsRef = new Chart(ctx, {
+		type: 'line',
+		data: {
+			datasets: datasets
+		},
+		options: {
+			responsive: true,
+			maintainAspectRatio: true,
+			aspectRatio: 2,
+			interaction: {
+				mode: 'nearest',
+				intersect: false
+			},
+			animation: false,
+			scales: {
+				x: {
+					type: 'linear',
+					position: 'bottom',
+					title: {
+						display: true,
+						text: 'Distance',
+						color: themeColors.text
+					},
+					grid: {
+						color: themeColors.grid
+					},
+					ticks: {
+						color: themeColors.text
+					}
+				},
+				y: {
+					type: 'linear',
+					position: 'left',
+					title: {
+						display: true,
+						text: 'Temperature (°C)',
+						color: themeColors.text
+					},
+					grid: {
+						color: themeColors.grid
+					},
+					ticks: {
+						color: themeColors.text
+					}
+				}
+			},
+			plugins: {
+				legend: {
+					position: 'right',
+					labels: {
+						color: themeColors.text
+					}
+				},
+				tooltip: {
+					callbacks: {
+						title: function(context) {
+							var pointIndex = context[0].dataIndex;
+							var sensorIndex = pointIndex % 8;
+							return 'T' + (sensorIndex + 1);
+						},
+						label: function(context) {
+							return 'Distance: ' + context.parsed.x.toFixed(2) + ', Temperature: ' + context.parsed.y.toFixed(2) + '°C';
+						}
+					}
+				}
+			}
+		}
+	});
+}
+
+// Update distance chart in real-time (called automatically every second)
+function updateDistanceChartRealTime() {
+	// Get distance values from input boxes
+	var distances = [];
+	var allValid = true;
+	
+	for (var i = 1; i <= 8; i++) {
+		var input = document.getElementById('distanceT' + i);
+		if (input && input.value !== '') {
+			var distance = parseFloat(input.value);
+			if (!isNaN(distance)) {
+				distances.push(distance);
+			} else {
+				allValid = false;
+				return; // Skip if invalid distance
+			}
+		} else {
+			allValid = false;
+			return; // Skip if distance missing
+		}
+	}
+	
+	if (!allValid || distances.length !== 8) {
+		return; // Skip if not all distances are valid
+	}
+	
+	// Check if we have temperature values
+	var hasTemps = false;
+	for (var i = 0; i < 8; i++) {
+		if (lastTemperatureValues[i] !== null) {
+			hasTemps = true;
+			break;
+		}
+	}
+	
+	if (!hasTemps) {
+		return; // Skip if no temperature data
+	}
+	
+	// Create a sample with all 8 points in order (T1->T2->T3->...->T8)
+	// Skip points where distance is zero - connect directly to next valid point
+	var sample = [];
+	for (var i = 0; i < 8; i++) {
+		if (lastTemperatureValues[i] !== null) {
+			// Only add point if distance is not zero
+			if (distances[i] !== 0) {
+				sample.push({
+					x: distances[i],
+					y: lastTemperatureValues[i]
+				});
+			}
+			// If distance is zero, skip this point (don't add it to sample)
+		} else {
+			return; // Skip if temperature missing
+		}
+	}
+	
+	// Clear previous data and set only the current sample (real-time, no history)
+	distanceChartData.samples = [sample];
+	
+	// Make sure chart is initialized before redrawing
+	if (!distanceChartJsRef) {
+		initDistanceChart();
+	}
+	
+	redrawDistanceChart();
+}
+
+// Redraw Temperature vs Distance chart using Chart.js
+function redrawDistanceChart() {
+	if (!distanceChartJsRef) {
+		// Try to initialize if not already done
+		initDistanceChart();
+		if (!distanceChartJsRef) return;
+	}
+	
+	// Build a single data array that connects all samples
+	// Each sample is 8 points (T1->T2->T3->...->T8), and we connect them all
+	var allDataPoints = [];
+	
+	for (var sampleIdx = 0; sampleIdx < distanceChartData.samples.length; sampleIdx++) {
+		var sample = distanceChartData.samples[sampleIdx];
+		// Add all 8 points from this sample in order
+		for (var pointIdx = 0; pointIdx < sample.length; pointIdx++) {
+			var point = sample[pointIdx];
+			if (typeof point.x === 'number' && isFinite(point.x) && typeof point.y === 'number' && isFinite(point.y)) {
+				allDataPoints.push({ x: point.x, y: point.y });
+			}
+		}
+	}
+	
+	// Update the single dataset with all connected points
+	if (distanceChartJsRef.data.datasets[0]) {
+		distanceChartJsRef.data.datasets[0].data = allDataPoints;
+	}
+	
+	// Update the chart
+	distanceChartJsRef.update('none');
 }
 
 // Plotly handles hover events automatically, so we don't need these functions
@@ -812,11 +1052,25 @@ function handleIncomingData(data) {
 		// Check if this looks like a 4-byte packet
 		if (dataArray.length === 4) {
 			addToLog('DEBUG: This is a 4-byte packet!');
+			addToLog('DEBUG: First byte: 0x' + dataArray[0].toString(16).padStart(2, '0'));
+			addToLog('DEBUG: Second byte: 0x' + dataArray[1].toString(16).padStart(2, '0'));
+			addToLog('DEBUG: Third byte: 0x' + dataArray[2].toString(16).padStart(2, '0'));
+			addToLog('DEBUG: Fourth byte: 0x' + dataArray[3].toString(16).padStart(2, '0'));
+			
 			if (dataArray[0] === 0x11 && dataArray[1] === 0x11 && dataArray[2] === 0x11) {
-				addToLog('DEBUG: This matches the 11 11 11 pattern!');
+				addToLog('DEBUG: This matches the 11 11 11 pattern (fan speed)!');
+			} else if (dataArray[0] === 0x22 && dataArray[1] === 0x22 && dataArray[2] === 0x22) {
+				addToLog('DEBUG: This matches the 22 22 22 pattern (heater mode)!');
+			} else if (dataArray[0] === 0x33 && dataArray[1] === 0x33 && dataArray[2] === 0x33) {
+				addToLog('DEBUG: This matches the 33 33 33 pattern (heater temperature)!');
+			} else if (dataArray[0] === 0x44 && dataArray[1] === 0x44 && dataArray[2] === 0x44) {
+				addToLog('DEBUG: This matches the 44 44 44 pattern (cooler state)!');
 			} else {
-				addToLog('DEBUG: This does NOT match the 11 11 11 pattern');
+				addToLog('DEBUG: This does NOT match any known 4-byte pattern');
+				addToLog('DEBUG: Looking for: 0x11 0x11 0x11 (fan) or 0x22 0x22 0x22 (heater mode) or 0x33 0x33 0x33 (heater temp) or 0x44 0x44 0x44 (cooler)');
 			}
+		} else {
+			addToLog('DEBUG: Not a 4-byte packet, length is: ' + dataArray.length);
 		}
 	}
 	
@@ -835,6 +1089,71 @@ function handleIncomingData(data) {
 			addToLog('Fan speed received from hardware: ' + fanSpeed + '%');
 		} else {
 			addToLog('Invalid fan speed value: ' + fanSpeed);
+		}
+		return; // Exit early since this is a 4-byte packet
+	}
+	
+	// Check for heater mode data - format: [0x22, 0x22, 0x22, mode] (exactly 4 bytes)
+	if (dataArray.length === 4 && dataArray[0] === 0x22 && dataArray[1] === 0x22 && dataArray[2] === 0x22) {
+		var heaterMode = dataArray[3]; // Heater mode value (0=off, 1=left, 2=right)
+		
+		// Debug: Print the received data
+		var hexString = dataArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+		addToLog('DEBUG: Received 4-byte heater mode data: ' + hexString);
+		addToLog('DEBUG: Heater mode value: ' + heaterMode);
+		addToLog('DEBUG: About to call updateHeaterButtonsFromHardware with mode: ' + heaterMode);
+		
+		// Validate heater mode range
+		if (heaterMode >= 0 && heaterMode <= 2) {
+			addToLog('DEBUG: Heater mode is valid, calling updateHeaterButtonsFromHardware...');
+			updateHeaterButtonsFromHardware(heaterMode);
+			var modeText = heaterMode === 0 ? 'Off' : (heaterMode === 1 ? 'Left' : 'Right');
+			addToLog('Heater mode received from hardware: ' + modeText);
+		} else {
+			addToLog('Invalid heater mode value: ' + heaterMode);
+		}
+		return; // Exit early since this is a 4-byte packet
+	}
+	
+	// Check for heater temperature data - format: [0x33, 0x33, 0x33, temp] (exactly 4 bytes)
+	if (dataArray.length === 4 && dataArray[0] === 0x33 && dataArray[1] === 0x33 && dataArray[2] === 0x33) {
+		var heaterTemp = dataArray[3]; // Heater temperature value (20-70°C)
+		
+		// Debug: Print the received data
+		var hexString = dataArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+		addToLog('DEBUG: Received 4-byte heater temperature data: ' + hexString);
+		addToLog('DEBUG: Heater temperature value: ' + heaterTemp);
+		addToLog('DEBUG: About to call updateHeaterSliderFromHardware with temp: ' + heaterTemp);
+		
+		// Validate heater temperature range (20-70°C)
+		if (heaterTemp >= 20 && heaterTemp <= 70) {
+			addToLog('DEBUG: Heater temperature is valid, calling updateHeaterSliderFromHardware...');
+			updateHeaterSliderFromHardware(heaterTemp);
+			addToLog('Heater temperature received from hardware: ' + heaterTemp + '°C');
+		} else {
+			addToLog('Invalid heater temperature value: ' + heaterTemp + ' (expected 20-70)');
+		}
+		return; // Exit early since this is a 4-byte packet
+	}
+	
+	// Check for cooler state data - format: [0x44, 0x44, 0x44, state] (exactly 4 bytes)
+	if (dataArray.length === 4 && dataArray[0] === 0x44 && dataArray[1] === 0x44 && dataArray[2] === 0x44) {
+		var coolerState = dataArray[3]; // Cooler state value (0=off, 1=on)
+		
+		// Debug: Print the received data
+		var hexString = dataArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
+		addToLog('DEBUG: Received 4-byte cooler state data: ' + hexString);
+		addToLog('DEBUG: Cooler state value: ' + coolerState);
+		addToLog('DEBUG: About to call updateCoolerButtonFromHardware with state: ' + coolerState);
+		
+		// Validate cooler state range (0-1)
+		if (coolerState === 0 || coolerState === 1) {
+			addToLog('DEBUG: Cooler state is valid, calling updateCoolerButtonFromHardware...');
+			updateCoolerButtonFromHardware(coolerState);
+			var stateText = coolerState === 0 ? 'OFF' : 'ON';
+			addToLog('Cooler state received from hardware: ' + stateText);
+		} else {
+			addToLog('Invalid cooler state value: ' + coolerState + ' (expected 0 or 1)');
 		}
 		return; // Exit early since this is a 4-byte packet
 	}
@@ -894,6 +1213,186 @@ function updateFanSliderFromHardware(fanSpeed) {
     } else {
         addToLog('ERROR: fanSpeedInput element not found!');
     }
+}
+
+// Function to update heater buttons when receiving data from hardware
+function updateHeaterButtonsFromHardware(mode) {
+    addToLog('DEBUG: updateHeaterButtonsFromHardware called with mode: ' + mode);
+    
+    // Ensure heater mode is within valid range (0-2)
+    mode = Math.max(0, Math.min(2, mode));
+    
+    addToLog('DEBUG: Updating heater buttons to mode: ' + mode);
+    addToLog('DEBUG: heaterOffBtn element found: ' + (heaterOffBtn ? 'YES' : 'NO'));
+    addToLog('DEBUG: heaterLeftBtn element found: ' + (heaterLeftBtn ? 'YES' : 'NO'));
+    addToLog('DEBUG: heaterRightBtn element found: ' + (heaterRightBtn ? 'YES' : 'NO'));
+    
+    // Update the global heater mode variable
+    addToLog('DEBUG: Setting heaterMode from ' + heaterMode + ' to ' + mode);
+    heaterMode = mode;
+    
+    // Update the button states
+    addToLog('DEBUG: Calling updateHeaterButtons()...');
+    updateHeaterButtons();
+    
+    addToLog('DEBUG: updateHeaterButtons() completed');
+    addToLog('Heater buttons updated from hardware: mode ' + mode);
+}
+
+// Function to update heater slider when receiving data from hardware
+function updateHeaterSliderFromHardware(temperature) {
+    // Ensure heater temperature is within valid range (20-70°C)
+    temperature = Math.max(20, Math.min(70, temperature));
+    
+    addToLog('DEBUG: Updating heater slider to: ' + temperature + '°C');
+    addToLog('DEBUG: heaterTempInput element found: ' + (heaterTempInput ? 'YES' : 'NO'));
+    addToLog('DEBUG: heaterTempValue element found: ' + (heaterTempValue ? 'YES' : 'NO'));
+    
+    // Update the heater temperature input slider
+    if (heaterTempInput) {
+        heaterTempInput.value = temperature;
+        addToLog('DEBUG: Set heaterTempInput.value to: ' + heaterTempInput.value);
+        
+        // Update the display text
+        if (heaterTempValue) {
+            heaterTempValue.textContent = temperature + '°C';
+            addToLog('DEBUG: Set heaterTempValue.textContent to: ' + heaterTempValue.textContent);
+        }
+        
+        // Update the visual slider fill
+        updateHeaterSliderFill(temperature);
+        addToLog('DEBUG: Called updateHeaterSliderFill with: ' + temperature);
+        
+        // Update the heater icon position
+        updateHeaterIcon(temperature);
+        addToLog('DEBUG: Called updateHeaterIcon with: ' + temperature);
+        
+        addToLog('Heater slider updated from hardware: ' + temperature + '°C');
+    } else {
+        addToLog('ERROR: heaterTempInput element not found!');
+    }
+}
+
+// Function to update cooler button when receiving data from hardware
+function updateCoolerButtonFromHardware(state) {
+    // Ensure cooler state is valid (0 or 1)
+    state = state === 1 ? 1 : 0;
+    
+    addToLog('DEBUG: Updating cooler button to state: ' + (state ? 'ON' : 'OFF'));
+    addToLog('DEBUG: coolerBtn element found: ' + (coolerBtn ? 'YES' : 'NO'));
+    
+    // Update the cooler button state
+    if (coolerBtn) {
+        if (state === 1) {
+            // Turn cooler ON
+            coolerBtn.classList.add('active');
+            addToLog('DEBUG: Added active class to coolerBtn (ON)');
+        } else {
+            // Turn cooler OFF
+            coolerBtn.classList.remove('active');
+            addToLog('DEBUG: Removed active class from coolerBtn (OFF)');
+        }
+        
+        addToLog('Cooler button updated from hardware: ' + (state ? 'ON' : 'OFF'));
+    } else {
+        addToLog('ERROR: coolerBtn element not found!');
+    }
+}
+
+// Test function to manually test heater button updates
+function testHeaterButtons() {
+    addToLog('TEST: Testing heater button updates...');
+    
+    // Test mode 0 (off)
+    addToLog('TEST: Setting heater mode to 0 (off)');
+    updateHeaterButtonsFromHardware(0);
+    
+    setTimeout(() => {
+        addToLog('TEST: Setting heater mode to 1 (left)');
+        updateHeaterButtonsFromHardware(1);
+    }, 1000);
+    
+    setTimeout(() => {
+        addToLog('TEST: Setting heater mode to 2 (right)');
+        updateHeaterButtonsFromHardware(2);
+    }, 2000);
+    
+    setTimeout(() => {
+        addToLog('TEST: Setting heater mode to 0 (off) again');
+        updateHeaterButtonsFromHardware(0);
+    }, 3000);
+}
+
+// Test function to simulate 4-byte heater mode data
+function testHeaterModeData() {
+    addToLog('TEST: Simulating 4-byte heater mode data...');
+    
+    // Simulate [0x22, 0x22, 0x22, 1] for left heater
+    var testData = [0x22, 0x22, 0x22, 1];
+    addToLog('TEST: Sending test data: ' + testData.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+    handleIncomingData(testData);
+    
+    setTimeout(() => {
+        // Simulate [0x22, 0x22, 0x22, 2] for right heater
+        var testData2 = [0x22, 0x22, 0x22, 2];
+        addToLog('TEST: Sending test data: ' + testData2.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+        handleIncomingData(testData2);
+    }, 2000);
+    
+    setTimeout(() => {
+        // Simulate [0x22, 0x22, 0x22, 0] for off
+        var testData3 = [0x22, 0x22, 0x22, 0];
+        addToLog('TEST: Sending test data: ' + testData3.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+        handleIncomingData(testData3);
+    }, 4000);
+}
+
+// Test function to simulate 4-byte heater temperature data
+function testHeaterTempData() {
+    addToLog('TEST: Simulating 4-byte heater temperature data...');
+    
+    // Simulate [0x33, 0x33, 0x33, 30] for 30°C
+    var testData = [0x33, 0x33, 0x33, 30];
+    addToLog('TEST: Sending test data: ' + testData.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+    handleIncomingData(testData);
+    
+    setTimeout(() => {
+        // Simulate [0x33, 0x33, 0x33, 50] for 50°C
+        var testData2 = [0x33, 0x33, 0x33, 50];
+        addToLog('TEST: Sending test data: ' + testData2.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+        handleIncomingData(testData2);
+    }, 2000);
+    
+    setTimeout(() => {
+        // Simulate [0x33, 0x33, 0x33, 25] for 25°C
+        var testData3 = [0x33, 0x33, 0x33, 25];
+        addToLog('TEST: Sending test data: ' + testData3.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+        handleIncomingData(testData3);
+    }, 4000);
+}
+
+// Test function to simulate 4-byte cooler state data
+function testCoolerStateData() {
+    addToLog('TEST: Simulating 4-byte cooler state data...');
+    
+    // Simulate [0x44, 0x44, 0x44, 1] for cooler ON
+    var testData = [0x44, 0x44, 0x44, 1];
+    addToLog('TEST: Sending test data: ' + testData.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+    handleIncomingData(testData);
+    
+    setTimeout(() => {
+        // Simulate [0x44, 0x44, 0x44, 0] for cooler OFF
+        var testData2 = [0x44, 0x44, 0x44, 0];
+        addToLog('TEST: Sending test data: ' + testData2.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+        handleIncomingData(testData2);
+    }, 2000);
+    
+    setTimeout(() => {
+        // Simulate [0x44, 0x44, 0x44, 1] for cooler ON again
+        var testData3 = [0x44, 0x44, 0x44, 1];
+        addToLog('TEST: Sending test data: ' + testData3.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+        handleIncomingData(testData3);
+    }, 4000);
 }
 
 function addRawData(data) {
@@ -1047,6 +1546,16 @@ function parseAndDisplayData(dataArray) {
 			// Target temp from slider (use current UI value if available)
 			var targetTempFromUI = heaterTempInput ? parseInt(heaterTempInput.value, 10) : NaN;
 			tempsForChart.push(isNaN(targetTempFromUI) ? NaN : targetTempFromUI); // series index 11
+			// Air Speed if available (bytes 50-53, actualData[48-51])
+			if (actualData.length >= 52) {
+				var a0 = actualData[48], a1 = actualData[49], a2 = actualData[50], a3 = actualData[51];
+				var abuf2 = new ArrayBuffer(4);
+				var adv2 = new DataView(abuf2);
+				adv2.setUint8(0, a0); adv2.setUint8(1, a1); adv2.setUint8(2, a2); adv2.setUint8(3, a3);
+				tempsForChart.push(adv2.getFloat32(0, true)); // series index 12
+			} else {
+				tempsForChart.push(NaN);
+			}
 			if (typeof addPoint === 'function') {
 				addPoint(timeFloat, tempsForChart);
 			}
@@ -1091,6 +1600,18 @@ function parseAndDisplayData(dataArray) {
 			parsedInfo += 'Power: ' + power.toFixed(1) + ' W\n';
 			var powerEl = document.getElementById('powerTile');
 			if (powerEl) { powerEl.textContent = 'Power: ' + power.toFixed(1) + ' W'; }
+		}
+		
+		// Bytes 50..53 (actualData[48..51]): Air Speed as float32
+		if (actualData.length >= 52) {
+			var a0 = actualData[48], a1 = actualData[49], a2 = actualData[50], a3 = actualData[51];
+			var abuf = new ArrayBuffer(4);
+			var adv = new DataView(abuf);
+			adv.setUint8(0, a0); adv.setUint8(1, a1); adv.setUint8(2, a2); adv.setUint8(3, a3);
+			var airSpeed = adv.getFloat32(0, true);
+			parsedInfo += 'Air Speed: ' + airSpeed.toFixed(2) + ' m/s\n';
+			var airSpeedEl = document.getElementById('airSpeedTile');
+			if (airSpeedEl) { airSpeedEl.textContent = 'Air Speed: ' + airSpeed.toFixed(2) + ' m/s'; }
 		}
 	} else if (actualData.length >= 4) {
 		// At least one sensor available
@@ -1170,7 +1691,7 @@ function stopCsvSaving() {
     }
     
     // Create CSV content from collected data
-    var csvContent = 'Time(s),T1,T2,T3,T4,T5,T6,T7,T8,HeaterL,HeaterR,Power,Target,FanSpeed\n';
+    var csvContent = 'Time(s),T1,T2,T3,T4,T5,T6,T7,T8,HeaterL,HeaterR,Power,Target,AirSpeed,FanSpeed\n';
     
     for (var i = 0; i < csvData.length; i++) {
         var data = csvData[i];
@@ -1192,6 +1713,9 @@ function stopCsvSaving() {
         
         // Add target
         row += (typeof data.target === 'number' && isFinite(data.target) ? data.target.toFixed(1) : '') + ',';
+        
+        // Add air speed
+        row += (typeof data.airSpeed === 'number' && isFinite(data.airSpeed) ? data.airSpeed.toFixed(2) : '') + ',';
         
         // Add fan speed
         row += data.fanSpeed;
@@ -1247,12 +1771,34 @@ function downloadCsvFile(csvContent) {
     }
 }
 
+function getChartThemeColors() {
+	if (document.body.classList.contains('theme-light')) {
+		return {
+			background: '#ffffff',
+			border: '#444444',
+			grid: '#444444',
+			text: '#000000'
+		};
+	}
+	return {
+		background: '#1a1a1a',
+		border: '#444444',
+		grid: '#444444',
+		text: '#eeeeee'
+	};
+}
+
 function applyTheme(themeKey) {
 	var body = document.body;
-	// Keep default only; remove other theme classes if present
+	body.classList.remove('theme-light');
 	body.classList.remove('theme-dark');
-	body.classList.remove('theme-contrast');
-	body.classList.remove('theme-monitor');
+
+	if (themeKey === 'light') {
+		body.classList.add('theme-light');
+	} else {
+		body.classList.add('theme-dark');
+	}
+	updateChartTheme();
 }
 
 function applyLayout(layoutKey) {
@@ -1261,6 +1807,58 @@ function applyLayout(layoutKey) {
 	body.classList.remove('layout-compact');
 	body.classList.remove('layout-stacked');
 	body.classList.add('layout-standard');
+}
+
+function updateChartTheme() {
+	var colors = getChartThemeColors();
+	var canvas = document.getElementById('testChart');
+	if (canvas) {
+		canvas.style.background = colors.background;
+		canvas.style.borderColor = colors.border;
+	}
+	if (chartJsRef) {
+		try {
+			if (chartJsRef.data && chartJsRef.data.datasets && chartJsRef.data.datasets.length > 10) {
+				var powerColor = document.body.classList.contains('theme-dark') ? '#ffffff' : '#000000';
+				chartJsRef.data.datasets[10].borderColor = powerColor;
+				chartJsRef.data.datasets[10].backgroundColor = powerColor;
+			}
+			chartJsRef.options.scales.x.grid.color = colors.grid;
+			chartJsRef.options.scales.x.ticks.color = colors.text;
+			chartJsRef.options.scales.y.grid.color = colors.grid;
+			chartJsRef.options.scales.y.ticks.color = colors.text;
+			chartJsRef.options.scales.y.title.color = colors.text;
+			chartJsRef.options.scales.y2.grid.color = colors.grid;
+			chartJsRef.options.scales.y2.ticks.color = colors.text;
+			chartJsRef.options.scales.y2.title.color = colors.text;
+			if (chartJsRef.options.plugins && chartJsRef.options.plugins.legend && chartJsRef.options.plugins.legend.labels) {
+				chartJsRef.options.plugins.legend.labels.color = colors.text;
+			}
+			chartJsRef.update('none');
+		} catch (e) { /* ignore */ }
+	}
+	if (window.liveChartRef) {
+		try {
+			var liveChart = window.liveChartRef;
+			if (liveChart.data && liveChart.data.datasets && liveChart.data.datasets.length > 10) {
+				var livePowerColor = document.body.classList.contains('theme-dark') ? '#ffffff' : '#000000';
+				liveChart.data.datasets[10].borderColor = livePowerColor;
+				liveChart.data.datasets[10].backgroundColor = livePowerColor;
+			}
+			liveChart.options.scales.x.grid.color = colors.grid;
+			liveChart.options.scales.x.ticks.color = colors.text;
+			liveChart.options.scales.y.grid.color = colors.grid;
+			liveChart.options.scales.y.ticks.color = colors.text;
+			liveChart.options.scales.y.title.color = colors.text;
+			liveChart.options.scales.y2.grid.color = colors.grid;
+			liveChart.options.scales.y2.ticks.color = colors.text;
+			liveChart.options.scales.y2.title.color = colors.text;
+			if (liveChart.options.plugins && liveChart.options.plugins.legend && liveChart.options.plugins.legend.labels) {
+				liveChart.options.plugins.legend.labels.color = colors.text;
+			}
+			liveChart.update('none');
+		} catch (e) { /* ignore */ }
+	}
 }
 function setupDataListeners() {
 	window.electronAPI.onDataReceived(function(event, data) {
@@ -1324,6 +1922,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var clearDataBtn = document.getElementById('clearDataBtn');
     var startCsvBtn = document.getElementById('startCsvBtn');
     var stopCsvBtn = document.getElementById('stopCsvBtn');
+    var captureDistanceBtn = document.getElementById('captureDistanceBtn');
     
     
     
@@ -1357,6 +1956,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Handle chart display mode dropdown
+    var chartDisplayModeSelect = document.getElementById('chartDisplayMode');
+    if (chartDisplayModeSelect) {
+        chartDisplayModeSelect.addEventListener('change', function() {
+            var newMode = this.value;
+            if (newMode !== chartDisplayMode) {
+                chartDisplayMode = newMode;
+                addToLog('Chart display mode changed to: ' + (newMode === 'limited' ? 'Limited Points (Last 50)' : 'All Data Points'));
+                
+                // Clear all chart data when switching modes (start fresh)
+                chartData.time = [];
+                for (var i = 0; i < 12; i++) {
+                    chartData.series[i] = [];
+                }
+                
+                // Clear Chart.js charts
+                if (window.liveChartRef) {
+                    window.liveChartRef.data.labels = [];
+                    for (var j = 0; j < window.liveChartRef.data.datasets.length; j++) {
+                        window.liveChartRef.data.datasets[j].data = [];
+                    }
+                    window.liveChartRef.update('none');
+                }
+                
+                if (chartJsRef) {
+                    chartJsRef.data.labels = [];
+                    for (var j = 0; j < chartJsRef.data.datasets.length; j++) {
+                        chartJsRef.data.datasets[j].data = [];
+                    }
+                    chartJsRef.update('none');
+                }
+                
+                // Clear Plotly chart
+                if (chartInitialized && window.Plotly && chartDivRef) {
+                    try {
+                        window.Plotly.newPlot(chartDivRef, [], plotlyLayout, plotlyConfig);
+                    } catch (e) { /* ignore */ }
+                }
+                
+                addToLog('Chart cleared - new data will be displayed in ' + (newMode === 'limited' ? 'limited' : 'all data') + ' mode');
+            }
+        });
+    }
+    
     
     if (startCsvBtn) {
         startCsvBtn.addEventListener('click', function() {
@@ -1369,11 +2012,15 @@ document.addEventListener('DOMContentLoaded', function() {
             stopCsvSaving();
         });
     }
+    
     // Initialize Chart.js test chart for live data (10 temps + power + target)
     try {
         var testCanvas = document.getElementById('testChart');
         if (testCanvas && window.Chart) {
             var ctx = testCanvas.getContext('2d');
+			var themeColors = getChartThemeColors();
+			testCanvas.style.background = themeColors.background;
+			testCanvas.style.borderColor = themeColors.border;
             var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
             var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Heater Left','Heater Right','Power','Target'];
             var ds = [];
@@ -1387,31 +2034,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     responsive: true,
                     animation: false,
                     interaction: { mode: 'nearest', intersect: false },
-                    plugins: { legend: { position: 'right' } },
+					plugins: { legend: { position: 'right', labels: { color: themeColors.text } } },
                     scales: {
                         x: { 
-                            grid: { color: '#e0e0e0' },
-                            ticks: { color: '#333' }
+							grid: { color: themeColors.grid },
+							ticks: { color: themeColors.text }
                         },
                         y: { 
                             type: 'linear', 
                             position: 'left', 
-                            title: { display: true, text: 'Temperature (°C)', color: '#333' },
-                            grid: { color: '#e0e0e0' },
-                            ticks: { color: '#333' }
+							title: { display: true, text: 'Temperature (°C)', color: themeColors.text },
+							grid: { color: themeColors.grid },
+							ticks: { color: themeColors.text }
                         },
                         y2: { 
                             type: 'linear', 
                             position: 'right', 
-                            grid: { drawOnChartArea: false, color: '#e0e0e0' }, 
-                            title: { display: true, text: 'Power (W)', color: '#333' },
-                            ticks: { color: '#333' }
+							grid: { drawOnChartArea: false, color: themeColors.grid }, 
+							title: { display: true, text: 'Power (W)', color: themeColors.text },
+							ticks: { color: themeColors.text }
                         }
                     }
                 }
             });
         }
     } catch (e) { /* ignore */ }
+	updateChartTheme();
 	window.electronAPI.onPortsUpdate(handlePortsUpdateFromMain);
 	refreshComPorts();
     // Web Serial: show connect button and try auto-connect to previously authorized port
@@ -1449,15 +2097,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// Apply saved theme/layout
 	try {
-		var savedTheme = localStorage.getItem('appTheme') || 'default';
+		var savedTheme = localStorage.getItem('appTheme') || 'dark';
 		var savedLayout = localStorage.getItem('appLayout') || 'standard';
 		applyTheme(savedTheme);
 		applyLayout(savedLayout);
 		var themeSel = document.getElementById('themeSelect');
 		var layoutSel = document.getElementById('layoutSelect');
-		if (themeSel) themeSel.value = savedTheme === 'default' ? 'default' : savedTheme;
-		if (layoutSel) layoutSel.value = savedLayout;
-		if (themeSel) themeSel.addEventListener('change', function(){ applyTheme(themeSel.value); localStorage.setItem('appTheme', themeSel.value); });
+		if (themeSel) {
+			themeSel.value = savedTheme;
+			themeSel.addEventListener('change', function(){ 
+				applyTheme(themeSel.value); 
+				localStorage.setItem('appTheme', themeSel.value);
+			});
+		}
 		if (layoutSel) layoutSel.addEventListener('change', function(){ applyLayout(layoutSel.value); localStorage.setItem('appLayout', layoutSel.value); });
 	} catch (e) { /* ignore */ }
 
@@ -1480,7 +2132,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 var heaterR = 22 + Math.cos(t / 8) * 1.0;
                 var power = 50 + Math.sin(t / 3) * 10;
                 var target = 30; // flat line
-                var values = temps.concat([heaterL, heaterR, power, target]);
+                var airSpeed = 2.5 + Math.sin(t / 4) * 0.5; // air speed in m/s
+                var values = temps.concat([heaterL, heaterR, power, target, airSpeed]);
                 addPoint(t, values);
                 if ((Date.now() - start) > 30000) { clearInterval(simTimer); addToLog('Simulated data ended.'); }
             }, 250);
@@ -1673,24 +2326,36 @@ if (heaterTempInput && heaterTempValue) {
 
 // Heater mode buttons - only one can be active at a time
 function updateHeaterButtons() {
+    addToLog('DEBUG: updateHeaterButtons called with heaterMode: ' + heaterMode);
+    
     // Remove active class from heater buttons only (cooler is independent)
-    if (heaterOffBtn) heaterOffBtn.classList.remove('active');
+    if (heaterOffBtn) {
+        heaterOffBtn.classList.remove('active');
+        addToLog('DEBUG: Removed active class from heaterOffBtn');
+    }
     if (heaterLeftBtn) {
         heaterLeftBtn.classList.remove('active');
-        heaterLeftBtn.textContent = '🔥 Heater Right 🔥' + heaterRightTemp.toFixed(1) + '°C';
+        heaterLeftBtn.textContent = '🔥 Heater Left ' + heaterLeftTemp.toFixed(1) + '°C';
+        addToLog('DEBUG: Removed active class from heaterLeftBtn, set text: ' + heaterLeftBtn.textContent);
     }
     if (heaterRightBtn) {
         heaterRightBtn.classList.remove('active');
-        heaterRightBtn.textContent = '🔥 Heater Left 🔥' + heaterLeftTemp.toFixed(1) + '°C';
+        heaterRightBtn.textContent = '🔥 Heater Right ' + heaterRightTemp.toFixed(1) + '°C';
+        addToLog('DEBUG: Removed active class from heaterRightBtn, set text: ' + heaterRightBtn.textContent);
     }
     
     // Add active class to current heater mode
     if (heaterMode === 0 && heaterOffBtn) {
         heaterOffBtn.classList.add('active');
+        addToLog('DEBUG: Added active class to heaterOffBtn (mode 0)');
     } else if (heaterMode === 1 && heaterLeftBtn) {
         heaterLeftBtn.classList.add('active');
+        addToLog('DEBUG: Added active class to heaterLeftBtn (mode 1)');
     } else if (heaterMode === 2 && heaterRightBtn) {
         heaterRightBtn.classList.add('active');
+        addToLog('DEBUG: Added active class to heaterRightBtn (mode 2)');
+    } else {
+        addToLog('DEBUG: No button was activated - heaterMode: ' + heaterMode + ', buttons found: off=' + !!heaterOffBtn + ', left=' + !!heaterLeftBtn + ', right=' + !!heaterRightBtn);
     }
 }
 
@@ -1758,19 +2423,32 @@ if (coolerBtn) {
 }
 
 // Admin panel functionality
-function openAdminPanel() {
-    // Open admin panel in a new window
-    const adminWindow = window.open('admin.html', 'adminPanel', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-    
-    if (adminWindow) {
-        // Wait for admin window to load, then set up communication
-        adminWindow.addEventListener('load', function() {
-            setupAdminCommunication(adminWindow);
-        });
-        
-        addToLog('Admin panel opened');
+async function openAdminPanel() {
+    // Open admin panel using IPC to ensure preload script access
+    if (window.electronAPI && window.electronAPI.openAdminPanel) {
+        try {
+            const result = await window.electronAPI.openAdminPanel();
+            if (result.success) {
+                addToLog('Admin panel opened');
+            } else {
+                addToLog('Failed to open admin panel: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            addToLog('Error opening admin panel: ' + error.message);
+            // Fallback to window.open if IPC fails
+            const adminWindow = window.open('admin.html', 'adminPanel', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+            if (adminWindow) {
+                addToLog('Admin panel opened (fallback method)');
+            }
+        }
     } else {
-        addToLog('Failed to open admin panel - popup blocked?');
+        // Fallback to window.open if electronAPI not available
+        const adminWindow = window.open('admin.html', 'adminPanel', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        if (adminWindow) {
+            addToLog('Admin panel opened (fallback method)');
+        } else {
+            addToLog('Failed to open admin panel - popup blocked?');
+        }
     }
 }
 

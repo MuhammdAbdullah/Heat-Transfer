@@ -41,12 +41,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Cooler control
   sendCooler: (value) => ipcRenderer.invoke('send-cooler', value),
   
+  // PID control
+  sendPIDValue: (type, value) => ipcRenderer.invoke('send-pid-value', type, value),
+  
   // File operations
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
   writeFile: (filePath, content) => ipcRenderer.invoke('write-file', filePath, content),
   
   // Window operations
   openGraphWindow: () => ipcRenderer.invoke('open-graph-window'),
+  openAdminPanel: () => ipcRenderer.invoke('open-admin-panel'),
   
   // Remove listeners to prevent memory leaks
   removeAllListeners: (channel) => {

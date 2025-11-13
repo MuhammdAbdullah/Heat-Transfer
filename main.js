@@ -210,12 +210,27 @@ async function autoConnectToTargetDevice() {
         isConnected = true;
       } else {
         console.log(`[AUTO] Failed to connect to ${targetPort.path}: ${result.error}`);
+        // Schedule retry in 5 seconds if connection failed
+        setTimeout(() => {
+          console.log('[AUTO] Retrying connection in 5 seconds...');
+          autoConnectToTargetDevice();
+        }, 5000);
       }
     } else {
-      console.log('[AUTO] No matching device found');
+      console.log('[AUTO] No matching device found - will keep checking every 10 seconds');
+      // Schedule retry in 10 seconds if no device found
+      setTimeout(() => {
+        console.log('[AUTO] Checking for device again...');
+        autoConnectToTargetDevice();
+      }, 10000);
     }
   } catch (error) {
     console.error('[AUTO] Error during auto-connect:', error);
+    // Schedule retry in 10 seconds if there was an error
+    setTimeout(() => {
+      console.log('[AUTO] Retrying after error in 10 seconds...');
+      autoConnectToTargetDevice();
+    }, 10000);
   }
 }
 
@@ -352,7 +367,7 @@ async function connectSerial(portPath, baudRate) {
 
 // Process received data buffer
 function processRxBuffer() {
-  // First, check for 4-byte fan speed packets [0x11, 0x11, 0x11, data]
+  // First, check for 4-byte packets [0x11, 0x11, 0x11, data] or [0x22, 0x22, 0x22, data]
   while (rxBuffer.length >= 4) {
     // Check if this is a 4-byte fan speed packet
     if (rxBuffer[0] === 0x11 && rxBuffer[1] === 0x11 && rxBuffer[2] === 0x11) {
@@ -362,6 +377,48 @@ function processRxBuffer() {
       // Send to renderer
       if (mainWindow) {
         mainWindow.webContents.send('data-received', fanSpeedPacket);
+      }
+      
+      // Remove the 4-byte packet from buffer
+      rxBuffer = rxBuffer.slice(4);
+      continue;
+    }
+    // Check if this is a 4-byte heater mode packet
+    else if (rxBuffer[0] === 0x22 && rxBuffer[1] === 0x22 && rxBuffer[2] === 0x22) {
+      const heaterModePacket = rxBuffer.slice(0, 4);
+      console.log('4-byte heater mode packet received:', heaterModePacket.toString('hex'));
+      
+      // Send to renderer
+      if (mainWindow) {
+        mainWindow.webContents.send('data-received', heaterModePacket);
+      }
+      
+      // Remove the 4-byte packet from buffer
+      rxBuffer = rxBuffer.slice(4);
+      continue;
+    }
+    // Check if this is a 4-byte heater temperature packet
+    else if (rxBuffer[0] === 0x33 && rxBuffer[1] === 0x33 && rxBuffer[2] === 0x33) {
+      const heaterTempPacket = rxBuffer.slice(0, 4);
+      console.log('4-byte heater temperature packet received:', heaterTempPacket.toString('hex'));
+      
+      // Send to renderer
+      if (mainWindow) {
+        mainWindow.webContents.send('data-received', heaterTempPacket);
+      }
+      
+      // Remove the 4-byte packet from buffer
+      rxBuffer = rxBuffer.slice(4);
+      continue;
+    }
+    // Check if this is a 4-byte cooler state packet
+    else if (rxBuffer[0] === 0x44 && rxBuffer[1] === 0x44 && rxBuffer[2] === 0x44) {
+      const coolerStatePacket = rxBuffer.slice(0, 4);
+      console.log('4-byte cooler state packet received:', coolerStatePacket.toString('hex'));
+      
+      // Send to renderer
+      if (mainWindow) {
+        mainWindow.webContents.send('data-received', coolerStatePacket);
       }
       
       // Remove the 4-byte packet from buffer
@@ -452,6 +509,11 @@ function startPortPolling() {
             isConnected = true;
           } else {
             console.log('[HOT-PLUG] Failed to connect:', result.error);
+            // Schedule retry in 3 seconds for hot-plug attempts
+            setTimeout(() => {
+              console.log('[HOT-PLUG] Retrying hot-plug connection...');
+              autoConnectToTargetDevice();
+            }, 3000);
           }
         }
       }
@@ -648,6 +710,67 @@ ipcMain.handle('send-cooler', async (event, value) => {
   }
 });
 
+// Send PID value: format ':X<4_bytes_float>;\n' for Proportional (X), ':Y<4_bytes_float>;\n' for Integral (Y), ':Z<4_bytes_float>;\n' for Differential (Z)
+// Total: 8 bytes (':X' + 4 bytes float + ';\n')
+ipcMain.handle('send-pid-value', async (event, type, value) => {
+  try {
+    if (!serialPort || !serialPort.isOpen) {
+      return { success: false, error: 'Not connected' };
+    }
+    
+    // Determine command letter based on type
+    let commandLetter;
+    if (type === 'P') {
+      commandLetter = 0x58; // 'X' for Proportional
+    } else if (type === 'I') {
+      commandLetter = 0x59; // 'Y' for Integral
+    } else if (type === 'D') {
+      commandLetter = 0x5A; // 'Z' for Differential
+    } else {
+      return { success: false, error: 'Invalid PID type' };
+    }
+    
+    // Parse value as float
+    let floatValue;
+    if (typeof value === 'string') {
+      value = value.trim();
+      // Try to parse as float
+      floatValue = parseFloat(value);
+      if (isNaN(floatValue)) {
+        return { success: false, error: 'Invalid value format - must be a number' };
+      }
+    } else {
+      // If it's already a number, convert to float
+      floatValue = parseFloat(value);
+      if (isNaN(floatValue)) {
+        return { success: false, error: 'Invalid value format - must be a number' };
+      }
+    }
+    
+    // Create a buffer to hold the float value (4 bytes)
+    const floatBuffer = Buffer.allocUnsafe(4);
+    floatBuffer.writeFloatLE(floatValue, 0); // Write float as little-endian (4 bytes)
+    
+    // Build byte array: [0x3A, commandLetter, float_byte1, float_byte2, float_byte3, float_byte4, 0x3B, 0x0A]
+    const bytes = [0x3A, commandLetter]; // ':' and command letter (X, Y, or Z)
+    bytes.push(floatBuffer[0], floatBuffer[1], floatBuffer[2], floatBuffer[3]); // 4 bytes of float value
+    bytes.push(0x3B, 0x0A); // ';' and '\n'
+    const payload = Buffer.from(bytes);
+    
+    await new Promise((resolve, reject) => {
+      serialPort.write(payload, (err) => {
+        if (err) reject(err); else resolve();
+      });
+    });
+    
+    console.log(`PID ${type} value sent: ${floatValue} (4-byte float: ${floatBuffer.toString('hex')})`);
+    return { success: true };
+  } catch (e) {
+    console.error(`Error sending PID ${type}:`, e);
+    return { success: false, error: e.message };
+  }
+});
+
 // IPC handler for showing save dialog
 ipcMain.handle('show-save-dialog', async (event, options) => {
   try {
@@ -666,6 +789,42 @@ ipcMain.handle('write-file', async (event, filePath, content) => {
     return { success: true };
   } catch (error) {
     console.error('Error writing file:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// IPC handler for opening admin panel window
+ipcMain.handle('open-admin-panel', async () => {
+  try {
+    const adminWindow = new BrowserWindow({
+      width: 1200,
+      height: 800,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, 'preload.js')
+      },
+      autoHideMenuBar: true,
+      titleBarStyle: 'default'
+    });
+
+    // Load the admin.html file
+    adminWindow.loadFile('admin.html');
+
+    // Show window when ready
+    adminWindow.once('ready-to-show', () => {
+      adminWindow.show();
+    });
+
+    // Handle window closed
+    adminWindow.on('closed', () => {
+      // Window reference will be garbage collected
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error opening admin panel:', error);
     return { success: false, error: error.message };
   }
 });

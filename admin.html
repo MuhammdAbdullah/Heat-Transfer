@@ -237,6 +237,68 @@
             opacity: 0.9;
         }
 
+        /* PID Controls */
+        .pid-controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .pid-controls h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .pid-input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .pid-label {
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 120px;
+            font-size: 1.1em;
+        }
+
+        .pid-input {
+            padding: 10px 15px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .pid-input:focus {
+            outline: none;
+            border-color: #2980b9;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .pid-status {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .pid-status.success {
+            color: #2ecc71;
+        }
+
+        .pid-status.error {
+            color: #e74c3c;
+        }
+
         @media (max-width: 768px) {
             .admin-panels {
                 grid-template-columns: 1fr;
@@ -276,6 +338,25 @@
                         <span class="log-timestamp">[Waiting for data...]</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="pid-controls">
+            <h2>🎛️ PID Control Settings</h2>
+            <div class="pid-input-group">
+                <label class="pid-label" for="proportionalInput">Proportional (P):</label>
+                <input type="text" id="proportionalInput" class="pid-input" placeholder="Enter float value (e.g., 1.5)">
+                <span class="pid-status" id="proportionalStatus"></span>
+            </div>
+            <div class="pid-input-group">
+                <label class="pid-label" for="integralInput">Integral (I):</label>
+                <input type="text" id="integralInput" class="pid-input" placeholder="Enter float value (e.g., 0.1)">
+                <span class="pid-status" id="integralStatus"></span>
+            </div>
+            <div class="pid-input-group">
+                <label class="pid-label" for="differentialInput">Differential (D):</label>
+                <input type="text" id="differentialInput" class="pid-input" placeholder="Enter float value (e.g., 0.05)">
+                <span class="pid-status" id="differentialStatus"></span>
             </div>
         </div>
 
@@ -472,8 +553,94 @@
             addAdminLog('Connection established', 'success');
         }
 
+        // PID Control Functions
+        let lastProportionalValue = '';
+        let lastIntegralValue = '';
+        let lastDifferentialValue = '';
+
+        // Function to send PID value
+        async function sendPIDValue(type, value) {
+            // Check if electronAPI is available
+            if (!window.electronAPI || !window.electronAPI.sendPIDValue) {
+                addAdminLog('PID control not available - electronAPI not ready', 'error');
+                return false;
+            }
+
+            try {
+                const result = await window.electronAPI.sendPIDValue(type, value);
+                if (result.success) {
+                    addAdminLog(`PID ${type} value sent: ${value}`, 'success');
+                    return true;
+                } else {
+                    addAdminLog(`Failed to send PID ${type}: ${result.error}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                addAdminLog(`Error sending PID ${type}: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Function to update status message
+        function updatePIDStatus(type, success, message) {
+            const statusElement = document.getElementById(type + 'Status');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = 'pid-status ' + (success ? 'success' : 'error');
+                // Clear status after 3 seconds
+                setTimeout(() => {
+                    statusElement.textContent = '';
+                    statusElement.className = 'pid-status';
+                }, 3000);
+            }
+        }
+
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initAdminPanel);
+        document.addEventListener('DOMContentLoaded', function() {
+            initAdminPanel();
+            
+            // Handle Proportional input change
+            const proportionalInput = document.getElementById('proportionalInput');
+            if (proportionalInput) {
+                proportionalInput.addEventListener('change', async function() {
+                    const value = this.value.trim();
+                    if (value !== lastProportionalValue && value !== '') {
+                        lastProportionalValue = value;
+                        updatePIDStatus('proportional', false, 'Sending...');
+                        const success = await sendPIDValue('P', value);
+                        updatePIDStatus('proportional', success, success ? 'Sent successfully' : 'Failed to send');
+                    }
+                });
+            }
+
+            // Handle Integral input change
+            const integralInput = document.getElementById('integralInput');
+            if (integralInput) {
+                integralInput.addEventListener('change', async function() {
+                    const value = this.value.trim();
+                    if (value !== lastIntegralValue && value !== '') {
+                        lastIntegralValue = value;
+                        updatePIDStatus('integral', false, 'Sending...');
+                        const success = await sendPIDValue('I', value);
+                        updatePIDStatus('integral', success, success ? 'Sent successfully' : 'Failed to send');
+                    }
+                });
+            }
+
+            // Handle Differential input change
+            const differentialInput = document.getElementById('differentialInput');
+            if (differentialInput) {
+                differentialInput.addEventListener('change', async function() {
+                    const value = this.value.trim();
+                    if (value !== lastDifferentialValue && value !== '') {
+                        lastDifferentialValue = value;
+                        updatePIDStatus('differential', false, 'Sending...');
+                        const success = await sendPIDValue('D', value);
+                        updatePIDStatus('differential', success, success ? 'Sent successfully' : 'Failed to send');
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
