@@ -41,7 +41,7 @@ function createSplashScreen() {
   });
 
   // Load splash screen HTML
-  splashWindow.loadFile('splash.html');
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
   
   // Center the splash screen
   splashWindow.center();
@@ -64,7 +64,7 @@ function createWindow() {
   });
 
   // Load the index.html file
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
@@ -1214,7 +1214,7 @@ ipcMain.handle('open-admin-panel', async () => {
     });
 
     // Load the admin.html file
-    adminWindow.loadFile('admin.html');
+    adminWindow.loadFile(path.join(__dirname, 'admin.html'));
 
     // Show window when ready
     adminWindow.once('ready-to-show', () => {
@@ -1249,7 +1249,7 @@ ipcMain.handle('open-graph-window', async () => {
     });
 
     // Load the chart.html file
-    graphWindow.loadFile('chart.html');
+    graphWindow.loadFile(path.join(__dirname, 'chart.html'));
 
     // Show window when ready
     graphWindow.once('ready-to-show', () => {
