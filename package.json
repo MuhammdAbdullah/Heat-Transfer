@@ -39,8 +39,8 @@
     "productName": "Heat Transfer App",
     "publish": {
       "provider": "github",
-      "owner": "YOUR_GITHUB_USERNAME",
-      "repo": "YOUR_REPOSITORY_NAME"
+      "owner": "MuhammdAbdullah",
+      "repo": "Heat-Transfer"
     },
     "directories": {
       "output": "dist"
