@@ -33,6 +33,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onPortsUpdate: (callback) => {
     ipcRenderer.on('ports-update', callback);
   },
+  onUpdateStatus: (callback) => {
+    ipcRenderer.on('update-status', callback);
+  },
   // Fan control
   sendFanSpeed: (value) => ipcRenderer.invoke('send-fan-speed', value),
   // Heater controls
@@ -43,6 +46,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // PID control
   sendPIDValue: (type, value) => ipcRenderer.invoke('send-pid-value', type, value),
+  // Bootloader control
+  sendBootloader: (value) => ipcRenderer.invoke('send-bootloader', value),
+  uploadHexFile: (fileContent, progressCallback) => {
+    return new Promise((resolve, reject) => {
+      // Set up progress listener
+      const progressListener = (event, progress) => {
+        if (progressCallback) {
+          progressCallback(progress);
+        }
+      };
+      ipcRenderer.on('hex-upload-progress', progressListener);
+      
+      // Invoke upload with file content
+      ipcRenderer.invoke('upload-hex-file', fileContent)
+        .then((result) => {
+          ipcRenderer.removeListener('hex-upload-progress', progressListener);
+          resolve(result);
+        })
+        .catch((error) => {
+          ipcRenderer.removeListener('hex-upload-progress', progressListener);
+          reject(error);
+        });
+    });
+  },
   
   // File operations
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
@@ -51,6 +78,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Window operations
   openGraphWindow: () => ipcRenderer.invoke('open-graph-window'),
   openAdminPanel: () => ipcRenderer.invoke('open-admin-panel'),
+  
+  // Update operations
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   
   // Remove listeners to prevent memory leaks
   removeAllListeners: (channel) => {

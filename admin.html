@@ -299,6 +299,314 @@
             color: #e74c3c;
         }
 
+        /* Tab Navigation Styles */
+        .tab-menu {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 0;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            padding: 15px 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab-button:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: #2c3e50;
+        }
+
+        .tab-button.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Bootloader Tab Styles */
+        .bootloader-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .bootloader-panel h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .bootloader-info {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .bootloader-info p {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .bootloader-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bootloader-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .bootloader-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .bootloader-btn.danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .bootloader-btn.danger:hover {
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        /* File Upload Section Styles */
+        .file-upload-section {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .file-path-display {
+            background: #ecf0f1;
+            border-radius: 8px;
+            padding: 12px 15px;
+            border-left: 4px solid #3498db;
+            min-height: 20px;
+        }
+
+        .file-path-label {
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .file-path-label.has-file {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .file-path-label.has-file::before {
+            content: "📄 ";
+        }
+
+        /* Upload Progress Styles */
+        .upload-progress {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #ecf0f1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #3498db;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .progress-text {
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .bootloader-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .bootloader-btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* DFU Status Indicator Styles */
+        .dfu-status-indicator {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid #95a5a6;
+            transition: all 0.3s ease;
+        }
+
+        .dfu-status-indicator.connected {
+            background: #d5f4e6;
+            border-left-color: #27ae60;
+        }
+
+        .dfu-status-indicator.disconnected {
+            background: #fadbd8;
+            border-left-color: #e74c3c;
+        }
+
+        .dfu-status-icon {
+            font-size: 24px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .dfu-status-indicator.connected .dfu-status-icon {
+            color: #27ae60;
+        }
+
+        .dfu-status-indicator.disconnected .dfu-status-icon {
+            color: #e74c3c;
+        }
+
+        .dfu-status-text {
+            flex: 1;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .dfu-status-indicator.connected .dfu-status-text {
+            color: #27ae60;
+        }
+
+        .dfu-status-indicator.disconnected .dfu-status-text {
+            color: #e74c3c;
+        }
+
+        /* Update Check Styles */
+        .update-info-section {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .update-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .update-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .update-info-item strong {
+            color: #2c3e50;
+        }
+
+        .update-status-message {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .update-status-message.success {
+            background: #d5f4e6;
+            border-left-color: #27ae60;
+        }
+
+        .update-status-message.error {
+            background: #fadbd8;
+            border-left-color: #e74c3c;
+        }
+
+        .update-status-message.info {
+            background: #d6eaf8;
+            border-left-color: #3498db;
+        }
+
+        .update-status-content {
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .update-progress-section {
+            margin-bottom: 20px;
+        }
+
+        .update-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         @media (max-width: 768px) {
             .admin-panels {
                 grid-template-columns: 1fr;
@@ -307,6 +615,15 @@
             .control-buttons {
                 flex-direction: column;
                 align-items: center;
+            }
+
+            .tab-buttons {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                flex: 1 1 50%;
+                min-width: 120px;
             }
         }
     </style>
@@ -320,7 +637,18 @@
 
         <button class="back-btn" onclick="goBack()">← Back to Main App</button>
 
-        <div class="admin-panels">
+        <!-- Tab Menu -->
+        <div class="tab-menu">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+                <button class="tab-button" onclick="switchTab('pid', this)">🎛️ PID Controls</button>
+                <button class="tab-button" onclick="switchTab('bootloader', this)">🔧 Bootloader</button>
+                <button class="tab-button" onclick="switchTab('updates', this)">🔄 Check for Updates</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboardTab" class="tab-content active">
+                <div class="admin-panels">
             <div class="admin-panel">
                 <h2>📋 System Logs</h2>
                 <div class="log-container" id="adminLogContainer">
@@ -341,54 +669,129 @@
             </div>
         </div>
 
-        <div class="pid-controls">
-            <h2>🎛️ PID Control Settings</h2>
-            <div class="pid-input-group">
-                <label class="pid-label" for="proportionalInput">Proportional (P):</label>
-                <input type="text" id="proportionalInput" class="pid-input" placeholder="Enter float value (e.g., 1.5)">
-                <span class="pid-status" id="proportionalStatus"></span>
-            </div>
-            <div class="pid-input-group">
-                <label class="pid-label" for="integralInput">Integral (I):</label>
-                <input type="text" id="integralInput" class="pid-input" placeholder="Enter float value (e.g., 0.1)">
-                <span class="pid-status" id="integralStatus"></span>
-            </div>
-            <div class="pid-input-group">
-                <label class="pid-label" for="differentialInput">Differential (D):</label>
-                <input type="text" id="differentialInput" class="pid-input" placeholder="Enter float value (e.g., 0.05)">
-                <span class="pid-status" id="differentialStatus"></span>
-            </div>
-        </div>
+                <div class="admin-controls">
+                    <h2>🛠️ Admin Controls</h2>
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="clearLogs()">🗑️ Clear Logs</button>
+                        <button class="control-btn" onclick="clearRawData()">📡 Clear Raw Data</button>
+                        <button class="control-btn" onclick="exportLogs()">💾 Export Logs</button>
+                        <button class="control-btn" onclick="exportRawData()">📊 Export Raw Data</button>
+                        <button class="control-btn danger" onclick="resetApp()">🔄 Reset App</button>
+                    </div>
+                </div>
 
-        <div class="admin-controls">
-            <h2>🛠️ Admin Controls</h2>
-            <div class="control-buttons">
-                <button class="control-btn" onclick="clearLogs()">🗑️ Clear Logs</button>
-                <button class="control-btn" onclick="clearRawData()">📡 Clear Raw Data</button>
-                <button class="control-btn" onclick="exportLogs()">💾 Export Logs</button>
-                <button class="control-btn" onclick="exportRawData()">📊 Export Raw Data</button>
-                <button class="control-btn danger" onclick="resetApp()">🔄 Reset App</button>
+                <div class="stats-panel">
+                    <h2>📊 System Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalLogs">0</div>
+                            <div class="stat-label">Total Log Entries</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalRawData">0</div>
+                            <div class="stat-label">Raw Data Packets</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="connectionUptime">00:00:00</div>
+                            <div class="stat-label">Connection Uptime</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="dataRate">0</div>
+                            <div class="stat-label">Data Rate (packets/min)</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="stats-panel">
-            <h2>📊 System Statistics</h2>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="totalLogs">0</div>
-                    <div class="stat-label">Total Log Entries</div>
+            <!-- PID Controls Tab -->
+            <div id="pidTab" class="tab-content">
+                <div class="pid-controls">
+                    <h2>🎛️ PID Control Settings</h2>
+                    <div class="pid-input-group">
+                        <label class="pid-label" for="proportionalInput">Proportional (P):</label>
+                        <input type="text" id="proportionalInput" class="pid-input" placeholder="Enter float value (e.g., 1.5)">
+                        <span class="pid-status" id="proportionalStatus"></span>
+                    </div>
+                    <div class="pid-input-group">
+                        <label class="pid-label" for="integralInput">Integral (I):</label>
+                        <input type="text" id="integralInput" class="pid-input" placeholder="Enter float value (e.g., 0.1)">
+                        <span class="pid-status" id="integralStatus"></span>
+                    </div>
+                    <div class="pid-input-group">
+                        <label class="pid-label" for="differentialInput">Differential (D):</label>
+                        <input type="text" id="differentialInput" class="pid-input" placeholder="Enter float value (e.g., 0.05)">
+                        <span class="pid-status" id="differentialStatus"></span>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="totalRawData">0</div>
-                    <div class="stat-label">Raw Data Packets</div>
+            </div>
+
+            <!-- Bootloader Tab -->
+            <div id="bootloaderTab" class="tab-content">
+                <div class="bootloader-panel">
+                    <h2>🔧 Bootloader</h2>
+                    
+                    <!-- DFU Connection Status Indicator -->
+                    <div class="dfu-status-indicator" id="dfuStatusIndicator">
+                        <div class="dfu-status-icon" id="dfuStatusIcon">⚫</div>
+                        <div class="dfu-status-text" id="dfuStatusText">DFU Mode: Not Connected</div>
+                    </div>
+                    
+                    <div class="bootloader-controls">
+                        <button class="bootloader-btn" onclick="enterBootloaderMode()">🚀 Enter Bootloader Mode</button>
+                        
+                        <!-- File Upload Section -->
+                        <div class="file-upload-section">
+                            <input type="file" id="hexFileInput" accept=".hex" style="display: none;" onchange="handleHexFileSelect(event)">
+                            <button class="bootloader-btn" onclick="document.getElementById('hexFileInput').click()">📁 Select HEX File</button>
+                            <div class="file-path-display" id="hexFilePathDisplay">
+                                <span class="file-path-label">No file selected</span>
+                            </div>
+                            <button class="bootloader-btn" id="uploadHexBtn" onclick="uploadHexFile()" disabled>⬆️ Upload HEX File to MCU</button>
+                            <div class="upload-progress" id="uploadProgress" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <span class="progress-text" id="progressText">0%</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="connectionUptime">00:00:00</div>
-                    <div class="stat-label">Connection Uptime</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="dataRate">0</div>
-                    <div class="stat-label">Data Rate (packets/min)</div>
+            </div>
+
+            <!-- Check for Updates Tab -->
+            <div id="updatesTab" class="tab-content">
+                <div class="bootloader-panel">
+                    <h2>🔄 Check for Updates</h2>
+                    
+                    <!-- Current Version Display -->
+                    <div class="update-info-section">
+                        <div class="update-info-item">
+                            <strong>Current Version:</strong>
+                            <span id="currentVersionDisplay">Loading...</span>
+                        </div>
+                        <div class="update-info-item">
+                            <strong>Status:</strong>
+                            <span id="updateStatusDisplay">Ready to check</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Update Status Message -->
+                    <div class="update-status-message" id="updateStatusMessage" style="display: none;">
+                        <div class="update-status-content" id="updateStatusContent"></div>
+                    </div>
+                    
+                    <!-- Update Progress -->
+                    <div class="update-progress-section" id="updateProgressSection" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="updateProgressFill"></div>
+                        </div>
+                        <span class="progress-text" id="updateProgressText">0%</span>
+                    </div>
+                    
+                    <!-- Check for Updates Button -->
+                    <div class="update-controls">
+                        <button class="bootloader-btn" id="checkUpdateBtn" onclick="checkForUpdates()">🔄 Check for Updates</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -595,9 +998,360 @@
             }
         }
 
+        // Tab switching function
+        function switchTab(tabName, clickedButton) {
+            // Hide all tab contents
+            const allTabs = document.querySelectorAll('.tab-content');
+            for (let i = 0; i < allTabs.length; i++) {
+                allTabs[i].classList.remove('active');
+            }
+
+            // Remove active class from all tab buttons
+            const allButtons = document.querySelectorAll('.tab-button');
+            for (let i = 0; i < allButtons.length; i++) {
+                allButtons[i].classList.remove('active');
+            }
+
+            // Show selected tab content
+            const selectedTab = document.getElementById(tabName + 'Tab');
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+
+            // Add active class to clicked button
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+
+            // Log tab switch
+            addAdminLog('Switched to ' + tabName + ' tab', 'info');
+        }
+
+        // Bootloader functions
+        async function enterBootloaderMode() {
+            addAdminLog('Entering bootloader mode...', 'warning');
+            addAdminLog('Device will switch to DFU mode (VID: 0x00A1, PID: 0x12BF)', 'info');
+            addAdminLog('Waiting for DFU device detection...', 'info');
+            
+            // Check if electronAPI is available
+            if (!window.electronAPI || !window.electronAPI.sendBootloader) {
+                addAdminLog('Bootloader control not available - electronAPI not ready', 'error');
+                return;
+            }
+
+            try {
+                // Send bootloader command with value 1 and label 'K'
+                const result = await window.electronAPI.sendBootloader(1);
+                if (result.success) {
+                    addAdminLog('Bootloader command sent: K=1', 'success');
+                    addAdminLog('Device should now be in DFU mode', 'info');
+                    addAdminLog('App will automatically connect when DFU device is detected', 'info');
+                } else {
+                    addAdminLog('Failed to send bootloader command: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                addAdminLog('Error sending bootloader command: ' + error.message, 'error');
+            }
+        }
+
+        // Store selected HEX file
+        let selectedHexFile = null;
+
+        // Handle HEX file selection
+        function handleHexFileSelect(event) {
+            const fileInput = event.target;
+            const filePathDisplay = document.getElementById('hexFilePathDisplay');
+            const filePathLabel = filePathDisplay.querySelector('.file-path-label');
+            const uploadBtn = document.getElementById('uploadHexBtn');
+            
+            if (fileInput.files && fileInput.files.length > 0) {
+                const selectedFile = fileInput.files[0];
+                const fileName = selectedFile.name;
+                
+                // Store file object for upload
+                selectedHexFile = selectedFile;
+                
+                // Update display
+                filePathLabel.textContent = fileName;
+                filePathLabel.classList.add('has-file');
+                
+                // Enable upload button
+                uploadBtn.disabled = false;
+                
+                // Log to admin log
+                addAdminLog('HEX file selected: ' + fileName, 'success');
+                addAdminLog('File size: ' + (selectedFile.size / 1024).toFixed(2) + ' KB', 'info');
+            } else {
+                // No file selected
+                filePathLabel.textContent = 'No file selected';
+                filePathLabel.classList.remove('has-file');
+                selectedHexFile = null;
+                uploadBtn.disabled = true;
+            }
+        }
+
+        // Upload HEX file to MCU
+        async function uploadHexFile() {
+            if (!selectedHexFile) {
+                addAdminLog('No HEX file selected', 'error');
+                return;
+            }
+
+            // Check if electronAPI is available
+            if (!window.electronAPI || !window.electronAPI.uploadHexFile) {
+                addAdminLog('HEX upload not available - electronAPI not ready', 'error');
+                return;
+            }
+
+            const uploadBtn = document.getElementById('uploadHexBtn');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            // Disable button and show progress
+            uploadBtn.disabled = true;
+            uploadProgress.style.display = 'flex';
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+
+            addAdminLog('Starting HEX file upload...', 'info');
+            addAdminLog('File: ' + selectedHexFile.name, 'info');
+
+            try {
+                // Read file content
+                const fileContent = await readFileAsText(selectedHexFile);
+                
+                // Upload HEX file content
+                const result = await window.electronAPI.uploadHexFile(fileContent, (progress) => {
+                    // Update progress bar
+                    const percent = Math.round(progress.percent);
+                    progressFill.style.width = percent + '%';
+                    progressText.textContent = percent + '%';
+                    
+                    if (progress.message) {
+                        addAdminLog(progress.message, 'info');
+                    }
+                });
+
+                if (result.success) {
+                    addAdminLog('HEX file uploaded successfully!', 'success');
+                    addAdminLog('Total bytes sent: ' + result.bytesSent, 'info');
+                    progressFill.style.width = '100%';
+                    progressText.textContent = '100% - Complete!';
+                } else {
+                    addAdminLog('Failed to upload HEX file: ' + (result.error || 'Unknown error'), 'error');
+                    uploadBtn.disabled = false;
+                }
+            } catch (error) {
+                addAdminLog('Error uploading HEX file: ' + error.message, 'error');
+                uploadBtn.disabled = false;
+            } finally {
+                // Hide progress after a delay
+                setTimeout(() => {
+                    uploadProgress.style.display = 'none';
+                    uploadBtn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        // Helper function to read file as text
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                reader.onerror = function(e) {
+                    reject(new Error('Failed to read file'));
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        // Update DFU status indicator
+        function updateDFUStatus(connected, isDFU, portInfo) {
+            const dfuIndicator = document.getElementById('dfuStatusIndicator');
+            const dfuIcon = document.getElementById('dfuStatusIcon');
+            const dfuText = document.getElementById('dfuStatusText');
+            
+            if (!dfuIndicator || !dfuIcon || !dfuText) return;
+            
+            if (connected && isDFU) {
+                dfuIndicator.classList.remove('disconnected');
+                dfuIndicator.classList.add('connected');
+                dfuIcon.textContent = '🟢';
+                dfuText.textContent = 'DFU Mode: Connected - ' + (portInfo || 'Ready for upload');
+            } else {
+                dfuIndicator.classList.remove('connected');
+                dfuIndicator.classList.add('disconnected');
+                dfuIcon.textContent = '🔴';
+                dfuText.textContent = 'DFU Mode: Not Connected';
+            }
+        }
+
+        // Update functions
+        async function checkForUpdates() {
+            const checkBtn = document.getElementById('checkUpdateBtn');
+            const statusDisplay = document.getElementById('updateStatusDisplay');
+            const statusMessage = document.getElementById('updateStatusMessage');
+            const statusContent = document.getElementById('updateStatusContent');
+            const progressSection = document.getElementById('updateProgressSection');
+            
+            // Check if electronAPI is available
+            if (!window.electronAPI || !window.electronAPI.checkForUpdates) {
+                addAdminLog('Update checking not available - electronAPI not ready', 'error');
+                statusDisplay.textContent = 'Error: Update checking not available';
+                return;
+            }
+
+            // Disable button and show checking status
+            checkBtn.disabled = true;
+            statusDisplay.textContent = 'Checking...';
+            statusMessage.style.display = 'block';
+            statusMessage.className = 'update-status-message info';
+            statusContent.textContent = 'Checking for updates...';
+            progressSection.style.display = 'none';
+
+            addAdminLog('Checking for updates...', 'info');
+
+            try {
+                const result = await window.electronAPI.checkForUpdates();
+                
+                if (result.success) {
+                    statusDisplay.textContent = 'Checking for updates...';
+                    addAdminLog('Update check initiated', 'success');
+                } else {
+                    statusDisplay.textContent = 'Error';
+                    statusMessage.className = 'update-status-message error';
+                    statusContent.textContent = result.error || 'Failed to check for updates';
+                    addAdminLog('Failed to check for updates: ' + (result.error || 'Unknown error'), 'error');
+                    checkBtn.disabled = false;
+                }
+            } catch (error) {
+                statusDisplay.textContent = 'Error';
+                statusMessage.className = 'update-status-message error';
+                statusContent.textContent = 'Error: ' + error.message;
+                addAdminLog('Error checking for updates: ' + error.message, 'error');
+                checkBtn.disabled = false;
+            }
+        }
+
+        // Handle update status updates from main process
+        function handleUpdateStatus(updateInfo) {
+            const statusDisplay = document.getElementById('updateStatusDisplay');
+            const statusMessage = document.getElementById('updateStatusMessage');
+            const statusContent = document.getElementById('updateStatusContent');
+            const progressSection = document.getElementById('updateProgressSection');
+            const progressFill = document.getElementById('updateProgressFill');
+            const progressText = document.getElementById('updateProgressText');
+            const checkBtn = document.getElementById('checkUpdateBtn');
+
+            statusMessage.style.display = 'block';
+
+            if (updateInfo.status === 'checking') {
+                statusDisplay.textContent = 'Checking...';
+                statusMessage.className = 'update-status-message info';
+                statusContent.textContent = updateInfo.message || 'Checking for updates...';
+                progressSection.style.display = 'none';
+            } else if (updateInfo.status === 'available') {
+                statusDisplay.textContent = 'Update Available!';
+                statusMessage.className = 'update-status-message success';
+                let message = `New version ${updateInfo.version} is available!\n\n`;
+                if (updateInfo.releaseNotes) {
+                    message += 'Release Notes:\n' + updateInfo.releaseNotes + '\n\n';
+                }
+                message += 'A dialog will appear asking if you want to download the update.';
+                statusContent.textContent = message;
+                progressSection.style.display = 'none';
+                checkBtn.disabled = false;
+                addAdminLog('Update available: Version ' + updateInfo.version, 'success');
+            } else if (updateInfo.status === 'not-available') {
+                statusDisplay.textContent = 'Up to Date';
+                statusMessage.className = 'update-status-message success';
+                statusContent.textContent = updateInfo.message || 'You are using the latest version.';
+                progressSection.style.display = 'none';
+                checkBtn.disabled = false;
+                addAdminLog('No updates available - using latest version', 'info');
+            } else if (updateInfo.status === 'downloading') {
+                statusDisplay.textContent = 'Downloading...';
+                statusMessage.className = 'update-status-message info';
+                statusContent.textContent = updateInfo.message || 'Downloading update...';
+                progressSection.style.display = 'block';
+                
+                if (updateInfo.percent !== undefined) {
+                    progressFill.style.width = updateInfo.percent + '%';
+                    progressText.textContent = updateInfo.percent + '%';
+                }
+            } else if (updateInfo.status === 'downloaded') {
+                statusDisplay.textContent = 'Ready to Install';
+                statusMessage.className = 'update-status-message success';
+                statusContent.textContent = updateInfo.message || 'Update downloaded successfully! A dialog will appear asking if you want to restart and install.';
+                progressFill.style.width = '100%';
+                progressText.textContent = '100%';
+                checkBtn.disabled = false;
+                addAdminLog('Update downloaded successfully', 'success');
+            } else if (updateInfo.status === 'error') {
+                statusDisplay.textContent = 'Error';
+                statusMessage.className = 'update-status-message error';
+                statusContent.textContent = updateInfo.message || 'An error occurred while checking for updates.';
+                progressSection.style.display = 'none';
+                checkBtn.disabled = false;
+                addAdminLog('Update error: ' + updateInfo.message, 'error');
+            }
+        }
+
+        // Load current version on page load
+        async function loadCurrentVersion() {
+            if (window.electronAPI && window.electronAPI.getAppVersion) {
+                try {
+                    const versionInfo = await window.electronAPI.getAppVersion();
+                    const versionDisplay = document.getElementById('currentVersionDisplay');
+                    if (versionDisplay) {
+                        versionDisplay.textContent = versionInfo.version;
+                        if (!versionInfo.isPackaged) {
+                            versionDisplay.textContent += ' (Development Mode)';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error getting app version:', error);
+                }
+            }
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initAdminPanel();
+            loadCurrentVersion();
+            
+            // Listen for connection status updates
+            if (window.electronAPI && window.electronAPI.onConnectionStatus) {
+                window.electronAPI.onConnectionStatus(function(event, status) {
+                    // Check if this is a DFU connection
+                    const isDFU = status.isDFU || false;
+                    updateDFUStatus(status.connected, isDFU, status.port);
+                    
+                    if (status.connected && isDFU) {
+                        addAdminLog('DFU device connected: ' + (status.port || 'Unknown port'), 'success');
+                    } else if (!status.connected && isDFU) {
+                        addAdminLog('DFU device disconnected', 'warning');
+                    }
+                });
+            }
+
+            // Listen for update status updates
+            if (window.electronAPI && window.electronAPI.onUpdateStatus) {
+                window.electronAPI.onUpdateStatus(function(event, updateInfo) {
+                    handleUpdateStatus(updateInfo);
+                });
+            }
+            
+            // Check if URL hash indicates bootloader tab
+            if (window.location.hash === '#bootloader') {
+                // Wait a moment for everything to load, then switch to bootloader tab
+                setTimeout(function() {
+                    switchTab('bootloader', document.querySelector('.tab-button:last-child'));
+                }, 100);
+            }
             
             // Handle Proportional input change
             const proportionalInput = document.getElementById('proportionalInput');

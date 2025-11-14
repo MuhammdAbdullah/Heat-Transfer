@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const { SerialPort } = require('serialport');
 const { exec } = require('child_process');
+const { autoUpdater } = require('electron-updater');
 
 // Keep a global reference of the window object
 let mainWindow;
@@ -20,6 +21,8 @@ let lastDataTime = 0;
 let connectionTimeout = 10000; // 10 seconds timeout for connection loss
 const TARGET_VENDOR_ID = '12BF';
 const TARGET_PRODUCT_ID = '010C';
+const DFU_VENDOR_ID = '00A1';
+const DFU_PRODUCT_ID = '12BF';
 
 function createSplashScreen() {
   // Create the splash screen window
@@ -154,6 +157,133 @@ function createWindow() {
   return mainWindow;
 }
 
+// Configure auto-updater
+autoUpdater.autoDownload = false; // Don't auto-download, let user choose
+autoUpdater.autoInstallOnAppQuit = false; // Don't auto-install
+
+// Helper function to send update status to all windows
+function sendUpdateStatusToAllWindows(updateInfo) {
+  // Send to all open windows (including main window and admin panel)
+  const allWindows = BrowserWindow.getAllWindows();
+  allWindows.forEach(window => {
+    if (window && !window.isDestroyed() && window.webContents) {
+      try {
+        window.webContents.send('update-status', updateInfo);
+      } catch (error) {
+        console.error('[UPDATE] Error sending update status to window:', error);
+      }
+    }
+  });
+}
+
+// Auto-updater event handlers
+autoUpdater.on('checking-for-update', () => {
+  console.log('[UPDATE] Checking for updates...');
+  sendUpdateStatusToAllWindows({ 
+    status: 'checking', 
+    message: 'Checking for updates...' 
+  });
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('[UPDATE] Update available:', info.version);
+  
+  // Send to all windows
+  sendUpdateStatusToAllWindows({ 
+    status: 'available', 
+    version: info.version,
+    releaseDate: info.releaseDate,
+    releaseNotes: info.releaseNotes,
+    message: `Version ${info.version} is available!`
+  });
+  
+  // Show update dialog to user (use main window or first available window)
+  const targetWindow = mainWindow && !mainWindow.isDestroyed() ? mainWindow : BrowserWindow.getAllWindows()[0];
+  if (targetWindow) {
+    dialog.showMessageBox(targetWindow, {
+      type: 'info',
+      title: 'Update Available',
+      message: 'A new version is available!',
+      detail: `Version ${info.version} is now available. Would you like to download and install it?`,
+      buttons: ['Yes', 'Later'],
+      defaultId: 0,
+      cancelId: 1
+    }).then((result) => {
+      if (result.response === 0) {
+        // User clicked "Yes" - download update
+        autoUpdater.downloadUpdate();
+        sendUpdateStatusToAllWindows({ 
+          status: 'downloading', 
+          message: 'Downloading update...' 
+        });
+      }
+    });
+  }
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  console.log('[UPDATE] Update not available. Current version is latest.');
+  sendUpdateStatusToAllWindows({ 
+    status: 'not-available', 
+    message: 'You are using the latest version.',
+    currentVersion: app.getVersion()
+  });
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('[UPDATE] Error in auto-updater:', err);
+  sendUpdateStatusToAllWindows({ 
+    status: 'error', 
+    message: 'Error checking for updates: ' + err.message
+  });
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  const percent = Math.round(progressObj.percent);
+  const message = `Downloading: ${percent}% (${Math.round(progressObj.bytesPerSecond / 1024)} KB/s)`;
+  console.log('[UPDATE]', message);
+  
+  // Send progress to all windows
+  sendUpdateStatusToAllWindows({ 
+    status: 'downloading', 
+    percent: percent,
+    bytesPerSecond: progressObj.bytesPerSecond,
+    transferred: progressObj.transferred,
+    total: progressObj.total,
+    message: message
+  });
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('[UPDATE] Update downloaded');
+  
+  // Send to all windows
+  sendUpdateStatusToAllWindows({ 
+    status: 'downloaded', 
+    version: info.version,
+    message: 'Update downloaded successfully! Ready to install.'
+  });
+  
+  // Show dialog asking user to restart (use main window or first available window)
+  const targetWindow = mainWindow && !mainWindow.isDestroyed() ? mainWindow : BrowserWindow.getAllWindows()[0];
+  if (targetWindow) {
+    dialog.showMessageBox(targetWindow, {
+      type: 'info',
+      title: 'Update Ready',
+      message: 'Update downloaded successfully!',
+      detail: 'The application will restart to apply the update.',
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 0,
+      cancelId: 1
+    }).then((result) => {
+      if (result.response === 0) {
+        // User clicked "Restart Now"
+        autoUpdater.quitAndInstall();
+      }
+    });
+  }
+});
+
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
   // Create splash screen first
@@ -170,6 +300,16 @@ app.whenReady().then(() => {
     // Start connection monitoring
     startConnectionMonitoring();
   }, 2000); // Wait 2 seconds for splash screen
+
+  // Check for updates after app is ready (only in production)
+  setTimeout(() => {
+    if (app.isPackaged) {
+      console.log('[UPDATE] Checking for updates on startup...');
+      autoUpdater.checkForUpdatesAndNotify();
+    } else {
+      console.log('[UPDATE] Running in development mode - skipping update check');
+    }
+  }, 5000); // Wait 5 seconds after app starts
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -231,6 +371,66 @@ async function autoConnectToTargetDevice() {
       console.log('[AUTO] Retrying after error in 10 seconds...');
       autoConnectToTargetDevice();
     }, 10000);
+  }
+}
+
+// Auto-connect to DFU mode device (bootloader mode)
+async function autoConnectToDFUDevice() {
+  try {
+    const ports = await getPortsWithFallback();
+    const dfuPort = ports.find(port => 
+      port.vendorId && port.productId && 
+      port.vendorId.toUpperCase() === DFU_VENDOR_ID && 
+      port.productId.toUpperCase() === DFU_PRODUCT_ID
+    );
+
+    if (dfuPort) {
+      console.log(`[DFU] DFU device found (VID: ${dfuPort.vendorId} PID: ${dfuPort.productId}) on ${dfuPort.path}`);
+      
+      // Disconnect from current port if connected
+      if (serialPort && serialPort.isOpen) {
+        await new Promise((resolve) => {
+          serialPort.close(() => resolve());
+        });
+        isConnected = false;
+      }
+      
+      // Connect to DFU device
+      const result = await connectSerial(dfuPort.path, 115200);
+      if (result.success) {
+        console.log(`[DFU] Successfully connected to DFU device on ${dfuPort.path}`);
+        isConnected = true;
+        
+        // Notify renderer about DFU connection
+        if (mainWindow) {
+          mainWindow.webContents.send('connection-status', { 
+            connected: true, 
+            port: dfuPort.path + ' (DFU Mode)',
+            isDFU: true
+          });
+        }
+      } else {
+        console.log(`[DFU] Failed to connect to DFU device: ${result.error}`);
+        // Schedule retry in 2 seconds
+        setTimeout(() => {
+          console.log('[DFU] Retrying DFU connection in 2 seconds...');
+          autoConnectToDFUDevice();
+        }, 2000);
+      }
+    } else {
+      console.log('[DFU] DFU device not found yet - will keep checking every 2 seconds');
+      // Schedule retry in 2 seconds if no DFU device found
+      setTimeout(() => {
+        autoConnectToDFUDevice();
+      }, 2000);
+    }
+  } catch (error) {
+    console.error('[DFU] Error during DFU auto-connect:', error);
+    // Schedule retry in 2 seconds if there was an error
+    setTimeout(() => {
+      console.log('[DFU] Retrying DFU connection after error in 2 seconds...');
+      autoConnectToDFUDevice();
+    }, 2000);
   }
 }
 
@@ -494,14 +694,42 @@ function startPortPolling() {
           mainWindow.webContents.send('ports-update', currentPorts);
         }
         
-        // Check for target device hot-plug
+        // Check for target device hot-plug (normal mode)
         const targetPort = currentPorts.find(port => 
           port.vendorId && port.productId && 
           port.vendorId.toUpperCase() === TARGET_VENDOR_ID && 
           port.productId.toUpperCase() === TARGET_PRODUCT_ID
         );
         
-        if (targetPort && !isConnected) {
+        // Check for DFU device hot-plug (bootloader mode)
+        const dfuPort = currentPorts.find(port => 
+          port.vendorId && port.productId && 
+          port.vendorId.toUpperCase() === DFU_VENDOR_ID && 
+          port.productId.toUpperCase() === DFU_PRODUCT_ID
+        );
+        
+        // Prioritize DFU device if both are present
+        if (dfuPort && !isConnected) {
+          console.log('[HOT-PLUG] DFU device detected, attempting auto-connect');
+          const result = await connectSerial(dfuPort.path, 115200);
+          if (result.success) {
+            console.log('[HOT-PLUG] Successfully connected to DFU device on', dfuPort.path);
+            isConnected = true;
+            if (mainWindow) {
+              mainWindow.webContents.send('connection-status', { 
+                connected: true, 
+                port: dfuPort.path + ' (DFU Mode)',
+                isDFU: true
+              });
+            }
+          } else {
+            console.log('[HOT-PLUG] Failed to connect to DFU device:', result.error);
+            setTimeout(() => {
+              console.log('[HOT-PLUG] Retrying DFU connection...');
+              autoConnectToDFUDevice();
+            }, 2000);
+          }
+        } else if (targetPort && !isConnected) {
           console.log('[HOT-PLUG] Target device detected, attempting auto-connect');
           const result = await connectSerial(targetPort.path, 115200);
           if (result.success) {
@@ -712,6 +940,37 @@ ipcMain.handle('send-cooler', async (event, value) => {
 
 // Send PID value: format ':X<4_bytes_float>;\n' for Proportional (X), ':Y<4_bytes_float>;\n' for Integral (Y), ':Z<4_bytes_float>;\n' for Differential (Z)
 // Total: 8 bytes (':X' + 4 bytes float + ';\n')
+ipcMain.handle('send-bootloader', async (event, value) => {
+  try {
+    const v = Math.max(0, Math.min(1, parseInt(value)));
+    if (!serialPort || !serialPort.isOpen) {
+      return { success: false, error: 'Not connected' };
+    }
+    // Build byte array: [0x3A, 0x4B, value_byte, 0x3B, 0x0A]
+    const bytes = [0x3A, 0x4B]; // ':' and 'K'
+    bytes.push(v); // value as single byte (0 or 1)
+    bytes.push(0x3B, 0x0A); // ';' and '\n'
+    const payload = Buffer.from(bytes);
+    
+    serialPort.write(payload);
+    console.log('Bootloader command sent:', payload.toString('hex'));
+    
+    // If entering bootloader mode (value = 1), start looking for DFU device
+    if (v === 1) {
+      console.log('[BOOTLOADER] Entering bootloader mode, starting DFU device detection...');
+      // Wait a moment for device to switch to DFU mode, then start detection
+      setTimeout(() => {
+        autoConnectToDFUDevice();
+      }, 1000);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending bootloader command:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('send-pid-value', async (event, type, value) => {
   try {
     if (!serialPort || !serialPort.isOpen) {
@@ -791,6 +1050,151 @@ ipcMain.handle('write-file', async (event, filePath, content) => {
     console.error('Error writing file:', error);
     return { success: false, error: error.message };
   }
+});
+
+// IPC handler for uploading HEX file to MCU
+ipcMain.handle('upload-hex-file', async (event, fileContent) => {
+  try {
+    if (!serialPort || !serialPort.isOpen) {
+      return { success: false, error: 'Not connected to serial port' };
+    }
+
+    // Parse HEX content (already read from file)
+    const lines = fileContent.split('\n').filter(line => line.trim().length > 0);
+    
+    let totalBytesSent = 0;
+    let totalLines = lines.length;
+    let currentLine = 0;
+
+    console.log(`[HEX] Starting upload of ${totalLines} HEX lines`);
+
+    // Parse and send each HEX line
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Skip empty lines
+      if (line.length === 0) continue;
+      
+      // Check if it's a valid HEX line (starts with :)
+      if (line[0] !== ':') {
+        console.warn(`[HEX] Skipping invalid line ${i + 1}: ${line}`);
+        continue;
+      }
+
+      // Parse Intel HEX format: :LLAAAATTDD...CC
+      // LL = length, AAAA = address, TT = type, DD = data, CC = checksum
+      const length = parseInt(line.substring(1, 3), 16);
+      const address = parseInt(line.substring(3, 7), 16);
+      const type = parseInt(line.substring(7, 9), 16);
+      
+      // Type 01 = End of File, skip it
+      if (type === 0x01) {
+        console.log('[HEX] End of File record found');
+        continue;
+      }
+
+      // Extract data bytes
+      const dataStart = 9;
+      const dataEnd = dataStart + (length * 2);
+      const dataHex = line.substring(dataStart, dataEnd);
+      
+      // Convert hex string to bytes
+      const dataBytes = [];
+      for (let j = 0; j < dataHex.length; j += 2) {
+        const byteHex = dataHex.substring(j, j + 2);
+        dataBytes.push(parseInt(byteHex, 16));
+      }
+
+      // Send data to MCU
+      // Format: :U<address_high><address_low><length><data_bytes>;\n
+      // Address is 16-bit, send as 2 bytes (high, low)
+      const addressHigh = (address >> 8) & 0xFF;
+      const addressLow = address & 0xFF;
+      
+      const uploadBytes = [0x3A, 0x55]; // ':' and 'U'
+      uploadBytes.push(addressHigh);
+      uploadBytes.push(addressLow);
+      uploadBytes.push(length);
+      uploadBytes.push(...dataBytes);
+      uploadBytes.push(0x3B, 0x0A); // ';' and '\n'
+      
+      const payload = Buffer.from(uploadBytes);
+      
+      // Send with small delay between packets
+      await new Promise((resolve, reject) => {
+        serialPort.write(payload, (err) => {
+          if (err) reject(err);
+          else {
+            // Small delay to allow MCU to process
+            setTimeout(resolve, 10);
+          }
+        });
+      });
+
+      totalBytesSent += dataBytes.length;
+      currentLine++;
+
+      // Send progress update every 10 lines or at the end
+      if (currentLine % 10 === 0 || currentLine === totalLines) {
+        const percent = Math.round((currentLine / totalLines) * 100);
+        if (mainWindow) {
+          mainWindow.webContents.send('hex-upload-progress', {
+            percent: percent,
+            currentLine: currentLine,
+            totalLines: totalLines,
+            bytesSent: totalBytesSent,
+            message: `Uploading line ${currentLine}/${totalLines} (${percent}%)`
+          });
+        }
+      }
+    }
+
+    console.log(`[HEX] Upload complete. Total bytes sent: ${totalBytesSent}`);
+    
+    return { 
+      success: true, 
+      bytesSent: totalBytesSent,
+      linesProcessed: currentLine
+    };
+  } catch (error) {
+    console.error('[HEX] Error uploading HEX file:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// IPC handler for checking updates
+ipcMain.handle('check-for-updates', async () => {
+  try {
+    if (!app.isPackaged) {
+      return { 
+        success: false, 
+        error: 'Update checking is only available in the packaged application.',
+        isDev: true
+      };
+    }
+    
+    console.log('[UPDATE] Manual update check requested');
+    const result = await autoUpdater.checkForUpdates();
+    return { 
+      success: true, 
+      currentVersion: app.getVersion(),
+      message: 'Checking for updates...'
+    };
+  } catch (error) {
+    console.error('[UPDATE] Error checking for updates:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+});
+
+// IPC handler for getting current version
+ipcMain.handle('get-app-version', async () => {
+  return {
+    version: app.getVersion(),
+    isPackaged: app.isPackaged
+  };
 });
 
 // IPC handler for opening admin panel window
