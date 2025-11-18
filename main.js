@@ -161,6 +161,13 @@ function createWindow() {
 autoUpdater.autoDownload = false; // Don't auto-download, let user choose
 autoUpdater.autoInstallOnAppQuit = false; // Don't auto-install
 
+// Configure for GitHub releases
+// electron-updater v6+ automatically reads from package.json publish config
+// The publish config in package.json should be enough, but we can verify
+if (app.isPackaged) {
+  console.log('[UPDATE] Updater initialized - will use GitHub releases from package.json config');
+}
+
 // Helper function to send update status to all windows
 function sendUpdateStatusToAllWindows(updateInfo) {
   // Send to all open windows (including main window and admin panel)
@@ -1173,6 +1180,20 @@ ipcMain.handle('check-for-updates', async () => {
       };
     }
     
+    // Ensure updater is configured for GitHub before checking
+    try {
+      autoUpdater.setFeedURL({
+        provider: 'github',
+        owner: 'MuhammdAbdullah',
+        repo: 'Heat-Transfer',
+        private: false
+      });
+      console.log('[UPDATE] GitHub updater configured for manual check');
+    } catch (configError) {
+      console.error('[UPDATE] Error configuring updater:', configError);
+      // Continue anyway - it might be configured from package.json
+    }
+    
     console.log('[UPDATE] Manual update check requested');
     const result = await autoUpdater.checkForUpdates();
     return { 
@@ -1182,9 +1203,14 @@ ipcMain.handle('check-for-updates', async () => {
     };
   } catch (error) {
     console.error('[UPDATE] Error checking for updates:', error);
+    // Provide a more user-friendly error message
+    let errorMessage = error.message;
+    if (error.message && error.message.includes('app-update.yml')) {
+      errorMessage = 'Unable to check for updates. Please download manually from GitHub releases.';
+    }
     return { 
       success: false, 
-      error: error.message 
+      error: errorMessage 
     };
   }
 });
