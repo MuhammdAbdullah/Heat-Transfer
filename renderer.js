@@ -1,5 +1,15 @@
 // --- Plotly graph state ---
 var chartData = { time: [], series: Array.from({ length: 12 }, function() { return []; }), enabled: Array.from({ length: 12 }, function() { return true; }) };
+window.sharedTemperatures = {
+    t1: 0,
+    t2: 0,
+    t3: 0,
+    t4: 0,
+    t5: 0,
+    t6: 0,
+    t7: 0,
+    t8: 0
+};
 var maxPoints = 50; // show last 50 points by default
 var chartDisplayMode = 'limited'; // 'limited' or 'all' - controls whether to limit points or show all data
 var isSavingCsv = false; // flag to track if CSV saving is active
@@ -213,6 +223,15 @@ function addPoint(timeSec, valuesArray13) {
 			lastTemperatureValues[i] = tempValue;
 		}
 	}
+    // Share the latest temperatures for the STEP viewer
+    window.sharedTemperatures.t1 = lastTemperatureValues[0] || 0;
+    window.sharedTemperatures.t2 = lastTemperatureValues[1] || 0;
+    window.sharedTemperatures.t3 = lastTemperatureValues[2] || 0;
+    window.sharedTemperatures.t4 = lastTemperatureValues[3] || 0;
+    window.sharedTemperatures.t5 = lastTemperatureValues[4] || 0;
+    window.sharedTemperatures.t6 = lastTemperatureValues[5] || 0;
+    window.sharedTemperatures.t7 = lastTemperatureValues[6] || 0;
+    window.sharedTemperatures.t8 = lastTemperatureValues[7] || 0;
 	// Only limit points if in 'limited' mode
 	if (chartDisplayMode === 'limited' && chartData.time.length > maxPoints) {
 		chartData.time.shift();
@@ -2113,30 +2132,17 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (layoutSel) layoutSel.addEventListener('change', function(){ applyLayout(layoutSel.value); localStorage.setItem('appLayout', layoutSel.value); });
 	} catch (e) { /* ignore */ }
 
-    // Simulated data generation when user clicks the button
+    // Simulation window button (no chart data changes)
     var simulateBtn = document.getElementById('simulateBtn');
     if (simulateBtn) {
         simulateBtn.addEventListener('click', function() {
-            addToLog('Starting simulated data for 30 seconds...');
-            var start = Date.now();
-            var simTimer = setInterval(function(){
-                var t = (Date.now() - start) / 1000; // seconds
-                // Generate smooth test data
-                var temps = [];
-                for (var i = 0; i < 8; i++) {
-                    var base = 25 + i * 0.5;
-                    var val = base + Math.sin(t / 5 + i) * 2 + (Math.random() - 0.5) * 0.2;
-                    temps.push(val);
-                }
-                var heaterL = 22 + Math.sin(t / 8) * 1.0;
-                var heaterR = 22 + Math.cos(t / 8) * 1.0;
-                var power = 50 + Math.sin(t / 3) * 10;
-                var target = 30; // flat line
-                var airSpeed = 2.5 + Math.sin(t / 4) * 0.5; // air speed in m/s
-                var values = temps.concat([heaterL, heaterR, power, target, airSpeed]);
-                addPoint(t, values);
-                if ((Date.now() - start) > 30000) { clearInterval(simTimer); addToLog('Simulated data ended.'); }
-            }, 250);
+            // Only open the STEP viewer window
+            var simWindow = window.open('simulation.html', 'simulationWindow', 'width=450,height=320,resizable=yes');
+            if (simWindow) {
+                simWindow.focus();
+            }
+
+            addToLog('Simulation window opened (STEP preview only).');
         });
     }
 });
