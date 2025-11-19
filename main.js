@@ -161,9 +161,8 @@ function createWindow() {
 autoUpdater.autoDownload = false; // Don't auto-download, let user choose
 autoUpdater.autoInstallOnAppQuit = false; // Don't auto-install
 
-// Configure for GitHub releases
-// electron-updater v6+ automatically reads from package.json publish config
-// The publish config in package.json should be enough, but we can verify
+// For electron-updater v6+, GitHub provider is automatically detected from package.json publish config
+// No manual configuration needed - it will use GitHub releases automatically
 if (app.isPackaged) {
   console.log('[UPDATE] Updater initialized - will use GitHub releases from package.json config');
 }
@@ -239,9 +238,19 @@ autoUpdater.on('update-not-available', (info) => {
 
 autoUpdater.on('error', (err) => {
   console.error('[UPDATE] Error in auto-updater:', err);
+  
+  // Provide user-friendly error message
+  let errorMessage = 'Error checking for updates: ' + err.message;
+  
+  // If it's looking for local files (common with portable apps), give helpful message
+  if (err.message && (err.message.includes('app-update.yml') || err.message.includes('ENOENT'))) {
+    errorMessage = 'Auto-updates not supported for portable version. Please download the latest version from GitHub releases.';
+  }
+  
   sendUpdateStatusToAllWindows({ 
     status: 'error', 
-    message: 'Error checking for updates: ' + err.message
+    message: errorMessage,
+    githubUrl: 'https://github.com/MuhammdAbdullah/Heat-Transfer/releases'
   });
 });
 
@@ -1180,22 +1189,13 @@ ipcMain.handle('check-for-updates', async () => {
       };
     }
     
-    // Ensure updater is configured for GitHub before checking
-    try {
-      autoUpdater.setFeedURL({
-        provider: 'github',
-        owner: 'MuhammdAbdullah',
-        repo: 'Heat-Transfer',
-        private: false
-      });
-      console.log('[UPDATE] GitHub updater configured for manual check');
-    } catch (configError) {
-      console.error('[UPDATE] Error configuring updater:', configError);
-      // Continue anyway - it might be configured from package.json
-    }
+    // For electron-updater v6+, GitHub provider is read from package.json
+    // No need to setFeedURL - it automatically uses GitHub from package.json publish config
+    // But ensure it's configured correctly
+    console.log('[UPDATE] Manual update check requested (using GitHub provider from package.json)');
     
-    console.log('[UPDATE] Manual update check requested');
-    const result = await autoUpdater.checkForUpdates();
+    // Use checkForUpdatesAndNotify - this works better with GitHub releases
+    const result = await autoUpdater.checkForUpdatesAndNotify();
     return { 
       success: true, 
       currentVersion: app.getVersion(),
@@ -1203,10 +1203,10 @@ ipcMain.handle('check-for-updates', async () => {
     };
   } catch (error) {
     console.error('[UPDATE] Error checking for updates:', error);
-    // Provide a more user-friendly error message
+    // Provide a user-friendly error message
     let errorMessage = error.message;
-    if (error.message && error.message.includes('app-update.yml')) {
-      errorMessage = 'Unable to check for updates. Please download manually from GitHub releases.';
+    if (error.message && (error.message.includes('app-update.yml') || error.message.includes('ENOENT'))) {
+      errorMessage = 'Auto-updates not supported for portable version. Please download the latest version from: https://github.com/MuhammdAbdullah/Heat-Transfer/releases';
     }
     return { 
       success: false, 
