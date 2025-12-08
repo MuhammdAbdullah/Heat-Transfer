@@ -43,8 +43,8 @@
                     { label: 'T6', data: [], borderColor: '#36cfc9', backgroundColor: 'rgba(54,207,201,0.1)', pointRadius: 0, borderWidth: 2 },
                     { label: 'T7', data: [], borderColor: '#f759ab', backgroundColor: 'rgba(247,89,171,0.1)', pointRadius: 0, borderWidth: 2 },
                     { label: 'T8', data: [], borderColor: '#9254de', backgroundColor: 'rgba(146,84,222,0.1)', pointRadius: 0, borderWidth: 2 },
-                    { label: 'Heater Left', data: [], borderColor: '#faad14', backgroundColor: 'rgba(250,173,20,0.1)', pointRadius: 0, borderWidth: 2 },
-                    { label: 'Heater Right', data: [], borderColor: '#1f7a8c', backgroundColor: 'rgba(31,122,140,0.1)', pointRadius: 0, borderWidth: 2 },
+                    { label: 'Radial Heater', data: [], borderColor: '#faad14', backgroundColor: 'rgba(250,173,20,0.1)', pointRadius: 0, borderWidth: 2 },
+                    { label: 'Linear Heater', data: [], borderColor: '#1f7a8c', backgroundColor: 'rgba(31,122,140,0.1)', pointRadius: 0, borderWidth: 2 },
                     { label: 'Target Temp', data: [], borderColor: '#ff6b6b', backgroundColor: 'rgba(255,107,107,0.1)', pointRadius: 0, borderWidth: 3, borderDash: [5, 5] },
                     { label: 'Power', data: [], borderColor: '#1e90ff', backgroundColor: 'rgba(30,144,255,0.1)', pointRadius: 0, borderWidth: 2, yAxisID: 'y1' }
                 ]

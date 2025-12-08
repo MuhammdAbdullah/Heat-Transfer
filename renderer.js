@@ -40,7 +40,7 @@ function initChart() {
 		if (document.body.classList.contains('theme-dark')) {
 			colors[10] = '#ffffff';
 		}
-        var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Heater Left','Heater Right','Power','Target Temp'];
+        var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target Temp'];
         var datasets = [];
         for (var i = 0; i < 12; i++) {
             datasets.push({
@@ -101,7 +101,7 @@ function initChart() {
 	
 	// Define colors for each series (same as original)
 	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
-	var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Heater Left', 'Heater Right', 'Power', 'Target Temp'];
+	var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target Temp'];
 	
 	// Create initial empty traces
 	var traces = [];
@@ -211,7 +211,7 @@ function initChart() {
 
 function addPoint(timeSec, valuesArray13) {
 	chartData.time.push(timeSec);
-	// Only add first 12 values to chart (T1-T8, Heater Left, Heater Right, Power, Target Temp)
+	// Only add first 12 values to chart (T1-T8, Radial Heater, Linear Heater, Power, Target Temp)
 	// Air Speed (index 12) is excluded from charts but kept in CSV
     for (var i = 0; i < 12; i++) {
 		chartData.series[i].push(valuesArray13[i]);
@@ -323,7 +323,7 @@ function redrawChart() {
 	
 	// Define colors for each series (same as original)
 	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
-	var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Heater Left', 'Heater Right', 'Power', 'Target Temp'];
+	var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target Temp'];
 	
     // Create traces with current data
     var traces = [];
@@ -465,6 +465,7 @@ function initDistanceChart() {
 				intersect: false
 			},
 			animation: false,
+			resizeDelay: 0,
 			scales: {
 				x: {
 					type: 'linear',
@@ -472,13 +473,21 @@ function initDistanceChart() {
 					title: {
 						display: true,
 						text: 'Distance',
-						color: themeColors.text
+						color: themeColors.text,
+						font: {
+							size: 12,
+							weight: 'normal'
+						}
 					},
 					grid: {
 						color: themeColors.grid
 					},
 					ticks: {
-						color: themeColors.text
+						color: themeColors.text,
+						font: {
+							size: 11,
+							weight: 'normal'
+						}
 					}
 				},
 				y: {
@@ -487,13 +496,21 @@ function initDistanceChart() {
 					title: {
 						display: true,
 						text: 'Temperature (°C)',
-						color: themeColors.text
+						color: themeColors.text,
+						font: {
+							size: 12,
+							weight: 'normal'
+						}
 					},
 					grid: {
 						color: themeColors.grid
 					},
 					ticks: {
-						color: themeColors.text
+						color: themeColors.text,
+						font: {
+							size: 11,
+							weight: 'normal'
+						}
 					}
 				}
 			},
@@ -501,7 +518,11 @@ function initDistanceChart() {
 				legend: {
 					position: 'right',
 					labels: {
-						color: themeColors.text
+						color: themeColors.text,
+						font: {
+							size: 12,
+							weight: 'normal'
+						}
 					}
 				},
 				tooltip: {
@@ -517,6 +538,13 @@ function initDistanceChart() {
 					}
 				}
 			}
+		}
+	});
+	
+	// Handle window resize for distance chart
+	window.addEventListener('resize', function() {
+		if (distanceChartJsRef) {
+			distanceChartJsRef.resize();
 		}
 	});
 }
@@ -1476,32 +1504,32 @@ function parseAndDisplayData(dataArray) {
 		// Display heater temperatures in tiles (bytes 36-43)
 		if (actualData.length >= 44) {
 			console.log('Parsing heater data, actualData length:', actualData.length);
-			// Heater Left (bytes 36-39)
+			// Radial Heater (bytes 36-39)
 			var hb0 = actualData[36], hb1 = actualData[37], hb2 = actualData[38], hb3 = actualData[39];
 			var hbuf1 = new ArrayBuffer(4);
 			var hdv1 = new DataView(hbuf1);
 			hdv1.setUint8(0, hb0); hdv1.setUint8(1, hb1); hdv1.setUint8(2, hb2); hdv1.setUint8(3, hb3);
 			heaterLeftTemp = hdv1.getFloat32(0, true);
-			console.log('Heater Left temp:', heaterLeftTemp);
+			console.log('Radial Heater temp:', heaterLeftTemp);
 			var heaterLeftEl = document.getElementById('heaterLeftTile');
-			console.log('Heater Left element found:', !!heaterLeftEl);
+			console.log('Radial Heater element found:', !!heaterLeftEl);
 			if (heaterLeftEl) {
-				heaterLeftEl.textContent = 'Heater Left: ' + heaterLeftTemp.toFixed(2) + '°C';
-				console.log('Updated heater left tile:', heaterLeftEl.textContent);
+				heaterLeftEl.textContent = 'Radial Heater: ' + heaterLeftTemp.toFixed(2) + '°C';
+				console.log('Updated radial heater tile:', heaterLeftEl.textContent);
 			}
 			
-			// Heater Right (bytes 40-43)
+			// Linear Heater (bytes 40-43)
 			var hb4 = actualData[40], hb5 = actualData[41], hb6 = actualData[42], hb7 = actualData[43];
 			var hbuf2 = new ArrayBuffer(4);
 			var hdv2 = new DataView(hbuf2);
 			hdv2.setUint8(0, hb4); hdv2.setUint8(1, hb5); hdv2.setUint8(2, hb6); hdv2.setUint8(3, hb7);
 			heaterRightTemp = hdv2.getFloat32(0, true);
-			console.log('Heater Right temp:', heaterRightTemp);
+			console.log('Linear Heater temp:', heaterRightTemp);
 			var heaterRightEl = document.getElementById('heaterRightTile');
-			console.log('Heater Right element found:', !!heaterRightEl);
+			console.log('Linear Heater element found:', !!heaterRightEl);
 			if (heaterRightEl) {
-				heaterRightEl.textContent = 'Heater Right: ' + heaterRightTemp.toFixed(2) + '°C';
-				console.log('Updated heater right tile:', heaterRightEl.textContent);
+				heaterRightEl.textContent = 'Linear Heater: ' + heaterRightTemp.toFixed(2) + '°C';
+				console.log('Updated linear heater tile:', heaterRightEl.textContent);
 			}
 			
 			// Update button text with temperatures
@@ -1793,7 +1821,7 @@ function downloadCsvFile(csvContent) {
 function getChartThemeColors() {
 	if (document.body.classList.contains('theme-light')) {
 		return {
-			background: '#ffffff',
+			background: '#6c6b6d',
 			border: '#444444',
 			grid: '#444444',
 			text: '#000000'
@@ -1878,6 +1906,42 @@ function updateChartTheme() {
 			liveChart.update('none');
 		} catch (e) { /* ignore */ }
 	}
+	// Update distance chart theme
+	if (distanceChartJsRef) {
+		try {
+			var distanceCanvas = document.getElementById('tempDistanceChart');
+			if (distanceCanvas) {
+				distanceCanvas.style.background = colors.background;
+				distanceCanvas.style.borderColor = colors.border;
+			}
+			distanceChartJsRef.options.scales.x.grid.color = colors.grid;
+			distanceChartJsRef.options.scales.x.ticks.color = colors.text;
+			distanceChartJsRef.options.scales.x.title.color = colors.text;
+			distanceChartJsRef.options.scales.y.grid.color = colors.grid;
+			distanceChartJsRef.options.scales.y.ticks.color = colors.text;
+			distanceChartJsRef.options.scales.y.title.color = colors.text;
+			if (distanceChartJsRef.options.plugins && distanceChartJsRef.options.plugins.legend && distanceChartJsRef.options.plugins.legend.labels) {
+				distanceChartJsRef.options.plugins.legend.labels.color = colors.text;
+			}
+			// Maintain font sizes during resize
+			if (distanceChartJsRef.options.scales.x.title.font) {
+				distanceChartJsRef.options.scales.x.title.font.size = 12;
+			}
+			if (distanceChartJsRef.options.scales.x.ticks.font) {
+				distanceChartJsRef.options.scales.x.ticks.font.size = 11;
+			}
+			if (distanceChartJsRef.options.scales.y.title.font) {
+				distanceChartJsRef.options.scales.y.title.font.size = 12;
+			}
+			if (distanceChartJsRef.options.scales.y.ticks.font) {
+				distanceChartJsRef.options.scales.y.ticks.font.size = 11;
+			}
+			if (distanceChartJsRef.options.plugins && distanceChartJsRef.options.plugins.legend && distanceChartJsRef.options.plugins.legend.labels && distanceChartJsRef.options.plugins.legend.labels.font) {
+				distanceChartJsRef.options.plugins.legend.labels.font.size = 12;
+			}
+			distanceChartJsRef.update('none');
+		} catch (e) { /* ignore */ }
+	}
 }
 function setupDataListeners() {
 	window.electronAPI.onDataReceived(function(event, data) {
@@ -1935,6 +1999,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	addToLog('Click "Refresh Ports" to see available COM ports');
     // Initialize charts (Chart.js)
 	initChart();
+	
+	// Initialize distance chart - wait for Chart.js to be available
+	function tryInitDistanceChart(attempts) {
+		if (window.Chart) {
+			initDistanceChart();
+		} else if (attempts < 20) {
+			// Try again after 100ms if Chart.js isn't loaded yet
+			setTimeout(function() {
+				tryInitDistanceChart(attempts + 1);
+			}, 100);
+		}
+	}
+	tryInitDistanceChart(0);
+	
 	setupDataListeners();
     
     // Setup clear/save controls
@@ -2041,7 +2119,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			testCanvas.style.background = themeColors.background;
 			testCanvas.style.borderColor = themeColors.border;
             var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
-            var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Heater Left','Heater Right','Power','Target'];
+            var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target'];
             var ds = [];
             for (var i = 0; i < 12; i++) {
                 ds.push({ label: labels[i], data: [], borderColor: colors[i], backgroundColor: colors[i], pointRadius: 0, borderWidth: 2, tension: 0.2, yAxisID: i === 10 ? 'y2' : 'y' });
@@ -2341,12 +2419,12 @@ function updateHeaterButtons() {
     }
     if (heaterLeftBtn) {
         heaterLeftBtn.classList.remove('active');
-        heaterLeftBtn.textContent = '🔥 Heater Left ' + heaterLeftTemp.toFixed(1) + '°C';
+        heaterLeftBtn.textContent = '🔥 Radial Heater ' + heaterLeftTemp.toFixed(1) + '°C';
         addToLog('DEBUG: Removed active class from heaterLeftBtn, set text: ' + heaterLeftBtn.textContent);
     }
     if (heaterRightBtn) {
         heaterRightBtn.classList.remove('active');
-        heaterRightBtn.textContent = '🔥 Heater Right ' + heaterRightTemp.toFixed(1) + '°C';
+        heaterRightBtn.textContent = '🔥 Linear Heater ' + heaterRightTemp.toFixed(1) + '°C';
         addToLog('DEBUG: Removed active class from heaterRightBtn, set text: ' + heaterRightBtn.textContent);
     }
     
@@ -2435,23 +2513,48 @@ async function openAdminPanel() {
         try {
             const result = await window.electronAPI.openAdminPanel();
             if (result.success) {
-                addToLog('Admin panel opened');
+                if (result.alreadyOpen) {
+                    addToLog('Admin panel already open - focused existing window');
+                } else {
+                    addToLog('Admin panel opened');
+                }
             } else {
                 addToLog('Failed to open admin panel: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
             addToLog('Error opening admin panel: ' + error.message);
             // Fallback to window.open if IPC fails
-            const adminWindow = window.open('admin.html', 'adminPanel', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-            if (adminWindow) {
-                addToLog('Admin panel opened (fallback method)');
+            // Use window name to reuse same window if already open
+            var fallbackWindow = window.open('admin.html', 'adminPanel', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+            if (fallbackWindow) {
+                // Check if window was already open (window.open returns existing window)
+                if (fallbackWindow.location.href && fallbackWindow.location.href.includes('admin.html')) {
+                    fallbackWindow.focus();
+                    addToLog('Admin panel already open - focused existing window (fallback)');
+                } else {
+                    addToLog('Admin panel opened (fallback method)');
+                }
+            } else {
+                addToLog('Failed to open admin panel - popup blocked?');
             }
         }
     } else {
         // Fallback to window.open if electronAPI not available
-        const adminWindow = window.open('admin.html', 'adminPanel', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-        if (adminWindow) {
-            addToLog('Admin panel opened (fallback method)');
+        // Use window name to reuse same window if already open
+        var fallbackWindow = window.open('admin.html', 'adminPanel', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        if (fallbackWindow) {
+            // Check if window was already open (window.open returns existing window)
+            try {
+                if (fallbackWindow.location.href && fallbackWindow.location.href.includes('admin.html')) {
+                    fallbackWindow.focus();
+                    addToLog('Admin panel already open - focused existing window (fallback)');
+                } else {
+                    addToLog('Admin panel opened (fallback method)');
+                }
+            } catch (e) {
+                // Cross-origin error means window is new, which is fine
+                addToLog('Admin panel opened (fallback method)');
+            }
         } else {
             addToLog('Failed to open admin panel - popup blocked?');
         }

@@ -1,6 +1,6 @@
 # Heat Transfer Data Reader
 
-A simple Electron.js desktop application that reads heat transfer data from a COM port.
+A simple Electron.js desktop application that reads heat transfer data from a COM port with USB HID bootloader support for firmware updates.
 
 ## 📥 Download & Install
 
@@ -18,9 +18,13 @@ A simple Electron.js desktop application that reads heat transfer data from a CO
 - **Real-time Display**: Shows raw hex data and parsed information
 - **Simple Interface**: Clean, beginner-friendly user interface
 - **Data Logging**: Keeps a log of all connection events and data received
-- **Bootloader Support**: DFU mode support with HEX file upload
+- **USB HID Bootloader**: Full firmware update support via USB HID
+  - Load Intel HEX files
+  - Erase, Program, and Verify flash memory
+  - Progress bar with real-time status updates
+  - CRC verification to ensure firmware integrity
 - **Auto-Updates**: Automatically checks for new versions from GitHub releases
-- **Admin Panel**: Advanced controls including PID settings and system monitoring
+- **Admin Panel**: Advanced controls including PID settings, bootloader, and system monitoring
 
 ## Data Format
 
@@ -72,6 +76,34 @@ The app expects data packets with the following format:
    - Raw hex data display
    - Parsed data interpretation
    - Connection log
+
+## Bootloader / Firmware Update
+
+The app includes a USB HID bootloader for updating device firmware:
+
+### How to Update Firmware:
+
+1. **Open Admin Panel** (click the gear icon or press Ctrl+Shift+A)
+2. **Go to Bootloader Tab**
+3. **Click "Connect"** to connect to the bootloader device (VID: 0x12BF, PID: 0xA1)
+4. **Click "Load Hex File"** and select your firmware .hex file
+5. **Click "Erase-Program-Verify"** to update the firmware
+6. **Click "Run Application"** when complete to start the new firmware
+
+### Bootloader Button Flow:
+
+| State | Available Actions |
+|-------|-------------------|
+| Disconnected | Connect, Trigger Bootloader |
+| Connected | Load Hex File |
+| Hex File Loaded | Load Hex File, Erase-Program-Verify |
+| After Update | Run Application |
+
+### Progress Indicators:
+
+- **Orange** - Erasing flash
+- **Green** - Programming firmware
+- **Blue** - Verifying CRC
 
 ## Troubleshooting
 

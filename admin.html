@@ -358,6 +358,11 @@
             padding: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         .bootloader-panel h2 {
@@ -415,7 +420,11 @@
 
         /* File Upload Section Styles */
         .file-upload-section {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
             margin-top: 20px;
+            margin-bottom: 10px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -427,12 +436,21 @@
             padding: 12px 15px;
             border-left: 4px solid #3498db;
             min-height: 20px;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .file-path-label {
             color: #2c3e50;
             font-size: 14px;
             font-weight: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .file-path-label.has-file {
@@ -491,56 +509,176 @@
             box-shadow: none;
         }
 
-        /* DFU Status Indicator Styles */
-        .dfu-status-indicator {
-            background: #ecf0f1;
-            border-radius: 10px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
+        /* Communication Settings Styles */
+        .comm-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .comm-section h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .comm-control-group {
             display: flex;
             align-items: center;
-            gap: 15px;
-            border-left: 4px solid #95a5a6;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .comm-control-group label {
+            min-width: 80px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .comm-select, .comm-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 14px;
             transition: all 0.3s ease;
         }
 
-        .dfu-status-indicator.connected {
-            background: #d5f4e6;
-            border-left-color: #27ae60;
+        .comm-select:focus, .comm-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
         }
 
-        .dfu-status-indicator.disconnected {
-            background: #fadbd8;
-            border-left-color: #e74c3c;
+        .comm-select:disabled, .comm-input:disabled {
+            background: #ecf0f1;
+            cursor: not-allowed;
         }
 
-        .dfu-status-icon {
-            font-size: 24px;
-            width: 30px;
+        /* Bootloader Buttons Grid */
+        .bootloader-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .bootloader-buttons-grid .bootloader-btn {
+            padding: 12px 15px;
+            font-size: 14px;
+            min-width: 0;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Bootloader Log Container */
+        .bootloader-log-container {
+            background: #2c3e50;
+            border-radius: 10px;
+            padding: 15px;
+            height: 300px;
+            margin-top: 20px;
+            overflow-y: auto;
+        }
+
+        .bootloader-log-content {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #ecf0f1;
+        }
+
+        .bootloader-log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .bootloader-log-entry.success {
+            color: #2ecc71;
+        }
+
+        .bootloader-log-entry.error {
+            color: #e74c3c;
+        }
+
+        .bootloader-log-entry.info {
+            color: #3498db;
+        }
+
+        /* DFU Status Indicator Styles */
+
+        /* Firmware Progress Bar Styles */
+        .firmware-progress-section {
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .firmware-progress-label {
+            color: #ecf0f1;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
             text-align: center;
         }
 
-        .dfu-status-indicator.connected .dfu-status-icon {
-            color: #27ae60;
+        .firmware-progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #1a252f;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #3498db;
+            position: relative;
         }
 
-        .dfu-status-indicator.disconnected .dfu-status-icon {
-            color: #e74c3c;
+        .firmware-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71, #27ae60);
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 13px;
+            animation: progressShine 2s linear infinite;
         }
 
-        .dfu-status-text {
-            flex: 1;
+        .firmware-progress-fill.erasing {
+            background: linear-gradient(90deg, #e67e22, #f39c12, #e67e22);
+            background-size: 200% 100%;
+        }
+
+        .firmware-progress-fill.verifying {
+            background: linear-gradient(90deg, #3498db, #2980b9, #3498db);
+            background-size: 200% 100%;
+        }
+
+        @keyframes progressShine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .firmware-progress-text {
+            color: #2ecc71;
             font-size: 16px;
             font-weight: bold;
-            color: #2c3e50;
+            text-align: center;
+            margin-top: 8px;
         }
 
-        .dfu-status-indicator.connected .dfu-status-text {
-            color: #27ae60;
+        .firmware-progress-text.erasing {
+            color: #f39c12;
         }
 
-        .dfu-status-indicator.disconnected .dfu-status-text {
-            color: #e74c3c;
+        .firmware-progress-text.verifying {
+            color: #3498db;
         }
 
         /* Update Check Styles */
@@ -727,32 +865,96 @@
 
             <!-- Bootloader Tab -->
             <div id="bootloaderTab" class="tab-content">
-                <div class="bootloader-panel">
-                    <h2>🔧 Bootloader</h2>
-                    
-                    <!-- DFU Connection Status Indicator -->
-                    <div class="dfu-status-indicator" id="dfuStatusIndicator">
-                        <div class="dfu-status-icon" id="dfuStatusIcon">⚫</div>
-                        <div class="dfu-status-text" id="dfuStatusText">DFU Mode: Not Connected</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Left Panel: Communication Settings -->
+                    <div class="bootloader-panel">
+                        <h2>📡 Communication Settings</h2>
+                        
+                        <!-- Serial Port Section (Hidden - USB only) -->
+                        <div class="comm-section" style="display: none;">
+                            <h3>Serial Port</h3>
+                            <div class="comm-control-group">
+                                <label>Com Port:</label>
+                                <select id="comPortSelect" class="comm-select" disabled>
+                                    <option value="">Select Port...</option>
+                                </select>
+                            </div>
+                            <div class="comm-control-group">
+                                <label>Baud Rate:</label>
+                                <select id="baudRateSelect" class="comm-select">
+                                    <option value="9600">9600</option>
+                                    <option value="19200">19200</option>
+                                    <option value="38400">38400</option>
+                                    <option value="57600">57600</option>
+                                    <option value="115200" selected>115200</option>
+                                </select>
+                            </div>
+                            <div class="comm-control-group">
+                                <label>
+                                    <input type="checkbox" id="comEnableCheck" onchange="onComEnableChanged()">
+                                    Enable
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- USB Section -->
+                        <div class="comm-section">
+                            <h3>USB</h3>
+                            <div class="comm-control-group">
+                                <label>VID:</label>
+                                <input type="text" id="usbVidInput" class="comm-input" value="0x12BF" placeholder="0x12BF">
+                            </div>
+                            <div class="comm-control-group">
+                                <label>PID:</label>
+                                <input type="text" id="usbPidInput" class="comm-input" value="0xA1" placeholder="0xA1">
+                            </div>
+                            <div class="comm-control-group">
+                                <label>
+                                    <input type="checkbox" id="usbEnableCheck" checked onchange="onUsbEnableChanged()">
+                                    Enable
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="bootloader-controls">
-                        <button class="bootloader-btn" onclick="enterBootloaderMode()">🚀 Enter Bootloader Mode</button>
+                    <!-- Right Panel: Action Buttons and Log -->
+                    <div class="bootloader-panel">
+                        <h2>🔧 Bootloader Actions</h2>
                         
-                        <!-- File Upload Section -->
+                        <!-- Action Buttons -->
+                        <div class="bootloader-buttons-grid">
+                            <button class="bootloader-btn" id="bootloaderVerBtn" onclick="bootloaderVersion()" disabled style="display: none;">Bootloader Ver</button>
+                            <button class="bootloader-btn" id="loadHexBtn" onclick="loadHexFile()" disabled>Load Hex File</button>
+                            <button class="bootloader-btn" id="eraseBtn" onclick="eraseFlash()" disabled style="display: none;">Erase</button>
+                            
+                            <button class="bootloader-btn" id="programBtn" onclick="programFlash()" disabled style="display: none;">Program</button>
+                            <button class="bootloader-btn" id="verifyBtn" onclick="verifyFlash()" disabled style="display: none;">Verify</button>
+                            <button class="bootloader-btn" id="runAppBtn" onclick="runApplication()" disabled>Run Application</button>
+                            
+                            <button class="bootloader-btn danger" id="eraseProgVerifyBtn" onclick="eraseProgramVerify()" disabled>Erase-Program-Verify</button>
+                            <button class="bootloader-btn" id="connectBtn" onclick="connectBootloader()">Connect</button>
+                            <button class="bootloader-btn" id="triggerBootloaderBtn" onclick="triggerBootloader()">Trigger Bootloader</button>
+                        </div>
+                        
+                        <!-- Firmware Progress Bar -->
+                        <div class="firmware-progress-section" id="firmwareProgressSection" style="display: none;">
+                            <div class="firmware-progress-label" id="firmwareProgressLabel">Initializing...</div>
+                            <div class="firmware-progress-bar">
+                                <div class="firmware-progress-fill" id="firmwareProgressFill"></div>
+                            </div>
+                            <div class="firmware-progress-text" id="firmwareProgressText">0%</div>
+                        </div>
+                        
+                        <!-- Hex File Display -->
                         <div class="file-upload-section">
-                            <input type="file" id="hexFileInput" accept=".hex" style="display: none;" onchange="handleHexFileSelect(event)">
-                            <button class="bootloader-btn" onclick="document.getElementById('hexFileInput').click()">📁 Select HEX File</button>
-                            <div class="file-path-display" id="hexFilePathDisplay">
-                                <span class="file-path-label">No file selected</span>
+                            <div class="file-path-display">
+                                <span class="file-path-label" id="hexFilePathLabel">No hex file loaded</span>
                             </div>
-                            <button class="bootloader-btn" id="uploadHexBtn" onclick="uploadHexFile()" disabled>⬆️ Upload HEX File to MCU</button>
-                            <div class="upload-progress" id="uploadProgress" style="display: none;">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="progressFill"></div>
-                                </div>
-                                <span class="progress-text" id="progressText">0%</span>
-                            </div>
+                        </div>
+                        
+                        <!-- Log Output Area -->
+                        <div class="bootloader-log-container">
+                            <div id="bootloaderLog" class="bootloader-log-content"></div>
                         </div>
                     </div>
                 </div>
@@ -1028,166 +1230,541 @@
         }
 
         // Bootloader functions
-        async function enterBootloaderMode() {
-            addAdminLog('Entering bootloader mode...', 'warning');
-            addAdminLog('Device will switch to DFU mode (VID: 0x00A1, PID: 0x12BF)', 'info');
-            addAdminLog('Waiting for DFU device detection...', 'info');
-            
-            // Check if electronAPI is available
-            if (!window.electronAPI || !window.electronAPI.sendBootloader) {
-                addAdminLog('Bootloader control not available - electronAPI not ready', 'error');
-                return;
-            }
+        let bootloaderConnected = false;
+        let hexFileLoaded = false;
+        let hexFilePath = '';
 
-            try {
-                // Send bootloader command with value 1 and label 'K'
-                const result = await window.electronAPI.sendBootloader(1);
-                if (result.success) {
-                    addAdminLog('Bootloader command sent: K=1', 'success');
-                    addAdminLog('Device should now be in DFU mode', 'info');
-                    addAdminLog('App will automatically connect when DFU device is detected', 'info');
-                } else {
-                    addAdminLog('Failed to send bootloader command: ' + (result.error || 'Unknown error'), 'error');
-                }
-            } catch (error) {
-                addAdminLog('Error sending bootloader command: ' + error.message, 'error');
+        // Firmware progress bar functions
+        function showFirmwareProgress(label, percent, mode) {
+            const section = document.getElementById('firmwareProgressSection');
+            const labelEl = document.getElementById('firmwareProgressLabel');
+            const fillEl = document.getElementById('firmwareProgressFill');
+            const textEl = document.getElementById('firmwareProgressText');
+            
+            if (!section || !labelEl || !fillEl || !textEl) return;
+            
+            section.style.display = 'block';
+            labelEl.textContent = label;
+            fillEl.style.width = percent + '%';
+            textEl.textContent = percent + '%';
+            
+            // Remove all mode classes
+            fillEl.classList.remove('erasing', 'verifying');
+            textEl.classList.remove('erasing', 'verifying');
+            
+            // Add mode-specific class
+            if (mode === 'erase') {
+                fillEl.classList.add('erasing');
+                textEl.classList.add('erasing');
+            } else if (mode === 'verify') {
+                fillEl.classList.add('verifying');
+                textEl.classList.add('verifying');
             }
         }
 
-        // Store selected HEX file
-        let selectedHexFile = null;
-
-        // Handle HEX file selection
-        function handleHexFileSelect(event) {
-            const fileInput = event.target;
-            const filePathDisplay = document.getElementById('hexFilePathDisplay');
-            const filePathLabel = filePathDisplay.querySelector('.file-path-label');
-            const uploadBtn = document.getElementById('uploadHexBtn');
-            
-            if (fileInput.files && fileInput.files.length > 0) {
-                const selectedFile = fileInput.files[0];
-                const fileName = selectedFile.name;
-                
-                // Store file object for upload
-                selectedHexFile = selectedFile;
-                
-                // Update display
-                filePathLabel.textContent = fileName;
-                filePathLabel.classList.add('has-file');
-                
-                // Enable upload button
-                uploadBtn.disabled = false;
-                
-                // Log to admin log
-                addAdminLog('HEX file selected: ' + fileName, 'success');
-                addAdminLog('File size: ' + (selectedFile.size / 1024).toFixed(2) + ' KB', 'info');
-            } else {
-                // No file selected
-                filePathLabel.textContent = 'No file selected';
-                filePathLabel.classList.remove('has-file');
-                selectedHexFile = null;
-                uploadBtn.disabled = true;
+        function hideFirmwareProgress() {
+            const section = document.getElementById('firmwareProgressSection');
+            if (section) {
+                section.style.display = 'none';
             }
         }
 
-        // Upload HEX file to MCU
-        async function uploadHexFile() {
-            if (!selectedHexFile) {
-                addAdminLog('No HEX file selected', 'error');
-                return;
-            }
+        function updateFirmwareProgress(label, percent) {
+            const labelEl = document.getElementById('firmwareProgressLabel');
+            const fillEl = document.getElementById('firmwareProgressFill');
+            const textEl = document.getElementById('firmwareProgressText');
+            
+            if (labelEl) labelEl.textContent = label;
+            if (fillEl) fillEl.style.width = percent + '%';
+            if (textEl) textEl.textContent = Math.round(percent) + '%';
+        }
 
-            // Check if electronAPI is available
-            if (!window.electronAPI || !window.electronAPI.uploadHexFile) {
-                addAdminLog('HEX upload not available - electronAPI not ready', 'error');
-                return;
-            }
+        // Helper function to add log to bootloader log area
+        function addBootloaderLog(message, type = 'info') {
+            const logContainer = document.getElementById('bootloaderLog');
+            if (!logContainer) return;
+            
+            const entry = document.createElement('div');
+            entry.className = 'bootloader-log-entry ' + type;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
 
-            const uploadBtn = document.getElementById('uploadHexBtn');
-            const uploadProgress = document.getElementById('uploadProgress');
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-
-            // Disable button and show progress
-            uploadBtn.disabled = true;
-            uploadProgress.style.display = 'flex';
-            progressFill.style.width = '0%';
-            progressText.textContent = '0%';
-
-            addAdminLog('Starting HEX file upload...', 'info');
-            addAdminLog('File: ' + selectedHexFile.name, 'info');
-
-            try {
-                // Read file content
-                const fileContent = await readFileAsText(selectedHexFile);
-                
-                // Upload HEX file content
-                const result = await window.electronAPI.uploadHexFile(fileContent, (progress) => {
-                    // Update progress bar
-                    const percent = Math.round(progress.percent);
-                    progressFill.style.width = percent + '%';
-                    progressText.textContent = percent + '%';
+        // Helper function to manage bootloader button states
+        // States: 'disconnected', 'connected', 'hex_loaded', 'busy', 'ready_to_run'
+        function setBootloaderButtonState(state) {
+            const connectBtn = document.getElementById('connectBtn');
+            const triggerBtn = document.getElementById('triggerBootloaderBtn');
+            const loadHexBtn = document.getElementById('loadHexBtn');
+            const eraseProgVerifyBtn = document.getElementById('eraseProgVerifyBtn');
+            const runAppBtn = document.getElementById('runAppBtn');
+            // Hidden buttons (still need to manage them)
+            const bootloaderVerBtn = document.getElementById('bootloaderVerBtn');
+            const eraseBtn = document.getElementById('eraseBtn');
+            const programBtn = document.getElementById('programBtn');
+            const verifyBtn = document.getElementById('verifyBtn');
+            
+            switch(state) {
+                case 'disconnected':
+                    // Initial state - only Connect and Trigger Bootloader enabled
+                    if (connectBtn) connectBtn.disabled = false;
+                    if (triggerBtn) triggerBtn.disabled = false;
+                    if (loadHexBtn) loadHexBtn.disabled = true;
+                    if (eraseProgVerifyBtn) eraseProgVerifyBtn.disabled = true;
+                    if (runAppBtn) runAppBtn.disabled = true;
+                    // Hidden buttons
+                    if (bootloaderVerBtn) bootloaderVerBtn.disabled = true;
+                    if (eraseBtn) eraseBtn.disabled = true;
+                    if (programBtn) programBtn.disabled = true;
+                    if (verifyBtn) verifyBtn.disabled = true;
+                    break;
                     
-                    if (progress.message) {
-                        addAdminLog(progress.message, 'info');
-                    }
-                });
-
-                if (result.success) {
-                    addAdminLog('HEX file uploaded successfully!', 'success');
-                    addAdminLog('Total bytes sent: ' + result.bytesSent, 'info');
-                    progressFill.style.width = '100%';
-                    progressText.textContent = '100% - Complete!';
+                case 'connected':
+                    // After connect - only Load Hex File enabled, Trigger Bootloader disabled
+                    if (connectBtn) connectBtn.disabled = false;
+                    if (triggerBtn) triggerBtn.disabled = true;
+                    if (loadHexBtn) loadHexBtn.disabled = false;
+                    if (eraseProgVerifyBtn) eraseProgVerifyBtn.disabled = true;
+                    if (runAppBtn) runAppBtn.disabled = true;
+                    // Hidden buttons
+                    if (bootloaderVerBtn) bootloaderVerBtn.disabled = true;
+                    if (eraseBtn) eraseBtn.disabled = true;
+                    if (programBtn) programBtn.disabled = true;
+                    if (verifyBtn) verifyBtn.disabled = true;
+                    break;
+                    
+                case 'hex_loaded':
+                    // After hex file loaded - Load Hex and Erase-Program-Verify enabled
+                    if (connectBtn) connectBtn.disabled = false;
+                    if (triggerBtn) triggerBtn.disabled = true;
+                    if (loadHexBtn) loadHexBtn.disabled = false;
+                    if (eraseProgVerifyBtn) eraseProgVerifyBtn.disabled = false;
+                    if (runAppBtn) runAppBtn.disabled = true;
+                    // Hidden buttons
+                    if (bootloaderVerBtn) bootloaderVerBtn.disabled = true;
+                    if (eraseBtn) eraseBtn.disabled = true;
+                    if (programBtn) programBtn.disabled = true;
+                    if (verifyBtn) verifyBtn.disabled = true;
+                    break;
+                    
+                case 'busy':
+                    // During operation - all buttons disabled
+                    if (connectBtn) connectBtn.disabled = true;
+                    if (triggerBtn) triggerBtn.disabled = true;
+                    if (loadHexBtn) loadHexBtn.disabled = true;
+                    if (eraseProgVerifyBtn) eraseProgVerifyBtn.disabled = true;
+                    if (runAppBtn) runAppBtn.disabled = true;
+                    // Hidden buttons
+                    if (bootloaderVerBtn) bootloaderVerBtn.disabled = true;
+                    if (eraseBtn) eraseBtn.disabled = true;
+                    if (programBtn) programBtn.disabled = true;
+                    if (verifyBtn) verifyBtn.disabled = true;
+                    break;
+                    
+                case 'ready_to_run':
+                    // After Erase-Program-Verify completes - ONLY Run Application enabled
+                    if (connectBtn) connectBtn.disabled = true;
+                    if (triggerBtn) triggerBtn.disabled = true;
+                    if (loadHexBtn) loadHexBtn.disabled = true;
+                    if (eraseProgVerifyBtn) eraseProgVerifyBtn.disabled = true;
+                    if (runAppBtn) runAppBtn.disabled = false;
+                    // Hidden buttons
+                    if (bootloaderVerBtn) bootloaderVerBtn.disabled = true;
+                    if (eraseBtn) eraseBtn.disabled = true;
+                    if (programBtn) programBtn.disabled = true;
+                    if (verifyBtn) verifyBtn.disabled = true;
+                    break;
+            }
+        }
+        
+        // Legacy function for compatibility
+        function enableBootloaderButtons(enabled) {
+            if (enabled) {
+                if (hexFileLoaded) {
+                    setBootloaderButtonState('hex_loaded');
                 } else {
-                    addAdminLog('Failed to upload HEX file: ' + (result.error || 'Unknown error'), 'error');
-                    uploadBtn.disabled = false;
+                    setBootloaderButtonState('connected');
+                }
+            } else {
+                setBootloaderButtonState('disconnected');
+            }
+        }
+
+        // Communication settings change handlers
+        function onComEnableChanged() {
+            const comEnabled = document.getElementById('comEnableCheck').checked;
+            const usbEnabled = document.getElementById('usbEnableCheck').checked;
+            
+            document.getElementById('comPortSelect').disabled = !comEnabled;
+            document.getElementById('baudRateSelect').disabled = !comEnabled;
+            
+            if (comEnabled) {
+                document.getElementById('usbEnableCheck').checked = false;
+                document.getElementById('usbVidInput').disabled = true;
+                document.getElementById('usbPidInput').disabled = true;
+            }
+        }
+
+        function onUsbEnableChanged() {
+            const usbEnabled = document.getElementById('usbEnableCheck').checked;
+            const comEnabled = document.getElementById('comEnableCheck').checked;
+            
+            document.getElementById('usbVidInput').disabled = !usbEnabled;
+            document.getElementById('usbPidInput').disabled = !usbEnabled;
+            
+            if (usbEnabled) {
+                document.getElementById('comEnableCheck').checked = false;
+                document.getElementById('comPortSelect').disabled = true;
+                document.getElementById('baudRateSelect').disabled = true;
+            }
+        }
+
+        // Trigger Bootloader button - sends :K1;\n command to enter bootloader mode
+        async function triggerBootloader() {
+            const triggerBtn = document.getElementById('triggerBootloaderBtn');
+            if (!triggerBtn) return;
+            
+            triggerBtn.disabled = true;
+            addBootloaderLog('Sending bootloader command to enter bootloader mode...', 'info');
+            
+            try {
+                if (window.electronAPI && window.electronAPI.sendBootloader) {
+                    const result = await window.electronAPI.sendBootloader(1);
+                    if (result.success) {
+                        addBootloaderLog('Bootloader command sent successfully', 'success');
+                        addBootloaderLog('Device should now be in bootloader mode', 'info');
+                    } else {
+                        addBootloaderLog('Failed to send bootloader command: ' + (result.error || 'Unknown error'), 'error');
+                    }
+                } else {
+                    addBootloaderLog('Bootloader control not available', 'error');
                 }
             } catch (error) {
-                addAdminLog('Error uploading HEX file: ' + error.message, 'error');
-                uploadBtn.disabled = false;
+                addBootloaderLog('Error sending bootloader command: ' + error.message, 'error');
             } finally {
-                // Hide progress after a delay
-                setTimeout(() => {
-                    uploadProgress.style.display = 'none';
-                    uploadBtn.disabled = false;
-                }, 3000);
+                triggerBtn.disabled = false;
             }
         }
 
-        // Helper function to read file as text
-        function readFileAsText(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    resolve(e.target.result);
-                };
-                reader.onerror = function(e) {
-                    reject(new Error('Failed to read file'));
-                };
-                reader.readAsText(file);
-            });
-        }
-
-        // Update DFU status indicator
-        function updateDFUStatus(connected, isDFU, portInfo) {
-            const dfuIndicator = document.getElementById('dfuStatusIndicator');
-            const dfuIcon = document.getElementById('dfuStatusIcon');
-            const dfuText = document.getElementById('dfuStatusText');
+        // Connect/Disconnect button handler
+        async function connectBootloader() {
+            const connectBtn = document.getElementById('connectBtn');
             
-            if (!dfuIndicator || !dfuIcon || !dfuText) return;
-            
-            if (connected && isDFU) {
-                dfuIndicator.classList.remove('disconnected');
-                dfuIndicator.classList.add('connected');
-                dfuIcon.textContent = '🟢';
-                dfuText.textContent = 'DFU Mode: Connected - ' + (portInfo || 'Ready for upload');
+            if (bootloaderConnected) {
+                // Disconnect
+                addBootloaderLog('Disconnecting from bootloader device...', 'info');
+                if (window.electronAPI && window.electronAPI.disconnectFromPort) {
+                    await window.electronAPI.disconnectFromPort();
+                }
+                bootloaderConnected = false;
+                hexFileLoaded = false; // Reset hex file status on disconnect
+                connectBtn.textContent = 'Connect';
+                setBootloaderButtonState('disconnected');
+                addBootloaderLog('Device disconnected', 'info');
             } else {
-                dfuIndicator.classList.remove('connected');
-                dfuIndicator.classList.add('disconnected');
-                dfuIcon.textContent = '🔴';
-                dfuText.textContent = 'DFU Mode: Not Connected';
+                // Connect
+                const comEnabled = document.getElementById('comEnableCheck').checked;
+                const usbEnabled = document.getElementById('usbEnableCheck').checked;
+                
+                if (!comEnabled && !usbEnabled) {
+                    addBootloaderLog('Please enable COM or USB communication', 'error');
+                    return;
+                }
+                
+                connectBtn.disabled = true;
+                addBootloaderLog('Connecting to bootloader device...', 'info');
+                
+                try {
+                    let result;
+                    if (comEnabled) {
+                        const port = document.getElementById('comPortSelect').value;
+                        const baud = parseInt(document.getElementById('baudRateSelect').value);
+                        if (!port) {
+                            addBootloaderLog('Please select a COM port', 'error');
+                            connectBtn.disabled = false;
+                            return;
+                        }
+                        if (window.electronAPI && window.electronAPI.connectToPort) {
+                            result = await window.electronAPI.connectToPort(port, baud);
+                        }
+                    } else if (usbEnabled) {
+                        const vid = document.getElementById('usbVidInput').value;
+                        const pid = document.getElementById('usbPidInput').value;
+                        if (window.electronAPI && window.electronAPI.connectToBootloaderUSB) {
+                            result = await window.electronAPI.connectToBootloaderUSB(vid, pid);
+                        }
+                    }
+                    
+                    if (result && result.success) {
+                        bootloaderConnected = true;
+                        connectBtn.textContent = 'Disconnect';
+                        setBootloaderButtonState('connected');
+                        addBootloaderLog('Device connected', 'success');
+                        addBootloaderLog('Please load a hex file to continue', 'info');
+                    } else {
+                        addBootloaderLog('Connection failed: ' + (result?.error || 'Unknown error'), 'error');
+                        connectBtn.disabled = false;
+                    }
+                } catch (error) {
+                    addBootloaderLog('Error connecting: ' + error.message, 'error');
+                    connectBtn.disabled = false;
+                }
             }
         }
+
+        // Bootloader Version button
+        async function bootloaderVersion() {
+            addBootloaderLog('Reading bootloader version...', 'info');
+            if (window.electronAPI && window.electronAPI.bootloaderReadInfo) {
+                const result = await window.electronAPI.bootloaderReadInfo();
+                if (result && result.success) {
+                    addBootloaderLog(`Bootloader Firmware Version: ${result.majorVersion}.${result.minorVersion}`, 'success');
+                } else {
+                    addBootloaderLog('Failed to read bootloader version: ' + (result?.error || 'Unknown error'), 'error');
+                }
+            }
+        }
+
+        // Load Hex File button
+        async function loadHexFile() {
+            if (!window.electronAPI || !window.electronAPI.showOpenDialog) {
+                addBootloaderLog('File dialog not available', 'error');
+                return;
+            }
+            
+            try {
+                const result = await window.electronAPI.showOpenDialog({
+                    filters: [{ name: 'Hex Files', extensions: ['hex'] }],
+                    properties: ['openFile']
+                });
+                
+                if (!result.canceled && result.filePaths && result.filePaths.length > 0) {
+                    hexFilePath = result.filePaths[0];
+                    document.getElementById('hexFilePathLabel').textContent = hexFilePath;
+                    document.getElementById('hexFilePathLabel').classList.add('has-file');
+                    
+                    if (window.electronAPI && window.electronAPI.loadHexFile) {
+                        const loadResult = await window.electronAPI.loadHexFile(hexFilePath);
+                        if (loadResult && loadResult.success) {
+                            hexFileLoaded = true;
+                            addBootloaderLog('Hex file loaded successfully', 'success');
+                            addBootloaderLog('Click "Erase-Program-Verify" to update firmware', 'info');
+                            setBootloaderButtonState('hex_loaded');
+                        } else {
+                            addBootloaderLog('Hex file loading failed: ' + (loadResult?.error || 'Unknown error'), 'error');
+                        }
+                    }
+                }
+            } catch (error) {
+                addBootloaderLog('Error loading hex file: ' + error.message, 'error');
+            }
+        }
+
+        // Erase Flash button
+        async function eraseFlash() {
+            addBootloaderLog('Starting erase flash...', 'info');
+            enableBootloaderButtons(false);
+            showFirmwareProgress('Erasing Flash...', 0, 'erase');
+            
+            if (window.electronAPI && window.electronAPI.bootloaderEraseFlash) {
+                try {
+                    // Simulate erase progress (erase doesn't report progress, so we animate it)
+                    let eraseProgress = 0;
+                    const eraseInterval = setInterval(() => {
+                        eraseProgress += 5;
+                        if (eraseProgress < 90) {
+                            updateFirmwareProgress('Erasing Flash...', eraseProgress);
+                        }
+                    }, 100);
+                    
+                    const result = await window.electronAPI.bootloaderEraseFlash();
+                    clearInterval(eraseInterval);
+                    
+                    if (result && result.success) {
+                        updateFirmwareProgress('Erase Complete!', 100);
+                        addBootloaderLog('✓ Flash erased successfully', 'success');
+                        // Enable Program button after successful erase
+                        document.getElementById('programBtn').disabled = false;
+                        setTimeout(hideFirmwareProgress, 1500);
+                    } else {
+                        hideFirmwareProgress();
+                        addBootloaderLog('✗ Erase failed: ' + (result?.error || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    hideFirmwareProgress();
+                    addBootloaderLog('✗ Erase error: ' + error.message, 'error');
+                } finally {
+                    enableBootloaderButtons(true);
+                }
+            }
+        }
+
+        // Program Flash button
+        async function programFlash() {
+            console.log('[ADMIN] programFlash() called');
+            if (!hexFileLoaded) {
+                addBootloaderLog('Please load hex file first', 'error');
+                console.log('[ADMIN] ERROR: hexFileLoaded = false');
+                return;
+            }
+            addBootloaderLog('Starting programming flash...', 'info');
+            console.log('[ADMIN] Calling bootloaderProgramFlash IPC...');
+            enableBootloaderButtons(false);
+            showFirmwareProgress('Programming Flash... 0%', 0, 'program');
+            
+            if (window.electronAPI && window.electronAPI.bootloaderProgramFlash) {
+                try {
+                    console.log('[ADMIN] bootloaderProgramFlash exists, calling it...');
+                    const result = await window.electronAPI.bootloaderProgramFlash();
+                    console.log('[ADMIN] bootloaderProgramFlash result:', result);
+                    if (result && result.success) {
+                        updateFirmwareProgress('Programming Complete!', 100);
+                        addBootloaderLog('✓ Programming completed successfully', 'success');
+                        document.getElementById('verifyBtn').disabled = false;
+                        document.getElementById('runAppBtn').disabled = false;
+                        setTimeout(hideFirmwareProgress, 1500);
+                    } else {
+                        hideFirmwareProgress();
+                        addBootloaderLog('✗ Programming failed: ' + (result?.error || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    hideFirmwareProgress();
+                    console.error('[ADMIN] Programming error:', error);
+                    addBootloaderLog('✗ Programming error: ' + error.message, 'error');
+                } finally {
+                    enableBootloaderButtons(true);
+                }
+            } else {
+                hideFirmwareProgress();
+                console.error('[ADMIN] ERROR: bootloaderProgramFlash not available in electronAPI');
+                addBootloaderLog('✗ Programming not available - electronAPI error', 'error');
+                enableBootloaderButtons(true);
+            }
+        }
+
+        // Verify Flash button
+        async function verifyFlash() {
+            addBootloaderLog('Starting verification...', 'info');
+            enableBootloaderButtons(false);
+            if (window.electronAPI && window.electronAPI.bootloaderReadCRC) {
+                try {
+                    const result = await window.electronAPI.bootloaderReadCRC();
+                    if (result && result.success) {
+                        if (result.crcMatch) {
+                            addBootloaderLog('✓ Verification successful - CRC matches', 'success');
+                        } else {
+                            addBootloaderLog('✗ Verification failed - CRC mismatch', 'error');
+                        }
+                    } else {
+                        addBootloaderLog('✗ Verification failed: ' + (result?.error || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    addBootloaderLog('✗ Verification error: ' + error.message, 'error');
+                } finally {
+                    enableBootloaderButtons(true);
+                }
+            }
+        }
+
+        // Erase-Program-Verify button (automated sequence)
+        async function eraseProgramVerify() {
+            if (!hexFileLoaded) {
+                addBootloaderLog('Please load hex file first', 'error');
+                return;
+            }
+            addBootloaderLog('Starting Erase-Program-Verify sequence...', 'info');
+            setBootloaderButtonState('busy'); // All buttons disabled during operation
+            
+            // Do the sequence step by step
+            try {
+                // Step 1: Erase
+                addBootloaderLog('Step 1/3: Erasing flash...', 'info');
+                const eraseResult = await window.electronAPI.bootloaderEraseFlash();
+                if (!eraseResult || !eraseResult.success) {
+                    addBootloaderLog('✗ Erase failed: ' + (eraseResult?.error || 'Unknown error'), 'error');
+                    setBootloaderButtonState('hex_loaded');
+                    return;
+                }
+                addBootloaderLog('✓ Erase completed', 'success');
+                
+                // Step 2: Program
+                addBootloaderLog('Step 2/3: Programming flash...', 'info');
+                const programResult = await window.electronAPI.bootloaderProgramFlash();
+                if (!programResult || !programResult.success) {
+                    addBootloaderLog('✗ Program failed: ' + (programResult?.error || 'Unknown error'), 'error');
+                    setBootloaderButtonState('hex_loaded');
+                    return;
+                }
+                addBootloaderLog('✓ Program completed', 'success');
+                
+                // Step 3: Verify
+                addBootloaderLog('Step 3/3: Verifying flash...', 'info');
+                const verifyResult = await window.electronAPI.bootloaderReadCRC();
+                if (!verifyResult || !verifyResult.success) {
+                    addBootloaderLog('✗ Verify failed: ' + (verifyResult?.error || 'Unknown error'), 'error');
+                    setBootloaderButtonState('hex_loaded');
+                    return;
+                }
+                if (verifyResult.crcMatch) {
+                    addBootloaderLog('✓ Erase-Program-Verify completed successfully', 'success');
+                    addBootloaderLog('Click "Run Application" to start the new firmware', 'info');
+                    setBootloaderButtonState('ready_to_run'); // Enable Run Application button
+                } else {
+                    addBootloaderLog('✗ Verification failed - CRC mismatch', 'error');
+                    setBootloaderButtonState('hex_loaded');
+                }
+            } catch (error) {
+                addBootloaderLog('✗ Sequence error: ' + error.message, 'error');
+                setBootloaderButtonState('hex_loaded');
+            }
+        }
+
+        // Run Application button
+        async function runApplication() {
+            addBootloaderLog('Sending command to jump to application...', 'info');
+            setBootloaderButtonState('busy');
+            if (window.electronAPI && window.electronAPI.bootloaderJumpToApp) {
+                try {
+                    const result = await window.electronAPI.bootloaderJumpToApp();
+                    if (result && result.success) {
+                        addBootloaderLog('✓ Command sent successfully', 'success');
+                        addBootloaderLog('Device should now be running application', 'info');
+                        addBootloaderLog('Note: Bootloader connection will disconnect (this is normal)', 'info');
+                        // Device will disconnect, so update UI
+                        bootloaderConnected = false;
+                        hexFileLoaded = false;
+                        const connectBtn = document.getElementById('connectBtn');
+                        if (connectBtn) {
+                            connectBtn.textContent = 'Connect';
+                        }
+                        setBootloaderButtonState('disconnected');
+                    } else {
+                        addBootloaderLog('✗ Failed to run application: ' + (result?.error || 'Unknown error'), 'error');
+                        setBootloaderButtonState('ready_to_run');
+                    }
+                } catch (error) {
+                    // If device disconnected, that's actually success
+                    if (error.message && (error.message.includes('disconnected') || error.message.includes('Cannot write'))) {
+                        addBootloaderLog('✓ Device jumped to application (disconnected from bootloader)', 'success');
+                        addBootloaderLog('Device should now be running application', 'info');
+                        bootloaderConnected = false;
+                        hexFileLoaded = false;
+                        const connectBtn = document.getElementById('connectBtn');
+                        if (connectBtn) {
+                            connectBtn.textContent = 'Connect';
+                        }
+                        setBootloaderButtonState('disconnected');
+                    } else {
+                        addBootloaderLog('✗ Error running application: ' + error.message, 'error');
+                        setBootloaderButtonState('ready_to_run');
+                    }
+                }
+            }
+        }
+
+
 
         // Update functions
         async function checkForUpdates() {
@@ -1323,17 +1900,58 @@
             initAdminPanel();
             loadCurrentVersion();
             
+            // Populate COM ports for bootloader
+            async function populateComPorts() {
+                if (window.electronAPI && window.electronAPI.getAvailablePorts) {
+                    try {
+                        const ports = await window.electronAPI.getAvailablePorts();
+                        const comPortSelect = document.getElementById('comPortSelect');
+                        if (comPortSelect) {
+                            comPortSelect.innerHTML = '<option value="">Select Port...</option>';
+                            ports.forEach(port => {
+                                const option = document.createElement('option');
+                                option.value = port.path;
+                                option.textContent = port.path + (port.manufacturer ? ' - ' + port.manufacturer : '');
+                                comPortSelect.appendChild(option);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error populating COM ports:', error);
+                    }
+                }
+            }
+            populateComPorts();
+            
+            // Set initial button state (disconnected)
+            setBootloaderButtonState('disconnected');
+            
             // Listen for connection status updates
             if (window.electronAPI && window.electronAPI.onConnectionStatus) {
                 window.electronAPI.onConnectionStatus(function(event, status) {
-                    // Check if this is a DFU connection
-                    const isDFU = status.isDFU || false;
-                    updateDFUStatus(status.connected, isDFU, status.port);
+                    // Check if this is a bootloader connection
+                    const isBootloader = status.isBootloader || status.isDFU || false;
+                    const connectBtn = document.getElementById('connectBtn');
                     
-                    if (status.connected && isDFU) {
-                        addAdminLog('DFU device connected: ' + (status.port || 'Unknown port'), 'success');
-                    } else if (!status.connected && isDFU) {
-                        addAdminLog('DFU device disconnected', 'warning');
+                    if (status.connected && isBootloader) {
+                        bootloaderConnected = true;
+                        if (connectBtn) {
+                            connectBtn.textContent = 'Disconnect';
+                            connectBtn.disabled = false;
+                        }
+                        setBootloaderButtonState('connected');
+                        addBootloaderLog('Device connected', 'success');
+                        if (status.bootloaderVersion) {
+                            addBootloaderLog(`Bootloader Firmware Version: ${status.bootloaderVersion}`, 'success');
+                        }
+                    } else if (!status.connected && isBootloader) {
+                        bootloaderConnected = false;
+                        hexFileLoaded = false;
+                        if (connectBtn) {
+                            connectBtn.textContent = 'Connect';
+                            connectBtn.disabled = false;
+                        }
+                        setBootloaderButtonState('disconnected');
+                        addBootloaderLog('Device disconnected', 'info');
                     }
                 });
             }
@@ -1342,6 +1960,23 @@
             if (window.electronAPI && window.electronAPI.onUpdateStatus) {
                 window.electronAPI.onUpdateStatus(function(event, updateInfo) {
                     handleUpdateStatus(updateInfo);
+                });
+            }
+            
+            // Listen for bootloader progress updates
+            if (window.electronAPI && window.electronAPI.onBootloaderProgress) {
+                window.electronAPI.onBootloaderProgress(function(data) {
+                    // data: { step: 'erase'|'program'|'verify', progress: 0-100, label: 'description' }
+                    const mode = data.step === 'erase' ? 'erase' : (data.step === 'verify' ? 'verify' : 'program');
+                    showFirmwareProgress(data.label, mode);
+                    updateFirmwareProgress(data.label, data.progress);
+                    
+                    // Auto-hide progress bar after completion
+                    if (data.progress >= 100 && (data.step === 'verify' || data.label.includes('completed'))) {
+                        setTimeout(function() {
+                            hideFirmwareProgress();
+                        }, 3000); // Hide after 3 seconds
+                    }
                 });
             }
             

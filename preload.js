@@ -48,6 +48,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendPIDValue: (type, value) => ipcRenderer.invoke('send-pid-value', type, value),
   // Bootloader control
   sendBootloader: (value) => ipcRenderer.invoke('send-bootloader', value),
+  connectToBootloaderUSB: (vid, pid) => ipcRenderer.invoke('connect-to-bootloader-usb', vid, pid),
+  bootloaderReadInfo: () => ipcRenderer.invoke('bootloader-read-info'),
+  bootloaderEraseFlash: () => ipcRenderer.invoke('bootloader-erase-flash'),
+  bootloaderProgramFlash: () => ipcRenderer.invoke('bootloader-program-flash'),
+  bootloaderReadCRC: () => ipcRenderer.invoke('bootloader-read-crc'),
+  bootloaderJumpToApp: () => ipcRenderer.invoke('bootloader-jump-to-app'),
+  bootloaderEraseProgramVerify: () => ipcRenderer.invoke('bootloader-erase-program-verify'),
+  loadHexFile: (filePath) => ipcRenderer.invoke('load-hex-file', filePath),
+  // Bootloader progress listener
+  onBootloaderProgress: (callback) => {
+    ipcRenderer.on('bootloader-progress', (event, data) => callback(data));
+  },
+  showOpenDialog: (options) => ipcRenderer.invoke('show-open-dialog', options),
   uploadHexFile: (fileContent, progressCallback) => {
     return new Promise((resolve, reject) => {
       // Set up progress listener
