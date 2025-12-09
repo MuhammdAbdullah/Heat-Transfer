@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 2 - Temperature Gradients</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.05) 0%, rgba(245, 87, 108, 0.05) 100%);
+            border-radius: 15px;
+            border-left: 5px solid #f093fb;
+        }
+
+        .section h2 {
+            color: #f093fb;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h3 {
+            color: #f5576c;
+            font-size: 1.4em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .section p {
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .interactive-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #f093fb;
+        }
+
+        .interactive-box h4 {
+            color: #f093fb;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #f093fb;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.2em;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border-left: 4px solid #f093fb;
+            font-size: 1.1em;
+        }
+
+        .key-points {
+            background: #d1ecf1;
+            border-left: 5px solid #0dcaf0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .key-points h4 {
+            color: #055160;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .key-points ul {
+            list-style-position: inside;
+            color: #055160;
+        }
+
+        .key-points li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(13, 202, 240, 0.1) 0%, rgba(5, 81, 96, 0.1) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 2px solid #0dcaf0;
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-question h4 {
+            color: #055160;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-options label:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .check-answer-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            border: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .data-table input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .chart-placeholder {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📐 Lab 2: Temperature Gradients</h1>
+            <p>Understanding How Temperature Changes with Distance</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction -->
+            <div class="section">
+                <h2><span class="icon">📚</span> What is a Temperature Gradient?</h2>
+                <p>
+                    A <strong>temperature gradient</strong> is the rate at which temperature changes over distance. 
+                    Think of it like the slope of a hill - the steeper the hill, the faster the elevation changes. 
+                    Similarly, a steeper temperature gradient means temperature changes more rapidly with distance.
+                </p>
+                <p>
+                    Temperature gradients are crucial in heat transfer because they drive the flow of heat. 
+                    Heat always flows from high temperature to low temperature, and the steeper the gradient, 
+                    the faster the heat transfer!
+                </p>
+                <div class="formula">
+                    Temperature Gradient = ΔT / Δx = (T₂ - T₁) / (x₂ - x₁)
+                    <br><br>
+                    Where:<br>
+                    • ΔT = Temperature difference (°C or K)<br>
+                    • Δx = Distance difference (m, cm, mm)<br>
+                    • Gradient units: °C/m, °C/cm, K/m, etc.
+                </div>
+            </div>
+
+            <!-- Understanding Gradients -->
+            <div class="section">
+                <h2><span class="icon">📊</span> Understanding Temperature Profiles</h2>
+                
+                <h3>What is a Temperature Profile?</h3>
+                <p>
+                    A temperature profile is a graph showing how temperature changes along a distance. 
+                    In your apparatus, when you plot T1, T2, T3... T8 against their distances from the heater, 
+                    you create a temperature profile.
+                </p>
+
+                <div class="key-points">
+                    <h4>Key Observations:</h4>
+                    <ul>
+                        <li><strong>Steep slope:</strong> High temperature gradient → Fast heat transfer</li>
+                        <li><strong>Gentle slope:</strong> Low temperature gradient → Slow heat transfer</li>
+                        <li><strong>Flat line:</strong> Zero gradient → No heat transfer (thermal equilibrium)</li>
+                        <li><strong>Curved profile:</strong> Gradient changes with distance (common in real systems)</li>
+                    </ul>
+                </div>
+
+                <h3>Why Gradients Matter</h3>
+                <p>
+                    In engineering, understanding temperature gradients helps us:
+                </p>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li>Design better cooling systems for electronics</li>
+                    <li>Improve building insulation</li>
+                    <li>Optimize heat exchangers</li>
+                    <li>Predict material thermal stresses</li>
+                    <li>Control industrial heating processes</li>
+                </ul>
+            </div>
+
+            <!-- Interactive Gradient Calculator -->
+            <div class="section">
+                <h2><span class="icon">🧮</span> Temperature Gradient Calculator</h2>
+                
+                <div class="interactive-box">
+                    <h4>Calculate Temperature Gradient Between Two Points</h4>
+                    <p>Enter temperature and position data from two sensors:</p>
+                    
+                    <div class="grid-2">
+                        <div>
+                            <h4 style="color: #f093fb; margin-bottom: 15px;">📍 Point 1</h4>
+                            <div class="input-group">
+                                <label for="temp1">Temperature (T₁) in °C:</label>
+                                <input type="number" id="temp1" value="80" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="pos1">Position (x₁) in cm:</label>
+                                <input type="number" id="pos1" value="5" step="0.1">
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style="color: #f5576c; margin-bottom: 15px;">📍 Point 2</h4>
+                            <div class="input-group">
+                                <label for="temp2">Temperature (T₂) in °C:</label>
+                                <input type="number" id="temp2" value="40" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="pos2">Position (x₂) in cm:</label>
+                                <input type="number" id="pos2" value="15" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateGradient()">📐 Calculate Gradient</button>
+
+                    <div class="result-box" id="gradientResult"></div>
+                </div>
+            </div>
+
+            <!-- Multi-Point Analysis -->
+            <div class="section">
+                <h2><span class="icon">📈</span> Multi-Point Temperature Analysis</h2>
+                
+                <div class="interactive-box">
+                    <h4>Analyze Your 8-Sensor Data</h4>
+                    <p>Enter data from all 8 temperature sensors (T1-T8) from your apparatus:</p>
+                    
+                    <table class="data-table" id="sensorTable">
+                        <thead>
+                            <tr>
+                                <th>Sensor</th>
+                                <th>Distance (cm)</th>
+                                <th>Temperature (°C)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>T1</strong></td>
+                                <td><input type="number" id="dist1" value="1.5" step="0.1"></td>
+                                <td><input type="number" id="t1" value="85" step="0.1"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>T2</strong></td>
+                                <td><input type="number" id="dist2" value="4.5" step="0.1"></td>
+                                <td><input type="number" id="t2" value="75" step="0.1"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>T3</strong></td>
+                                <td><input type="number" id="dist3" value="7.5" step="0.1"></td>
+                                <td><input type="number" id="t3" value="65" step="0.1"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>T4</strong></td>
+                                <td><input type="number" id="dist4" value="10.5" step="0.1"></td>
+                                <td><input type="number" id="t4" value="55" step="0.1"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>T5</strong></td>
+                                <td><input type="number" id="dist5" value="13.5" step="0.1"></td>
+                                <td><input type="number" id="t5" value="48" step="0.1"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>T6</strong></td>
+                                <td><input type="number" id="dist6" value="16.5" step="0.1"></td>
+                                <td><input type="number" id="t6" value="42" step="0.1"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>T7</strong></td>
+                                <td><input type="number" id="dist7" value="19.5" step="0.1"></td>
+                                <td><input type="number" id="t7" value="37" step="0.1"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>T8</strong></td>
+                                <td><input type="number" id="dist8" value="22.5" step="0.1"></td>
+                                <td><input type="number" id="t8" value="33" step="0.1"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <button class="calculate-btn" onclick="analyzeMultiPoint()">📊 Analyze All Gradients</button>
+                    <button class="calculate-btn" onclick="findHottest()">🔥 Find Hottest Region</button>
+                    <button class="calculate-btn" onclick="findSteepest()">⚡ Find Steepest Gradient</button>
+
+                    <div class="result-box" id="multiResult"></div>
+                </div>
+            </div>
+
+            <!-- Connection to Device -->
+            <div class="section">
+                <h2><span class="icon">🔬</span> Using Your Apparatus to Study Gradients</h2>
+                
+                <div class="key-points">
+                    <h4>What Your Device Shows:</h4>
+                    <ul>
+                        <li><strong>Temperature Profile:</strong> The Temperature vs Distance graph shows the gradient visually</li>
+                        <li><strong>Steeper curve near heater:</strong> Higher heat transfer rate close to heat source</li>
+                        <li><strong>Flatter curve far from heater:</strong> Lower heat transfer rate far from source</li>
+                        <li><strong>Effect of fan:</strong> Increased convection makes gradients steeper</li>
+                        <li><strong>Effect of cooler:</strong> Creates a reverse gradient at the cold end</li>
+                    </ul>
+                </div>
+
+                <h3>Experimental Factors Affecting Gradients:</h3>
+                <p style="margin-left: 20px; line-height: 1.8;">
+                    <strong>1. Heater Power:</strong> Higher temperature → Steeper gradients<br>
+                    <strong>2. Fan Speed:</strong> More airflow → Steeper gradients (better heat removal)<br>
+                    <strong>3. Material:</strong> Better conductors → More uniform temperatures (gentler gradients)<br>
+                    <strong>4. Ambient Temperature:</strong> Lower room temp → Steeper gradients
+                </p>
+            </div>
+
+            <!-- Quiz -->
+            <div class="quiz-section">
+                <h2><span class="icon">✅</span> Check Your Understanding!</h2>
+                
+                <div class="quiz-question">
+                    <h4>Question 1: If temperature drops from 80°C to 40°C over 10 cm, what is the gradient?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q1" value="a"> A) 4°C/cm</label>
+                        <label><input type="radio" name="q1" value="b"> B) -4°C/cm</label>
+                        <label><input type="radio" name="q1" value="c"> C) 8°C/cm</label>
+                        <label><input type="radio" name="q1" value="d"> D) -8°C/cm</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')">Check Answer</button>
+                    <div class="feedback" id="fb1"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 2: What does a steeper temperature gradient indicate?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q2" value="a"> A) Slower heat transfer</label>
+                        <label><input type="radio" name="q2" value="b"> B) Faster heat transfer</label>
+                        <label><input type="radio" name="q2" value="c"> C) No heat transfer</label>
+                        <label><input type="radio" name="q2" value="d"> D) Constant temperature</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'b', 'fb2')">Check Answer</button>
+                    <div class="feedback" id="fb2"></div>
+                </div>
+            </div>
+
+            <!-- Experiments -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> Suggested Experiments</h2>
+                
+                <div class="key-points">
+                    <h4>Try These:</h4>
+                    <ul>
+                        <li><strong>Exp 1:</strong> Set heater to 70°C, fan OFF. Record all T1-T8. Calculate gradient between each pair.</li>
+                        <li><strong>Exp 2:</strong> Repeat Exp 1 with fan at 50%. Compare gradients - are they steeper?</li>
+                        <li><strong>Exp 3:</strong> Find which sensor pair has the steepest gradient. Why is it steeper there?</li>
+                        <li><strong>Exp 4:</strong> Plot temperature vs distance. Draw a line of best fit. What's its slope?</li>
+                        <li><strong>Exp 5:</strong> Turn on cooler. Observe how gradients change near the cold end.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateGradient() {
+            var t1 = parseFloat(document.getElementById('temp1').value);
+            var t2 = parseFloat(document.getElementById('temp2').value);
+            var x1 = parseFloat(document.getElementById('pos1').value);
+            var x2 = parseFloat(document.getElementById('pos2').value);
+
+            if (isNaN(t1) || isNaN(t2) || isNaN(x1) || isNaN(x2)) {
+                alert('Please fill all fields with valid numbers!');
+                return;
+            }
+
+            if (x1 === x2) {
+                alert('Positions must be different!');
+                return;
+            }
+
+            var deltaT = t2 - t1;
+            var deltaX = x2 - x1;
+            var gradient = deltaT / deltaX;
+
+            var result = document.getElementById('gradientResult');
+            result.innerHTML = `
+                <strong>Temperature Gradient:</strong> ${gradient.toFixed(2)} °C/cm<br>
+                <strong>ΔT:</strong> ${deltaT.toFixed(1)} °C<br>
+                <strong>Δx:</strong> ${deltaX.toFixed(1)} cm<br><br>
+                <small>${gradient > 0 ? '⬆️ Temperature increasing' : '⬇️ Temperature decreasing'} with distance</small>
+            `;
+            result.classList.add('show');
+        }
+
+        function analyzeMultiPoint() {
+            var data = [];
+            for (var i = 1; i <= 8; i++) {
+                var dist = parseFloat(document.getElementById('dist' + i).value);
+                var temp = parseFloat(document.getElementById('t' + i).value);
+                data.push({ sensor: 'T' + i, dist: dist, temp: temp });
+            }
+
+            var html = '<strong>Gradients Between Adjacent Sensors:</strong><br><br>';
+            for (var i = 0; i < data.length - 1; i++) {
+                var deltaT = data[i + 1].temp - data[i].temp;
+                var deltaX = data[i + 1].dist - data[i].dist;
+                var grad = deltaT / deltaX;
+                html += `${data[i].sensor} → ${data[i + 1].sensor}: <strong>${grad.toFixed(2)} °C/cm</strong><br>`;
+            }
+
+            document.getElementById('multiResult').innerHTML = html;
+            document.getElementById('multiResult').classList.add('show');
+        }
+
+        function findHottest() {
+            var maxTemp = -999;
+            var hottestSensor = '';
+            for (var i = 1; i <= 8; i++) {
+                var temp = parseFloat(document.getElementById('t' + i).value);
+                if (temp > maxTemp) {
+                    maxTemp = temp;
+                    hottestSensor = 'T' + i;
+                }
+            }
+
+            document.getElementById('multiResult').innerHTML = `
+                <strong>🔥 Hottest Sensor:</strong> ${hottestSensor}<br>
+                <strong>Temperature:</strong> ${maxTemp.toFixed(1)} °C
+            `;
+            document.getElementById('multiResult').classList.add('show');
+        }
+
+        function findSteepest() {
+            var maxGrad = -999;
+            var steepestPair = '';
+            var data = [];
+            for (var i = 1; i <= 8; i++) {
+                data.push({
+                    dist: parseFloat(document.getElementById('dist' + i).value),
+                    temp: parseFloat(document.getElementById('t' + i).value)
+                });
+            }
+
+            for (var i = 0; i < data.length - 1; i++) {
+                var grad = Math.abs((data[i + 1].temp - data[i].temp) / (data[i + 1].dist - data[i].dist));
+                if (grad > maxGrad) {
+                    maxGrad = grad;
+                    steepestPair = 'T' + (i + 1) + ' → T' + (i + 2);
+                }
+            }
+
+            document.getElementById('multiResult').innerHTML = `
+                <strong>⚡ Steepest Gradient:</strong> ${steepestPair}<br>
+                <strong>Gradient:</strong> ${maxGrad.toFixed(2)} °C/cm<br><br>
+                <small>This is where heat transfer is fastest!</small>
+            `;
+            document.getElementById('multiResult').classList.add('show');
+        }
+
+        function checkAnswer(q, correct, fbId) {
+            var selected = document.querySelector('input[name="' + q + '"]:checked');
+            var fb = document.getElementById(fbId);
+            if (!selected) {
+                alert('Please select an answer!');
+                return;
+            }
+            if (selected.value === correct) {
+                fb.className = 'feedback correct';
+                fb.innerHTML = '✅ Correct!';
+            } else {
+                fb.className = 'feedback incorrect';
+                fb.innerHTML = '❌ Try again!';
+            }
+        }
+    </script>
+    
+    <!-- Load Responsive Scaling Script -->
+    <script src="responsive-scaling.js"></script>
+</body>
+</html>

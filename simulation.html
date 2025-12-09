@@ -3,6 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Simulation Status</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,9 +48,16 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
+            margin: 5px;
         }
         button:hover {
             background: #ff6633;
+        }
+        #toggleVisualization {
+            background: #4CAF50;
+        }
+        #toggleVisualization:hover {
+            background: #45a049;
         }
         .viewer-container {
             border: 1px solid #333;
@@ -100,8 +117,9 @@
         <div class="status">🔄 Simulation Running</div>
         <div class="details">
             The main window is generating test data for 30 seconds.<br>
-            A 3D preview of <strong>Sample.step</strong> is shown below.
+            A 3D preview is shown below. <strong id="currentModel">Sample.step</strong>
         </div>
+        <button id="toggleVisualization">Switch to Tunnel View</button>
         <button id="closeSimWindow">Close Window</button>
     </div>
 
@@ -114,6 +132,7 @@
     <script src="assets/libs/three.min.js"></script>
     <script src="assets/libs/OrbitControls.js"></script>
     <script src="assets/libs/occt-import-js.js"></script>
+    <script src="assets/libs/GLTFLoader.js"></script>
     <script>
         (function () {
             var closeBtn = document.getElementById('closeSimWindow');
@@ -127,6 +146,9 @@
             var viewerStatus = document.getElementById('viewerStatus');
             var tempLegend = document.getElementById('tempLegend');
             var lastAppliedTemps = null;
+            var currentModelType = 'step'; // 'step' or 'glb'
+            var toggleButton = document.getElementById('toggleVisualization');
+            var currentModelLabel = document.getElementById('currentModel');
 
             if (!viewer) {
                 return;
@@ -264,7 +286,7 @@
 
             // Basic Three.js setup
             var scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xffffff);
+            scene.background = new THREE.Color(0x222222); // Dark gray background
 
             var width = viewer.clientWidth;
             var height = viewer.clientHeight;
@@ -436,16 +458,120 @@
                 });
             }
 
+            function loadGLBModel() {
+                console.log('Starting to load Tunnel.glb...');
+                viewerStatus.textContent = 'Loading Tunnel.glb ...';
+                
+                // Clear existing model
+                while (modelGroup.children.length > 0) {
+                    modelGroup.remove(modelGroup.children[0]);
+                }
+                
+                // Check if GLTFLoader is available
+                if (!THREE.GLTFLoader) {
+                    console.error('GLTFLoader is not available!');
+                    viewerStatus.textContent = 'Error: GLTFLoader not found';
+                    return;
+                }
+                
+                var loader = new THREE.GLTFLoader();
+                console.log('GLTFLoader created, loading file...');
+                
+                loader.load(
+                    'assets/Tunnel.glb',
+                    function (gltf) {
+                        // Successfully loaded
+                        console.log('Tunnel.glb loaded successfully!', gltf);
+                        console.log('Scene:', gltf.scene);
+                        
+                        if (gltf.scene) {
+                            // Count meshes
+                            var meshCount = 0;
+                            gltf.scene.traverse(function(child) {
+                                if (child.isMesh) {
+                                    meshCount++;
+                                    console.log('Found mesh:', child.name || 'unnamed', 'geometry:', child.geometry, 'material:', child.material);
+                                }
+                            });
+                            console.log('Total meshes found:', meshCount);
+                            
+                            modelGroup.add(gltf.scene);
+                            console.log('Added to scene, fitting camera...');
+                            
+                            // Calculate bounding box
+                            var bbox = new THREE.Box3().setFromObject(modelGroup);
+                            console.log('Model bounding box:', {
+                                min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
+                                max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z }
+                            });
+                            
+                            var size = bbox.getSize(new THREE.Vector3());
+                            console.log('Model size:', { x: size.x, y: size.y, z: size.z });
+                            
+                            fitCameraToObject(modelGroup);
+                            
+                            console.log('Camera position after fit:', { 
+                                x: camera.position.x, 
+                                y: camera.position.y, 
+                                z: camera.position.z 
+                            });
+                            
+                            viewerStatus.textContent = 'Tunnel.glb loaded successfully. Meshes: ' + meshCount;
+                            currentModelLabel.textContent = 'Tunnel.glb';
+                        } else {
+                            console.error('No scene in GLTF object');
+                            viewerStatus.textContent = 'Error: No scene in GLB file';
+                        }
+                    },
+                    function (progress) {
+                        // Loading progress
+                        if (progress.total > 0) {
+                            var percent = (progress.loaded / progress.total) * 100;
+                            console.log('Loading progress: ' + percent + '%');
+                            viewerStatus.textContent = 'Loading Tunnel.glb ... ' + Math.round(percent) + '%';
+                        }
+                    },
+                    function (error) {
+                        // Error loading
+                        console.error('Error loading Tunnel.glb:', error);
+                        console.error('Error details:', error.message || error);
+                        viewerStatus.textContent = 'Failed to load Tunnel.glb: ' + (error.message || 'Unknown error');
+                    }
+                );
+            }
+            
+            function toggleVisualization() {
+                if (currentModelType === 'step') {
+                    // Switch to GLB
+                    currentModelType = 'glb';
+                    loadGLBModel();
+                    toggleButton.textContent = 'Switch to Sample View';
+                } else {
+                    // Switch to STEP
+                    currentModelType = 'step';
+                    loadStepModel();
+                    toggleButton.textContent = 'Switch to Tunnel View';
+                }
+            }
+            
+            // Add toggle button click handler
+            if (toggleButton) {
+                toggleButton.addEventListener('click', toggleVisualization);
+            }
+
             loadStepModel();
             setInterval(function () {
                 if (modelGroup.children.length === 0) {
                     return;
                 }
-                var latestTemps = getTemperaturesFromParent();
-                if (!lastAppliedTemps || tempsChanged(lastAppliedTemps, latestTemps)) {
-                    updateLegend(latestTemps);
-                    applyTemperatureColorsToGroup(modelGroup, latestTemps);
-                    lastAppliedTemps = latestTemps.slice();
+                // Only apply temperature colors to STEP model, not GLB
+                if (currentModelType === 'step') {
+                    var latestTemps = getTemperaturesFromParent();
+                    if (!lastAppliedTemps || tempsChanged(lastAppliedTemps, latestTemps)) {
+                        updateLegend(latestTemps);
+                        applyTemperatureColorsToGroup(modelGroup, latestTemps);
+                        lastAppliedTemps = latestTemps.slice();
+                    }
                 }
             }, 2000);
 
@@ -459,6 +585,9 @@
             });
         })();
     </script>
+    
+    <!-- Load Responsive Scaling Script -->
+    <script src="responsive-scaling.js"></script>
 </body>
 </html>
 

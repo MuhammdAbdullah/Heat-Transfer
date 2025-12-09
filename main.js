@@ -13,6 +13,7 @@ const HID = require('node-hid');
 // Keep a global reference of the window object
 let mainWindow;
 let splashWindow;
+let splashStartTime = 0; // Track when splash screen was shown
 let adminWindow = null; // Track admin panel window to prevent multiple windows
 let serialPort = null;
 let usbHidDevice = null; // Track USB HID device for bootloader
@@ -32,13 +33,14 @@ const TARGET_PRODUCT_ID = '010C';
 function createSplashScreen() {
   // Create the splash screen window
   splashWindow = new BrowserWindow({
-    width: 400,
-    height: 300,
+    width: 800,
+    height: 400,
     frame: false,                    // Remove window frame
     alwaysOnTop: true,              // Keep on top
     transparent: true,              // Make background transparent
     resizable: false,               // Not resizable
     skipTaskbar: true,              // Don't show in taskbar
+    icon: path.join(__dirname, 'assets', 'favicon.ico'),  // Window icon
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true
@@ -47,6 +49,10 @@ function createSplashScreen() {
 
   // Load splash screen HTML
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  
+  // Show splash screen immediately and track start time
+  splashWindow.show();
+  splashStartTime = Date.now();
   
   // Center the splash screen
   splashWindow.center();
@@ -61,6 +67,7 @@ function createWindow() {
     height: 800,
     show: false,                     // Don't show until ready
     autoHideMenuBar: true,           // Hide menu bar
+    icon: path.join(__dirname, 'assets', 'favicon.ico'),  // Window icon
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -71,15 +78,41 @@ function createWindow() {
   // Load the index.html file
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
-  // Show window when ready
+  // Handle child windows opened with window.open() (Curriculum, Lab windows, etc.)
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        width: 1500,
+        height: 850,
+        resizable: true,  // Allow resizing
+        icon: path.join(__dirname, 'assets', 'favicon.ico'),  // Set icon for child windows
+        autoHideMenuBar: true,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true
+        }
+      }
+    };
+  });
+
+  // Show window when ready (with minimum splash screen display time)
+  const minSplashTime = 3000; // Show splash for at least 3 seconds
+  
   mainWindow.once('ready-to-show', () => {
-    if (splashWindow) {
-      splashWindow.close();
-      splashWindow = null;
-    }
-    mainWindow.show();
-    // Maximize the window (full window, not fullscreen)
-    mainWindow.maximize();
+    const elapsedTime = Date.now() - splashStartTime;
+    const remainingTime = Math.max(0, minSplashTime - elapsedTime);
+    
+    // Wait for remaining time before showing main window
+    setTimeout(() => {
+      if (splashWindow && !splashWindow.isDestroyed()) {
+        splashWindow.close();
+        splashWindow = null;
+      }
+      mainWindow.show();
+      // Maximize the window (full window, not fullscreen)
+      mainWindow.maximize();
+    }, remainingTime);
   });
 
   // Handle window closed
@@ -335,6 +368,12 @@ autoUpdater.on('update-downloaded', (info) => {
       }
     });
   }
+});
+
+// Global handler to set icon for all windows (including child windows)
+app.on('browser-window-created', (event, window) => {
+  // Set icon for any new window that gets created
+  window.setIcon(path.join(__dirname, 'assets', 'favicon.ico'));
 });
 
 // This method will be called when Electron has finished initialization
@@ -2065,6 +2104,8 @@ ipcMain.handle('open-admin-panel', async () => {
       width: 1200,
       height: 800,
       show: false,
+      resizable: true,  // Allow resizing
+      icon: path.join(__dirname, 'assets', 'favicon.ico'),  // Window icon
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -2076,6 +2117,24 @@ ipcMain.handle('open-admin-panel', async () => {
 
     // Load the admin.html file
     adminWindow.loadFile(path.join(__dirname, 'admin.html'));
+
+    // Handle child windows opened from admin panel
+    adminWindow.webContents.setWindowOpenHandler(({ url }) => {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 1500,
+          height: 850,
+          resizable: true,  // Allow resizing
+          icon: path.join(__dirname, 'assets', 'favicon.ico'),  // Set icon for child windows
+          autoHideMenuBar: true,
+          webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true
+          }
+        }
+      };
+    });
 
     // Show window when ready
     adminWindow.once('ready-to-show', () => {
@@ -2098,9 +2157,10 @@ ipcMain.handle('open-admin-panel', async () => {
 ipcMain.handle('open-graph-window', async () => {
   try {
     const graphWindow = new BrowserWindow({
-      width: 1000,
-      height: 700,
+      width: 1500,
+      height: 750,
       show: false,
+      icon: path.join(__dirname, 'assets', 'favicon.ico'),  // Window icon
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true

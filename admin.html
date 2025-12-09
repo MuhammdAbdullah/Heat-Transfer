@@ -807,6 +807,43 @@
             </div>
         </div>
 
+        <!-- App Settings Panel -->
+        <div class="admin-panel" style="margin-bottom: 20px;">
+            <h2>⚙️ App Settings</h2>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #2c3e50; font-size: 1.2em; margin-bottom: 15px;">🔍 Display Scale Factor</h3>
+                    <p style="color: #7f8c8d; margin-bottom: 15px; line-height: 1.6;">
+                        Set a custom scale factor for the entire app. This affects all windows and persists across app restarts.
+                    </p>
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <label for="adminScaleInput" style="font-weight: bold; color: #2c3e50;">Scale Factor:</label>
+                        <input type="number" id="adminScaleInput" min="0.5" max="2.0" step="0.1" value="1.0" 
+                               style="width: 100px; padding: 10px; font-size: 16px; border: 2px solid #3498db; border-radius: 8px; text-align: center; font-weight: bold;">
+                        <button id="adminApplyScaleBtn" 
+                                style="background: linear-gradient(45deg, #2ed573, #1e90ff); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s ease;">
+                            💾 Save & Apply
+                        </button>
+                        <button id="adminResetScaleBtn" 
+                                style="background: linear-gradient(45deg, #ff4757, #ff6348); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s ease;">
+                            🔄 Reset to Auto
+                        </button>
+                    </div>
+                    <div id="scaleStatus" style="margin-top: 15px; padding: 10px; border-radius: 8px; display: none;"></div>
+                    <div style="margin-top: 15px; padding: 15px; background: #ecf0f1; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <p style="color: #34495e; font-size: 14px; margin: 0;">
+                            <strong>💡 Tips:</strong><br>
+                            • <strong>1.0</strong> = Normal size (100%)<br>
+                            • <strong>0.5</strong> = Half size (50%)<br>
+                            • <strong>1.5</strong> = 1.5x bigger (150%)<br>
+                            • <strong>2.0</strong> = Double size (200%)<br>
+                            • <strong>Reset to Auto</strong> = Scale based on window size
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
                 <div class="admin-controls">
                     <h2>🛠️ Admin Controls</h2>
                     <div class="control-buttons">
@@ -2031,5 +2068,106 @@
             }
         });
     </script>
+    
+    <!-- App Settings Scale Control Script -->
+    <script>
+        // Load current scale into input on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            var savedScale = localStorage.getItem('appScaleFactor');
+            var scaleInput = document.getElementById('adminScaleInput');
+            
+            if (savedScale && scaleInput) {
+                scaleInput.value = parseFloat(savedScale).toFixed(1);
+            }
+            
+            // Apply Scale button handler
+            var applyBtn = document.getElementById('adminApplyScaleBtn');
+            if (applyBtn) {
+                applyBtn.addEventListener('click', function() {
+                    var scaleInput = document.getElementById('adminScaleInput');
+                    var scaleValue = parseFloat(scaleInput.value);
+                    
+                    if (isNaN(scaleValue) || scaleValue < 0.5 || scaleValue > 2.0) {
+                        showScaleStatus('Please enter a value between 0.5 and 2.0', 'error');
+                        return;
+                    }
+                    
+                    // Save to localStorage
+                    localStorage.setItem('appScaleFactor', scaleValue.toString());
+                    
+                    // Apply to admin panel window
+                    if (window.setAppScale) {
+                        window.setAppScale(scaleValue);
+                    }
+                    
+                    // Try to apply to opener window (main app) if it exists
+                    if (window.opener && window.opener.setAppScale) {
+                        window.opener.setAppScale(scaleValue);
+                    }
+                    
+                    showScaleStatus('Scale factor ' + scaleValue.toFixed(1) + 'x saved and applied!', 'success');
+                });
+            }
+            
+            // Reset Scale button handler
+            var resetBtn = document.getElementById('adminResetScaleBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function() {
+                    localStorage.removeItem('appScaleFactor');
+                    var scaleInput = document.getElementById('adminScaleInput');
+                    if (scaleInput) {
+                        scaleInput.value = '1.0';
+                    }
+                    
+                    // Reset admin panel window
+                    if (window.resetAppScale) {
+                        window.resetAppScale();
+                    }
+                    
+                    // Reset opener window (main app) if it exists
+                    if (window.opener && window.opener.resetAppScale) {
+                        window.opener.resetAppScale();
+                    }
+                    
+                    showScaleStatus('Scale reset to automatic!', 'success');
+                });
+            }
+            
+            // Allow Enter key to apply
+            if (scaleInput) {
+                scaleInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        document.getElementById('adminApplyScaleBtn').click();
+                    }
+                });
+            }
+        });
+        
+        function showScaleStatus(message, type) {
+            var statusDiv = document.getElementById('scaleStatus');
+            if (!statusDiv) return;
+            
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                statusDiv.style.background = '#d4edda';
+                statusDiv.style.color = '#155724';
+                statusDiv.style.border = '2px solid #28a745';
+            } else if (type === 'error') {
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.style.border = '2px solid #dc3545';
+            }
+            
+            // Hide after 3 seconds
+            setTimeout(function() {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+    
+    <!-- Load Responsive Scaling Script -->
+    <script src="responsive-scaling.js"></script>
 </body>
 </html>
