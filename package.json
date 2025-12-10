@@ -1,6 +1,6 @@
 {
   "name": "heat-transfer-app",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Heat Transfer Data Reader - Web App for Android Tablets",
   "main": "main.js",
   "scripts": {
@@ -60,6 +60,12 @@
       "chart.html",
       "splash.html",
       "simulation.html",
+      "curriculum.html",
+      "lab1.html",
+      "lab2.html",
+      "lab3.html",
+      "lab4.html",
+      "lab5.html",
       "chart-page.js",
       "server.js",
       "manifest.json",

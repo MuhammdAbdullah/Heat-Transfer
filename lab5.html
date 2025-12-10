@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 5 - Data Analysis and Graphing</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(250, 112, 154, 0.05) 0%, rgba(254, 225, 64, 0.05) 100%);
+            border-radius: 15px;
+            border-left: 5px solid #fa709a;
+        }
+
+        .section h2 {
+            color: #fa709a;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h3 {
+            color: #fee140;
+            font-size: 1.4em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #d9534f;
+        }
+
+        .section p {
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .interactive-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #fa709a;
+        }
+
+        .interactive-box h4 {
+            color: #fa709a;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #fa709a;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border-left: 4px solid #fa709a;
+            font-size: 1.1em;
+        }
+
+        .key-points {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .key-points h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .key-points ul {
+            list-style-position: inside;
+            color: #856404;
+        }
+
+        .key-points li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            border: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .data-table input {
+            width: 90%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stats-box {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .stats-box h4 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(133, 100, 4, 0.1) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 2px solid #ffc107;
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-question h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-options label:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .check-answer-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .code-example {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Lab 5: Data Analysis and Graphing</h1>
+            <p>Turning Raw Data into Meaningful Results</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction -->
+            <div class="section">
+                <h2><span class="icon">📚</span> Why Data Analysis Matters</h2>
+                <p>
+                    In any experiment, collecting data is just the first step. The real science happens when 
+                    you <strong>analyze</strong> that data to find patterns, calculate important values, and 
+                    draw conclusions. This lab teaches you how to turn your temperature measurements into 
+                    useful engineering information!
+                </p>
+
+                <div class="key-points">
+                    <h4>What You'll Learn:</h4>
+                    <ul>
+                        <li>Calculate statistical measures (mean, standard deviation, error)</li>
+                        <li>Create professional graphs and interpret them</li>
+                        <li>Perform linear regression to find slopes and trends</li>
+                        <li>Calculate heat transfer coefficients from experimental data</li>
+                        <li>Compare experimental results to theoretical predictions</li>
+                        <li>Present data in tables and reports</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Statistics Basics -->
+            <div class="section">
+                <h2><span class="icon">📈</span> Statistical Analysis</h2>
+                
+                <h3>Key Statistical Measures</h3>
+                
+                <div class="formula">
+                    <strong>Mean (Average):</strong><br>
+                    x̄ = (x₁ + x₂ + ... + xₙ) / n
+                    <br><br>
+                    <strong>Standard Deviation:</strong><br>
+                    σ = √[Σ(xᵢ - x̄)² / n]
+                    <br><br>
+                    <strong>Percent Error:</strong><br>
+                    Error% = |measured - expected| / expected × 100%
+                </div>
+
+                <div class="interactive-box">
+                    <h4>Statistical Calculator</h4>
+                    <p>Enter your temperature measurements (comma-separated):</p>
+                    
+                    <div class="input-group">
+                        <label for="dataPoints">Data Points (e.g., 25.3, 26.1, 25.8, 26.0, 25.5):</label>
+                        <input type="text" id="dataPoints" value="25.3, 26.1, 25.8, 26.0, 25.5">
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateStats()">📊 Analyze Data</button>
+
+                    <div class="result-box" id="statsResult"></div>
+                </div>
+            </div>
+
+            <!-- Linear Regression -->
+            <div class="section">
+                <h2><span class="icon">📉</span> Linear Regression & Curve Fitting</h2>
+                
+                <p>
+                    When you plot Temperature vs Distance, you often get a straight line (or close to it). 
+                    Linear regression finds the "best fit" line through your data points and gives you its slope and intercept.
+                </p>
+
+                <div class="formula">
+                    <strong>Linear Equation:</strong> y = mx + b
+                    <br><br>
+                    Where:<br>
+                    • m = slope (temperature gradient)<br>
+                    • b = y-intercept (extrapolated temperature at x=0)<br>
+                    • R² = correlation coefficient (how well data fits the line)
+                </div>
+
+                <div class="interactive-box">
+                    <h4>Linear Regression Calculator</h4>
+                    <p>Enter X (distance) and Y (temperature) data pairs:</p>
+                    
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label for="xData">X Values (distances, comma-separated):</label>
+                            <input type="text" id="xData" value="1.5, 4.5, 7.5, 10.5, 13.5, 16.5, 19.5, 22.5">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="yData">Y Values (temperatures, comma-separated):</label>
+                            <input type="text" id="yData" value="85, 75, 65, 55, 48, 42, 37, 33">
+                        </div>
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateLinearRegression()">📐 Calculate Best Fit Line</button>
+                    <button class="calculate-btn" onclick="predictValue()">🔮 Predict Value</button>
+
+                    <div class="result-box" id="regressionResult"></div>
+                </div>
+            </div>
+
+            <!-- Data Table Analysis -->
+            <div class="section">
+                <h2><span class="icon">🗂️</span> Data Table Analysis</h2>
+                
+                <div class="interactive-box">
+                    <h4>Analyze Your Experimental Data</h4>
+                    <p>Enter data from your heat transfer apparatus:</p>
+                    
+                    <table class="data-table" id="experimentTable">
+                        <thead>
+                            <tr>
+                                <th>Sensor</th>
+                                <th>Distance (cm)</th>
+                                <th>Temp (°C)</th>
+                                <th>ΔT from prev</th>
+                                <th>Gradient (°C/cm)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>T1</strong></td>
+                                <td><input type="number" id="exp_d1" value="1.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t1" value="85" step="0.1"></td>
+                                <td id="delta1">-</td>
+                                <td id="grad1">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>T2</strong></td>
+                                <td><input type="number" id="exp_d2" value="4.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t2" value="75" step="0.1"></td>
+                                <td id="delta2">-</td>
+                                <td id="grad2">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>T3</strong></td>
+                                <td><input type="number" id="exp_d3" value="7.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t3" value="65" step="0.1"></td>
+                                <td id="delta3">-</td>
+                                <td id="grad3">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>T4</strong></td>
+                                <td><input type="number" id="exp_d4" value="10.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t4" value="55" step="0.1"></td>
+                                <td id="delta4">-</td>
+                                <td id="grad4">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>T5</strong></td>
+                                <td><input type="number" id="exp_d5" value="13.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t5" value="48" step="0.1"></td>
+                                <td id="delta5">-</td>
+                                <td id="grad5">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>T6</strong></td>
+                                <td><input type="number" id="exp_d6" value="16.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t6" value="42" step="0.1"></td>
+                                <td id="delta6">-</td>
+                                <td id="grad6">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>T7</strong></td>
+                                <td><input type="number" id="exp_d7" value="19.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t7" value="37" step="0.1"></td>
+                                <td id="delta7">-</td>
+                                <td id="grad7">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>T8</strong></td>
+                                <td><input type="number" id="exp_d8" value="22.5" step="0.1"></td>
+                                <td><input type="number" id="exp_t8" value="33" step="0.1"></td>
+                                <td id="delta8">-</td>
+                                <td id="grad8">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <button class="calculate-btn" onclick="analyzeTable()">🔍 Analyze Table</button>
+                    <button class="calculate-btn" onclick="exportCSV()">💾 Export to CSV</button>
+
+                    <div class="result-box" id="tableResult"></div>
+                </div>
+            </div>
+
+            <!-- Graphing Best Practices -->
+            <div class="section">
+                <h2><span class="icon">📊</span> Creating Professional Graphs</h2>
+                
+                <h3>Essential Elements of a Good Graph:</h3>
+                <div class="key-points">
+                    <h4>Your Graph Must Include:</h4>
+                    <ul>
+                        <li><strong>Title:</strong> Descriptive title (e.g., "Temperature vs Distance for Aluminum Bar")</li>
+                        <li><strong>Axis Labels:</strong> Include units! (e.g., "Distance (cm)", "Temperature (°C)")</li>
+                        <li><strong>Legend:</strong> If multiple data series, label each one</li>
+                        <li><strong>Grid Lines:</strong> Helps read values accurately</li>
+                        <li><strong>Data Points:</strong> Mark actual measurements with symbols</li>
+                        <li><strong>Best Fit Line:</strong> Show the trend if applicable</li>
+                        <li><strong>Equation:</strong> Display the line equation and R² value</li>
+                    </ul>
+                </div>
+
+                <h3>Using Your App's Graphing Features:</h3>
+                <p style="margin-left: 20px; line-height: 1.8;">
+                    Your Heat Transfer App has built-in graphing tools:
+                </p>
+                <ul style="margin-left: 40px; line-height: 1.8;">
+                    <li><strong>Temperature vs Time:</strong> Main chart shows all sensors over time</li>
+                    <li><strong>Temperature vs Distance:</strong> Shows spatial temperature profile</li>
+                    <li><strong>CSV Export:</strong> Click "Start Saving" to save data for Excel/Python analysis</li>
+                    <li><strong>Open Graph:</strong> Opens separate window for detailed view</li>
+                </ul>
+            </div>
+
+            <!-- Error Analysis -->
+            <div class="section">
+                <h2><span class="icon">⚠️</span> Error Analysis & Uncertainty</h2>
+                
+                <p>
+                    No measurement is perfect! Understanding and quantifying errors is crucial in engineering.
+                </p>
+
+                <h3>Types of Errors:</h3>
+                <div class="grid-2">
+                    <div class="stats-box">
+                        <h4>Random Errors</h4>
+                        <ul style="margin-left: 20px;">
+                            <li>Unpredictable fluctuations</li>
+                            <li>Can be reduced by averaging</li>
+                            <li>Example: Temperature sensor noise</li>
+                        </ul>
+                    </div>
+
+                    <div class="stats-box">
+                        <h4>Systematic Errors</h4>
+                        <ul style="margin-left: 20px;">
+                            <li>Consistent bias in measurements</li>
+                            <li>Require calibration to fix</li>
+                            <li>Example: Sensor offset by +2°C</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="formula">
+                    <strong>Propagation of Uncertainty:</strong><br>
+                    For Q = k × A × ΔT / d:<br>
+                    δQ/Q = √[(δk/k)² + (δA/A)² + (δΔT/ΔT)² + (δd/d)²]
+                </div>
+            </div>
+
+            <!-- Report Writing -->
+            <div class="section">
+                <h2><span class="icon">📝</span> Writing Lab Reports</h2>
+                
+                <div class="key-points">
+                    <h4>Standard Lab Report Structure:</h4>
+                    <ul>
+                        <li><strong>1. Title:</strong> Experiment name and date</li>
+                        <li><strong>2. Objective:</strong> What you're trying to find out</li>
+                        <li><strong>3. Theory:</strong> Relevant equations and concepts</li>
+                        <li><strong>4. Apparatus:</strong> Equipment used (your heat transfer apparatus)</li>
+                        <li><strong>5. Procedure:</strong> Step-by-step what you did</li>
+                        <li><strong>6. Data:</strong> Raw measurements in tables</li>
+                        <li><strong>7. Analysis:</strong> Calculations, graphs, processed data</li>
+                        <li><strong>8. Results:</strong> Key findings and values</li>
+                        <li><strong>9. Discussion:</strong> Interpretation and error sources</li>
+                        <li><strong>10. Conclusion:</strong> Summary and learning outcomes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Quiz -->
+            <div class="quiz-section">
+                <h2><span class="icon">✅</span> Test Your Knowledge!</h2>
+                
+                <div class="quiz-question">
+                    <h4>Question 1: What does R² = 0.95 mean in linear regression?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q1" value="a"> A) 95% of data points are on the line</label>
+                        <label><input type="radio" name="q1" value="b"> B) 95% of variance is explained by the line</label>
+                        <label><input type="radio" name="q1" value="c"> C) 95% error in measurements</label>
+                        <label><input type="radio" name="q1" value="d"> D) Line has 95% slope</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')">Check Answer</button>
+                    <div class="feedback" id="fb1"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 2: What's the best way to reduce random errors?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q2" value="a"> A) Take multiple measurements and average</label>
+                        <label><input type="radio" name="q2" value="b"> B) Use only one very careful measurement</label>
+                        <label><input type="radio" name="q2" value="c"> C) Ignore outliers</label>
+                        <label><input type="radio" name="q2" value="d"> D) Round all numbers</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'a', 'fb2')">Check Answer</button>
+                    <div class="feedback" id="fb2"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 3: In Temperature vs Distance graph, what does the slope represent?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q3" value="a"> A) Heat flow rate</label>
+                        <label><input type="radio" name="q3" value="b"> B) Temperature gradient</label>
+                        <label><input type="radio" name="q3" value="c"> C) Thermal conductivity</label>
+                        <label><input type="radio" name="q3" value="d"> D) Time constant</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'b', 'fb3')">Check Answer</button>
+                    <div class="feedback" id="fb3"></div>
+                </div>
+            </div>
+
+            <!-- Suggested Exercises -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> Practice Exercises</h2>
+                
+                <div class="key-points">
+                    <h4>Try These Data Analysis Tasks:</h4>
+                    <ul>
+                        <li><strong>Exercise 1:</strong> Collect 5 steady-state readings and calculate mean and standard deviation</li>
+                        <li><strong>Exercise 2:</strong> Plot Temperature vs Distance and perform linear regression</li>
+                        <li><strong>Exercise 3:</strong> Compare experimental gradient to theoretical prediction</li>
+                        <li><strong>Exercise 4:</strong> Export data to CSV and create graphs in Excel or Python</li>
+                        <li><strong>Exercise 5:</strong> Write a complete lab report for your favorite experiment</li>
+                        <li><strong>Exercise 6:</strong> Calculate percent error between two experimental runs</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateStats() {
+            var input = document.getElementById('dataPoints').value;
+            var data = input.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            
+            if (data.length === 0) {
+                alert('Please enter valid numbers!');
+                return;
+            }
+
+            var sum = data.reduce((a, b) => a + b, 0);
+            var mean = sum / data.length;
+            var variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / data.length;
+            var stdDev = Math.sqrt(variance);
+            var min = Math.min(...data);
+            var max = Math.max(...data);
+            var range = max - min;
+
+            document.getElementById('statsResult').innerHTML = `
+                <strong>Statistical Analysis:</strong><br><br>
+                <strong>n (count):</strong> ${data.length}<br>
+                <strong>Mean (x̄):</strong> ${mean.toFixed(3)}<br>
+                <strong>Std Dev (σ):</strong> ${stdDev.toFixed(3)}<br>
+                <strong>Minimum:</strong> ${min.toFixed(2)}<br>
+                <strong>Maximum:</strong> ${max.toFixed(2)}<br>
+                <strong>Range:</strong> ${range.toFixed(2)}<br>
+                <strong>Variance:</strong> ${variance.toFixed(3)}
+            `;
+            document.getElementById('statsResult').classList.add('show');
+        }
+
+        function calculateLinearRegression() {
+            var xInput = document.getElementById('xData').value;
+            var yInput = document.getElementById('yData').value;
+            var xData = xInput.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            var yData = yInput.split(',').map(y => parseFloat(y.trim())).filter(y => !isNaN(y));
+
+            if (xData.length !== yData.length || xData.length < 2) {
+                alert('X and Y must have same length (at least 2 points)!');
+                return;
+            }
+
+            var n = xData.length;
+            var sumX = xData.reduce((a, b) => a + b, 0);
+            var sumY = yData.reduce((a, b) => a + b, 0);
+            var sumXY = xData.reduce((sum, x, i) => sum + x * yData[i], 0);
+            var sumX2 = xData.reduce((sum, x) => sum + x * x, 0);
+            var sumY2 = yData.reduce((sum, y) => sum + y * y, 0);
+
+            var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            var intercept = (sumY - slope * sumX) / n;
+
+            var yMean = sumY / n;
+            var ssTotal = yData.reduce((sum, y) => sum + Math.pow(y - yMean, 2), 0);
+            var ssResidual = yData.reduce((sum, y, i) => sum + Math.pow(y - (slope * xData[i] + intercept), 2), 0);
+            var r2 = 1 - (ssResidual / ssTotal);
+
+            document.getElementById('regressionResult').innerHTML = `
+                <strong>Linear Regression Results:</strong><br><br>
+                <strong>Equation:</strong> y = ${slope.toFixed(3)}x + ${intercept.toFixed(3)}<br>
+                <strong>Slope (m):</strong> ${slope.toFixed(3)}<br>
+                <strong>Intercept (b):</strong> ${intercept.toFixed(3)}<br>
+                <strong>R² (correlation):</strong> ${r2.toFixed(4)}<br><br>
+                <small>${r2 > 0.9 ? 'Excellent fit!' : r2 > 0.7 ? 'Good fit' : 'Poor fit - check data'}</small>
+            `;
+            document.getElementById('regressionResult').classList.add('show');
+        }
+
+        function predictValue() {
+            var x = parseFloat(prompt('Enter X value to predict Y:', '12'));
+            if (isNaN(x)) return;
+
+            var xInput = document.getElementById('xData').value;
+            var yInput = document.getElementById('yData').value;
+            var xData = xInput.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            var yData = yInput.split(',').map(y => parseFloat(y.trim())).filter(y => !isNaN(y));
+
+            var n = xData.length;
+            var sumX = xData.reduce((a, b) => a + b, 0);
+            var sumY = yData.reduce((a, b) => a + b, 0);
+            var sumXY = xData.reduce((sum, x, i) => sum + x * yData[i], 0);
+            var sumX2 = xData.reduce((sum, x) => sum + x * x, 0);
+
+            var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            var intercept = (sumY - slope * sumX) / n;
+
+            var predicted = slope * x + intercept;
+
+            document.getElementById('regressionResult').innerHTML = `
+                <strong>Prediction:</strong><br><br>
+                For x = ${x.toFixed(2)}:<br>
+                <strong>Predicted y = ${predicted.toFixed(2)}</strong><br><br>
+                Using equation: y = ${slope.toFixed(3)}x + ${intercept.toFixed(3)}
+            `;
+            document.getElementById('regressionResult').classList.add('show');
+        }
+
+        function analyzeTable() {
+            var html = '<strong>Table Analysis:</strong><br><br>';
+            var avgGrad = 0;
+            var count = 0;
+
+            for (var i = 1; i <= 8; i++) {
+                var d = parseFloat(document.getElementById('exp_d' + i).value);
+                var t = parseFloat(document.getElementById('exp_t' + i).value);
+
+                if (i > 1) {
+                    var prevD = parseFloat(document.getElementById('exp_d' + (i-1)).value);
+                    var prevT = parseFloat(document.getElementById('exp_t' + (i-1)).value);
+                    var deltaT = t - prevT;
+                    var deltaD = d - prevD;
+                    var grad = deltaT / deltaD;
+
+                    document.getElementById('delta' + i).textContent = deltaT.toFixed(2);
+                    document.getElementById('grad' + i).textContent = grad.toFixed(3);
+
+                    avgGrad += grad;
+                    count++;
+                } else {
+                    document.getElementById('delta' + i).textContent = '-';
+                    document.getElementById('grad' + i).textContent = '-';
+                }
+            }
+
+            avgGrad /= count;
+            var t1 = parseFloat(document.getElementById('exp_t1').value);
+            var t8 = parseFloat(document.getElementById('exp_t8').value);
+            var totalDrop = t1 - t8;
+
+            html += `<strong>Average Gradient:</strong> ${avgGrad.toFixed(3)} °C/cm<br>`;
+            html += `<strong>Total Temperature Drop:</strong> ${totalDrop.toFixed(2)} °C<br>`;
+            html += `<strong>Hottest Sensor:</strong> T1 (${t1.toFixed(1)}°C)<br>`;
+            html += `<strong>Coldest Sensor:</strong> T8 (${t8.toFixed(1)}°C)`;
+
+            document.getElementById('tableResult').innerHTML = html;
+            document.getElementById('tableResult').classList.add('show');
+        }
+
+        function exportCSV() {
+            var csv = 'Sensor,Distance(cm),Temperature(°C)\n';
+            for (var i = 1; i <= 8; i++) {
+                var d = document.getElementById('exp_d' + i).value;
+                var t = document.getElementById('exp_t' + i).value;
+                csv += 'T' + i + ',' + d + ',' + t + '\n';
+            }
+
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'heat_transfer_data.csv';
+            a.click();
+            
+            alert('CSV file downloaded! Open in Excel or analysis software.');
+        }
+
+        function checkAnswer(q, correct, fbId) {
+            var selected = document.querySelector('input[name="' + q + '"]:checked');
+            var fb = document.getElementById(fbId);
+            if (!selected) {
+                alert('Please select an answer!');
+                return;
+            }
+            if (selected.value === correct) {
+                fb.className = 'feedback correct';
+                fb.innerHTML = '✅ Correct! Great work!';
+            } else {
+                fb.className = 'feedback incorrect';
+                fb.innerHTML = '❌ Not quite - review the concepts!';
+            }
+        }
+    </script>
+    
+    <!-- Load Responsive Scaling Script -->
+    <script src="responsive-scaling.js"></script>
+</body>
+</html>

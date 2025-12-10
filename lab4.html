@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 4 - Forced vs Natural Convection</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.05) 0%, rgba(56, 249, 215, 0.05) 100%);
+            border-radius: 15px;
+            border-left: 5px solid #43e97b;
+        }
+
+        .section h2 {
+            color: #43e97b;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h3 {
+            color: #38f9d7;
+            font-size: 1.4em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .section p {
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .interactive-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #43e97b;
+        }
+
+        .interactive-box h4 {
+            color: #43e97b;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #43e97b;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.2em;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border-left: 4px solid #43e97b;
+            font-size: 1.1em;
+        }
+
+        .key-points {
+            background: #d1f4e0;
+            border-left: 5px solid #198754;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .key-points h4 {
+            color: #0d4526;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .key-points ul {
+            list-style-position: inside;
+            color: #0d4526;
+        }
+
+        .key-points li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .comparison-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-item {
+            background: white;
+            border: 3px solid #43e97b;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .comparison-item h4 {
+            color: #43e97b;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(13, 69, 38, 0.1) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 2px solid #198754;
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-question h4 {
+            color: #0d4526;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-options label:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .check-answer-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            border: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .comparison-box {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💨 Lab 4: Forced vs Natural Convection</h1>
+            <p>Understanding How Air Movement Affects Heat Transfer</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction -->
+            <div class="section">
+                <h2><span class="icon">📚</span> What is Convection?</h2>
+                <p>
+                    <strong>Convection</strong> is heat transfer by the movement of fluids (liquids or gases). 
+                    When air or water moves over a hot surface, it carries heat away. The faster the fluid moves, 
+                    the more heat it can remove!
+                </p>
+                <p>
+                    There are two main types of convection:
+                </p>
+                
+                <div class="comparison-box">
+                    <div class="comparison-item">
+                        <h4>🌊 Natural Convection</h4>
+                        <p style="line-height: 1.8;">
+                            Fluid movement caused by density differences due to temperature changes. 
+                            Hot air rises, cold air sinks - no fans needed!
+                        </p>
+                        <p><strong>Examples:</strong></p>
+                        <ul style="text-align: left; margin: 10px 20px;">
+                            <li>Heat from a radiator</li>
+                            <li>Boiling water bubbles</li>
+                            <li>Hot air balloon rising</li>
+                            <li>Warm air rising in a room</li>
+                        </ul>
+                    </div>
+
+                    <div class="comparison-item">
+                        <h4>💨 Forced Convection</h4>
+                        <p style="line-height: 1.8;">
+                            Fluid movement caused by external means like fans, pumps, or wind. 
+                            Much faster and more effective!
+                        </p>
+                        <p><strong>Examples:</strong></p>
+                        <ul style="text-align: left; margin: 10px 20px;">
+                            <li>Computer cooling fans</li>
+                            <li>Car radiator with fan</li>
+                            <li>Hair dryer</li>
+                            <li>Air conditioning</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="formula">
+                    Convection Heat Transfer: Q = h × A × ΔT
+                    <br><br>
+                    Where:<br>
+                    • Q = Heat transfer rate (W)<br>
+                    • h = Convection coefficient (W/m²·K)<br>
+                    • A = Surface area (m²)<br>
+                    • ΔT = Temperature difference between surface and fluid (K or °C)
+                </div>
+            </div>
+
+            <!-- Key Differences -->
+            <div class="section">
+                <h2><span class="icon">⚖️</span> Comparing Natural and Forced Convection</h2>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Characteristic</th>
+                            <th>Natural Convection</th>
+                            <th>Forced Convection</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Driving Force</strong></td>
+                            <td>Buoyancy (density differences)</td>
+                            <td>External (fan, pump)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Speed</strong></td>
+                            <td>Slow (< 1 m/s)</td>
+                            <td>Fast (1-100+ m/s)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>h coefficient</strong></td>
+                            <td>Low (5-25 W/m²·K)</td>
+                            <td>High (25-250+ W/m²·K)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Heat Transfer Rate</strong></td>
+                            <td>Lower</td>
+                            <td>Much Higher</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Energy Cost</strong></td>
+                            <td>Free (no power needed)</td>
+                            <td>Requires power</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Control</strong></td>
+                            <td>Limited control</td>
+                            <td>Easy to control (fan speed)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="key-points">
+                    <h4>Key Insight:</h4>
+                    <ul>
+                        <li><strong>Forced convection can be 10-20 times more effective than natural convection!</strong></li>
+                        <li>This is why computers have fans - natural convection alone isn't enough!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Interactive Calculator -->
+            <div class="section">
+                <h2><span class="icon">🧮</span> Convection Heat Transfer Calculator</h2>
+                
+                <div class="interactive-box">
+                    <h4>Compare Natural vs Forced Convection</h4>
+                    
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label for="surfaceTemp">Surface Temperature (°C):</label>
+                            <input type="number" id="surfaceTemp" value="80" step="1">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="ambientTemp">Ambient Air Temperature (°C):</label>
+                            <input type="number" id="ambientTemp" value="25" step="1">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="surfaceArea">Surface Area (m²):</label>
+                            <input type="number" id="surfaceArea" value="0.01" step="0.001">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="convectionType">Convection Type:</label>
+                            <select id="convectionType" onchange="updateHValue()">
+                                <option value="10">Natural Convection (h = 10 W/m²·K)</option>
+                                <option value="50">Forced - Low Fan Speed (h = 50 W/m²·K)</option>
+                                <option value="100" selected>Forced - Medium Fan Speed (h = 100 W/m²·K)</option>
+                                <option value="200">Forced - High Fan Speed (h = 200 W/m²·K)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="hValue">h coefficient (W/m²·K):</label>
+                            <input type="number" id="hValue" value="100" step="1" readonly style="background: #f0f0f0;">
+                        </div>
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateConvection()">💨 Calculate Heat Transfer</button>
+                    <button class="calculate-btn" onclick="compareConvection()">⚖️ Compare Natural vs Forced</button>
+
+                    <div class="result-box" id="convectionResult"></div>
+                </div>
+            </div>
+
+            <!-- Your Apparatus -->
+            <div class="section">
+                <h2><span class="icon">🔬</span> Observing Convection in Your Apparatus</h2>
+                
+                <div class="key-points">
+                    <h4>What Your Fan Does:</h4>
+                    <ul>
+                        <li><strong>Fan OFF (0%):</strong> Natural convection only - slow cooling</li>
+                        <li><strong>Fan ON (25-50%):</strong> Forced convection - moderate cooling</li>
+                        <li><strong>Fan ON (75-100%):</strong> Strong forced convection - rapid cooling</li>
+                    </ul>
+                </div>
+
+                <h3>Observable Effects:</h3>
+                <p style="margin-left: 20px; line-height: 1.8;">
+                    <strong>1. Temperature Drop:</strong> Higher fan speed → Lower temperatures<br>
+                    <strong>2. Cooling Rate:</strong> Faster fan → Faster temperature decrease<br>
+                    <strong>3. Temperature Gradient:</strong> More airflow → Steeper gradients<br>
+                    <strong>4. Steady-State:</strong> Fan controls final equilibrium temperature
+                </p>
+
+                <h3>Why Does This Matter?</h3>
+                <p>
+                    Understanding convection is crucial for:
+                </p>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Electronics Cooling:</strong> CPUs and GPUs need forced convection</li>
+                    <li><strong>HVAC Systems:</strong> Moving air distributes heating/cooling</li>
+                    <li><strong>Industrial Processes:</strong> Cooling hot materials efficiently</li>
+                    <li><strong>Energy Efficiency:</strong> Natural convection saves power when possible</li>
+                </ul>
+            </div>
+
+            <!-- Experiment Procedure -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> Experimental Procedure</h2>
+                
+                <div class="interactive-box">
+                    <h4>Step-by-Step Experiment to Compare Convection Types</h4>
+                    
+                    <div style="line-height: 2;">
+                        <p><strong>📋 Setup:</strong></p>
+                        <ol style="margin-left: 30px;">
+                            <li>Set heater to 70°C</li>
+                            <li>Wait for steady-state (temperatures stop changing)</li>
+                            <li>Record all temperatures (T1-T8)</li>
+                        </ol>
+                        <br>
+                        
+                        <p><strong>🌊 Part 1: Natural Convection</strong></p>
+                        <ol style="margin-left: 30px;">
+                            <li>Set fan to 0% (OFF)</li>
+                            <li>Wait 5-10 minutes for steady-state</li>
+                            <li>Record all T1-T8 temperatures</li>
+                            <li>Note how long it took to stabilize</li>
+                        </ol>
+                        <br>
+                        
+                        <p><strong>💨 Part 2: Forced Convection - Low Speed</strong></p>
+                        <ol style="margin-left: 30px;">
+                            <li>Set fan to 25%</li>
+                            <li>Wait for new steady-state</li>
+                            <li>Record all T1-T8 temperatures</li>
+                            <li>Compare to natural convection</li>
+                        </ol>
+                        <br>
+                        
+                        <p><strong>💨 Part 3: Forced Convection - High Speed</strong></p>
+                        <ol style="margin-left: 30px;">
+                            <li>Set fan to 75%</li>
+                            <li>Wait for new steady-state</li>
+                            <li>Record all T1-T8 temperatures</li>
+                            <li>Compare to previous cases</li>
+                        </ol>
+                        <br>
+                        
+                        <p><strong>📊 Analysis:</strong></p>
+                        <ul style="margin-left: 30px;">
+                            <li>Plot Temperature vs Distance for each fan speed</li>
+                            <li>Calculate average temperature drop for each case</li>
+                            <li>Estimate convection coefficients</li>
+                            <li>Calculate improvement factor (forced vs natural)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz -->
+            <div class="quiz-section">
+                <h2><span class="icon">✅</span> Test Your Understanding!</h2>
+                
+                <div class="quiz-question">
+                    <h4>Question 1: What drives natural convection?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q1" value="a"> A) Fans and pumps</label>
+                        <label><input type="radio" name="q1" value="b"> B) Density differences from temperature changes</label>
+                        <label><input type="radio" name="q1" value="c"> C) Magnetic fields</label>
+                        <label><input type="radio" name="q1" value="d"> D) Pressure differences only</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')">Check Answer</button>
+                    <div class="feedback" id="fb1"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 2: Which has a higher heat transfer coefficient (h)?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q2" value="a"> A) Natural convection</label>
+                        <label><input type="radio" name="q2" value="b"> B) Forced convection</label>
+                        <label><input type="radio" name="q2" value="c"> C) They are equal</label>
+                        <label><input type="radio" name="q2" value="d"> D) It depends on color</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'b', 'fb2')">Check Answer</button>
+                    <div class="feedback" id="fb2"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 3: In your apparatus, what does increasing fan speed do?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q3" value="a"> A) Increases convection and lowers temperatures</label>
+                        <label><input type="radio" name="q3" value="b"> B) Has no effect on temperatures</label>
+                        <label><input type="radio" name="q3" value="c"> C) Increases temperatures</label>
+                        <label><input type="radio" name="q3" value="d"> D) Only affects heater power</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'a', 'fb3')">Check Answer</button>
+                    <div class="feedback" id="fb3"></div>
+                </div>
+            </div>
+
+            <!-- Suggested Experiments -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> Advanced Experiments</h2>
+                
+                <div class="key-points">
+                    <h4>Try These:</h4>
+                    <ul>
+                        <li><strong>Exp 1:</strong> Measure cooling time from 80°C to 40°C with fan OFF vs fan at 50%</li>
+                        <li><strong>Exp 2:</strong> Plot cooling curves for different fan speeds (0%, 25%, 50%, 75%, 100%)</li>
+                        <li><strong>Exp 3:</strong> Calculate the convection coefficient for each fan speed using Q = h×A×ΔT</li>
+                        <li><strong>Exp 4:</strong> Find the minimum fan speed needed to keep temperatures below 60°C</li>
+                        <li><strong>Exp 5:</strong> Compare power consumption vs cooling effectiveness</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateHValue() {
+            var h = document.getElementById('convectionType').value;
+            document.getElementById('hValue').value = h;
+        }
+
+        function calculateConvection() {
+            var Ts = parseFloat(document.getElementById('surfaceTemp').value);
+            var Ta = parseFloat(document.getElementById('ambientTemp').value);
+            var A = parseFloat(document.getElementById('surfaceArea').value);
+            var h = parseFloat(document.getElementById('hValue').value);
+
+            if (isNaN(Ts) || isNaN(Ta) || isNaN(A) || isNaN(h)) {
+                alert('Please fill all fields!');
+                return;
+            }
+
+            var deltaT = Ts - Ta;
+            var Q = h * A * deltaT;
+
+            document.getElementById('convectionResult').innerHTML = `
+                <strong>Heat Transfer by Convection:</strong><br>
+                Q = ${Q.toFixed(2)} Watts<br><br>
+                <strong>ΔT:</strong> ${deltaT.toFixed(1)} °C<br>
+                <strong>h:</strong> ${h} W/m²·K<br>
+                <strong>Area:</strong> ${A.toFixed(4)} m²<br><br>
+                <small>Heat removed per second: ${Q.toFixed(2)} Joules</small>
+            `;
+            document.getElementById('convectionResult').classList.add('show');
+        }
+
+        function compareConvection() {
+            var Ts = parseFloat(document.getElementById('surfaceTemp').value);
+            var Ta = parseFloat(document.getElementById('ambientTemp').value);
+            var A = parseFloat(document.getElementById('surfaceArea').value);
+
+            var deltaT = Ts - Ta;
+            var Q_natural = 10 * A * deltaT;
+            var Q_forced_low = 50 * A * deltaT;
+            var Q_forced_med = 100 * A * deltaT;
+            var Q_forced_high = 200 * A * deltaT;
+
+            var improvement_low = (Q_forced_low / Q_natural).toFixed(1);
+            var improvement_med = (Q_forced_med / Q_natural).toFixed(1);
+            var improvement_high = (Q_forced_high / Q_natural).toFixed(1);
+
+            document.getElementById('convectionResult').innerHTML = `
+                <strong>Comparison of Convection Types:</strong><br><br>
+                🌊 <strong>Natural:</strong> ${Q_natural.toFixed(2)} W<br>
+                💨 <strong>Low Fan:</strong> ${Q_forced_low.toFixed(2)} W (${improvement_low}× better)<br>
+                💨 <strong>Medium Fan:</strong> ${Q_forced_med.toFixed(2)} W (${improvement_med}× better)<br>
+                💨 <strong>High Fan:</strong> ${Q_forced_high.toFixed(2)} W (${improvement_high}× better)<br><br>
+                <small>Forced convection can be up to ${improvement_high}× more effective!</small>
+            `;
+            document.getElementById('convectionResult').classList.add('show');
+        }
+
+        function checkAnswer(q, correct, fbId) {
+            var selected = document.querySelector('input[name="' + q + '"]:checked');
+            var fb = document.getElementById(fbId);
+            if (!selected) {
+                alert('Please select an answer!');
+                return;
+            }
+            if (selected.value === correct) {
+                fb.className = 'feedback correct';
+                fb.innerHTML = '✅ Perfect!';
+            } else {
+                fb.className = 'feedback incorrect';
+                fb.innerHTML = '❌ Not quite - review the material!';
+            }
+        }
+    </script>
+    
+    <!-- Load Responsive Scaling Script -->
+    <script src="responsive-scaling.js"></script>
+</body>
+</html>

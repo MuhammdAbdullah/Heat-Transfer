@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 1 - Introduction to Heat Transfer</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <style>
+        /* Base font size will be controlled by responsive-scaling.js */
+        html {
+            font-size: 16px; /* Base size - will be scaled automatically */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 1.25rem; /* Changed from 20px to rem */
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 1rem; /* Use rem units */
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.875rem; /* Changed from 30px to rem */
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 1.25rem; /* Changed from 20px to rem */
+            right: 1.25rem; /* Changed from 20px to rem */
+            z-index: 100;
+        }
+
+        @media (max-width: 600px) {
+            .language-selector {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+        }
+
+        .language-selector select {
+            padding: 0.625rem 0.9375rem; /* Changed from 10px 15px to rem */
+            font-size: 1em;
+            border-radius: 0.5rem; /* Changed from 8px to rem */
+            border: 0.125rem solid white; /* Changed from 2px to rem */
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .language-selector select:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .language-selector select option {
+            background: #667eea;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 0.625rem; /* Changed from 10px to rem */
+            text-shadow: 0.125rem 0.125rem 0.25rem rgba(0, 0, 0, 0.3); /* Changed from 2px 2px 4px to rem */
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 2.5rem; /* Changed from 40px to rem */
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .section {
+            margin-bottom: 2.5rem; /* Changed from 40px to rem */
+            padding: 1.5625rem; /* Changed from 25px to rem */
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 0.9375rem; /* Changed from 15px to rem */
+            border-left: 0.3125rem solid #667eea; /* Changed from 5px to rem */
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 0.9375rem; /* Changed from 15px to rem */
+            display: flex;
+            align-items: center;
+            gap: 0.625rem; /* Changed from 10px to rem */
+        }
+
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin-top: 1.25rem; /* Changed from 20px to rem */
+            margin-bottom: 0.625rem; /* Changed from 10px to rem */
+        }
+
+        .section p {
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 0.9375rem; /* Changed from 15px to rem */
+            color: #555;
+        }
+
+        .interactive-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #667eea;
+        }
+
+        .interactive-box h4 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.9375rem 1.875rem; /* Changed from 15px 30px to rem */
+            border-radius: 0.625rem; /* Changed from 10px to rem */
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0.25rem 0.9375rem rgba(102, 126, 234, 0.3); /* Changed from 0 4px 15px to rem */
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-0.125rem); /* Changed from -2px to rem */
+            box-shadow: 0 0.375rem 1.25rem rgba(102, 126, 234, 0.4); /* Changed from 0 6px 20px to rem */
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            font-size: 1.1em;
+        }
+
+        .key-points {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .key-points h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .key-points ul {
+            list-style-position: inside;
+            color: #856404;
+        }
+
+        .key-points li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.1) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 2px solid #ffc107;
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-question h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .quiz-options {
+            margin-left: 20px;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-options label:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .quiz-options input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .check-answer-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .check-answer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 15px 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .header p {
+                font-size: 1em;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .section {
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .section h2 {
+                font-size: 1.4em;
+            }
+            
+            .section h3 {
+                font-size: 1.2em;
+            }
+            
+            .interactive-box {
+                padding: 15px;
+            }
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- Language Selector -->
+            <div class="language-selector">
+                <select id="languageSelector">
+                    <option value="en">🇬🇧 English</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select>
+            </div>
+
+            <h1 data-translate="pageTitle">🔥 Lab 1: Introduction to Heat Transfer</h1>
+            <p data-translate="pageSubtitle">Understanding the Fundamentals of Thermal Energy Transfer</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction Section -->
+            <div class="section">
+                <h2><span class="icon">📚</span> <span data-translate="section1Title">What is Heat Transfer?</span></h2>
+                <p data-translate="section1Para1">
+                    Heat transfer is the movement of thermal energy from one place to another. In nature and engineering, 
+                    heat always flows from a hotter object to a colder one until thermal equilibrium is reached. 
+                    Understanding how heat moves is crucial in designing everything from computer processors to 
+                    refrigerators to spacecraft.
+                </p>
+                <p data-translate="section1Para2">
+                    In this lab, you will learn about the three main methods of heat transfer and how they apply 
+                    to real-world situations, including your heat transfer apparatus!
+                </p>
+            </div>
+
+            <!-- Three Types Section -->
+            <div class="section">
+                <h2><span class="icon">🌡️</span> <span data-translate="section2Title">Three Types of Heat Transfer</span></h2>
+                
+                <h3 data-translate="section2Sub1">1. Conduction (Direct Contact)</h3>
+                <p data-translate="section2Para1">
+                    <strong>Conduction</strong> is heat transfer through direct contact. When you touch a hot stove, 
+                    heat flows from the stove to your hand through conduction. In solids, heat is transferred by 
+                    molecules vibrating and passing energy to neighboring molecules.
+                </p>
+                <div class="formula">
+                    Q = k × A × (T₁ - T₂) / d
+                    <br><br>
+                    Where:<br>
+                    • Q = Heat transfer rate (Watts)<br>
+                    • k = Thermal conductivity (W/m·K)<br>
+                    • A = Cross-sectional area (m²)<br>
+                    • T₁ - T₂ = Temperature difference (K or °C)<br>
+                    • d = Thickness/distance (m)
+                </div>
+
+                <h3 data-translate="section2Sub2">2. Convection (Fluid Movement)</h3>
+                <p data-translate="section2Para2">
+                    <strong>Convection</strong> is heat transfer by the movement of fluids (liquids or gases). 
+                    When you boil water, hot water rises and cold water sinks, creating a circulation pattern. 
+                    This is also how your car radiator works!
+                </p>
+                <div class="formula">
+                    Q = h × A × (T_surface - T_fluid)
+                    <br><br>
+                    Where:<br>
+                    • h = Convection heat transfer coefficient (W/m²·K)<br>
+                    • A = Surface area (m²)<br>
+                    • T_surface = Surface temperature (K or °C)<br>
+                    • T_fluid = Fluid temperature (K or °C)
+                </div>
+
+                <h3 data-translate="section2Sub3">3. Radiation (Electromagnetic Waves)</h3>
+                <p data-translate="section2Para3">
+                    <strong>Radiation</strong> is heat transfer through electromagnetic waves. The Sun heats the 
+                    Earth through radiation - no physical contact needed! All objects emit thermal radiation, 
+                    but hotter objects emit more.
+                </p>
+                <div class="formula">
+                    Q = ε × σ × A × T⁴
+                    <br><br>
+                    Where:<br>
+                    • ε = Emissivity (0 to 1)<br>
+                    • σ = Stefan-Boltzmann constant (5.67 × 10⁻⁸ W/m²·K⁴)<br>
+                    • A = Surface area (m²)<br>
+                    • T = Absolute temperature (Kelvin)
+                </div>
+            </div>
+
+            <!-- Interactive Calculator -->
+            <div class="section">
+                <h2><span class="icon">🧮</span> <span data-translate="section3Title">Interactive Heat Transfer Calculator</span></h2>
+                
+                <div class="interactive-box">
+                    <h4 data-translate="calcTitle">Calculate Conduction Heat Transfer</h4>
+                    <p data-translate="calcDesc">Use this calculator to find out how much heat flows through a material.</p>
+                    
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label for="thermalConductivity" data-translate="labelThermalCond">Thermal Conductivity (k) in W/m·K:</label>
+                            <select id="thermalConductivity">
+                                <option value="0.026">Air (0.026)</option>
+                                <option value="0.6">Wood (0.6)</option>
+                                <option value="0.8">Glass (0.8)</option>
+                                <option value="1.4">Concrete (1.4)</option>
+                                <option value="50">Steel (50)</option>
+                                <option value="205" selected>Aluminum (205)</option>
+                                <option value="385">Copper (385)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="area" data-translate="labelArea">Cross-sectional Area (A) in m²:</label>
+                            <input type="number" id="area" value="0.01" step="0.001" min="0.001">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="tempHot" data-translate="labelTempHot">Hot Side Temperature (T₁) in °C:</label>
+                            <input type="number" id="tempHot" value="100" step="1">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="tempCold" data-translate="labelTempCold">Cold Side Temperature (T₂) in °C:</label>
+                            <input type="number" id="tempCold" value="20" step="1">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="thickness" data-translate="labelThickness">Thickness (d) in meters:</label>
+                            <input type="number" id="thickness" value="0.1" step="0.01" min="0.001">
+                        </div>
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateHeatTransfer()" data-translate="calcButton">🔥 Calculate Heat Transfer</button>
+
+                    <div class="result-box" id="resultBox">
+                        <div id="resultText"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection to Your Device -->
+            <div class="section">
+                <h2><span class="icon">🔬</span> <span data-translate="section4Title">How This Relates to Your Heat Transfer Apparatus</span></h2>
+                <p>
+                    Your heat transfer apparatus uses all three types of heat transfer:
+                </p>
+                
+                <div class="key-points">
+                    <h4>🔥 Your Device in Action:</h4>
+                    <ul>
+                        <li><strong>Radial/Linear Heater:</strong> Creates a hot surface (heat source)</li>
+                        <li><strong>Temperature Sensors (T1-T8):</strong> Measure temperature at different distances from the heater</li>
+                        <li><strong>Conduction:</strong> Heat travels through the metal bar from the heater to the sensors</li>
+                        <li><strong>Convection:</strong> The fan creates air flow over the bar, cooling it by forced convection</li>
+                        <li><strong>Radiation:</strong> Some heat is lost to the environment through thermal radiation</li>
+                        <li><strong>Cooler:</strong> Actively removes heat to speed up cooling and reset experiments</li>
+                    </ul>
+                </div>
+
+                <p>
+                    By changing the heater temperature, fan speed, and using the cooler, you can explore how 
+                    heat transfer rates change under different conditions. The temperature vs distance graph 
+                    shows you the temperature profile along the bar - steeper slopes mean faster heat transfer!
+                </p>
+            </div>
+
+            <!-- Interactive Quiz -->
+            <div class="quiz-section">
+                <h2><span class="icon">✅</span> <span data-translate="quizTitle">Test Your Knowledge!</span></h2>
+                
+                <div class="quiz-question">
+                    <h4 data-translate="quiz1Question">Question 1: Which type of heat transfer requires direct physical contact?</h4>
+                    <div class="quiz-options">
+                        <label>
+                            <input type="radio" name="q1" value="a">
+                            A) Convection
+                        </label>
+                        <label>
+                            <input type="radio" name="q1" value="b">
+                            B) Conduction
+                        </label>
+                        <label>
+                            <input type="radio" name="q1" value="c">
+                            C) Radiation
+                        </label>
+                        <label>
+                            <input type="radio" name="q1" value="d">
+                            D) None of the above
+                        </label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'feedback1')">Check Answer</button>
+                    <div class="feedback" id="feedback1"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 2: What happens when you increase the fan speed on your apparatus?</h4>
+                    <div class="quiz-options">
+                        <label>
+                            <input type="radio" name="q2" value="a">
+                            A) Convection heat transfer increases, cooling the bar faster
+                        </label>
+                        <label>
+                            <input type="radio" name="q2" value="b">
+                            B) Conduction stops completely
+                        </label>
+                        <label>
+                            <input type="radio" name="q2" value="c">
+                            C) Radiation increases significantly
+                        </label>
+                        <label>
+                            <input type="radio" name="q2" value="d">
+                            D) Nothing changes
+                        </label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'a', 'feedback2')">Check Answer</button>
+                    <div class="feedback" id="feedback2"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 3: Which material has the highest thermal conductivity?</h4>
+                    <div class="quiz-options">
+                        <label>
+                            <input type="radio" name="q3" value="a">
+                            A) Wood
+                        </label>
+                        <label>
+                            <input type="radio" name="q3" value="b">
+                            B) Air
+                        </label>
+                        <label>
+                            <input type="radio" name="q3" value="c">
+                            C) Copper
+                        </label>
+                        <label>
+                            <input type="radio" name="q3" value="d">
+                            D) Glass
+                        </label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'c', 'feedback3')">Check Answer</button>
+                    <div class="feedback" id="feedback3"></div>
+                </div>
+            </div>
+
+            <!-- Experimental Tasks -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> <span data-translate="experimentsTitle">Try These Experiments!</span></h2>
+                
+                <div class="key-points">
+                    <h4>Suggested Experiments with Your Apparatus:</h4>
+                    <ul>
+                        <li><strong>Experiment 1:</strong> Set heater to 50°C, fan to 0%. Observe temperature distribution along the bar.</li>
+                        <li><strong>Experiment 2:</strong> Keep heater at 50°C, increase fan to 50%. Notice how convection affects temperatures.</li>
+                        <li><strong>Experiment 3:</strong> Compare temperature profiles with radial vs linear heater at the same power.</li>
+                        <li><strong>Experiment 4:</strong> Use the cooler to rapidly decrease temperatures and observe the cooling rate.</li>
+                        <li><strong>Experiment 5:</strong> Create a Temperature vs Distance graph and calculate the temperature gradient.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Translation data for all 4 languages
+        var translations = {
+            en: {
+                pageTitle: '🔥 Lab 1: Introduction to Heat Transfer',
+                pageSubtitle: 'Understanding the Fundamentals of Thermal Energy Transfer',
+                section1Title: 'What is Heat Transfer?',
+                section1Para1: 'Heat transfer is the movement of thermal energy from one place to another. In nature and engineering, heat always flows from a hotter object to a colder one until thermal equilibrium is reached. Understanding how heat moves is crucial in designing everything from computer processors to refrigerators to spacecraft.',
+                section1Para2: 'In this lab, you will learn about the three main methods of heat transfer and how they apply to real-world situations, including your heat transfer apparatus!',
+                section2Title: 'Three Types of Heat Transfer',
+                section2Sub1: '1. Conduction (Direct Contact)',
+                section2Para1: 'Conduction is heat transfer through direct contact. When you touch a hot stove, heat flows from the stove to your hand through conduction. In solids, heat is transferred by molecules vibrating and passing energy to neighboring molecules.',
+                section2Sub2: '2. Convection (Fluid Movement)',
+                section2Para2: 'Convection is heat transfer by the movement of fluids (liquids or gases). When you boil water, hot water rises and cold water sinks, creating a circulation pattern. This is also how your car radiator works!',
+                section2Sub3: '3. Radiation (Electromagnetic Waves)',
+                section2Para3: 'Radiation is heat transfer through electromagnetic waves. The Sun heats the Earth through radiation - no physical contact needed! All objects emit thermal radiation, but hotter objects emit more.',
+                section3Title: 'Interactive Heat Transfer Calculator',
+                calcTitle: 'Calculate Conduction Heat Transfer',
+                calcDesc: 'Use this calculator to find out how much heat flows through a material.',
+                labelThermalCond: 'Thermal Conductivity (k) in W/m·K:',
+                labelArea: 'Cross-sectional Area (A) in m²:',
+                labelTempHot: 'Hot Side Temperature (T₁) in °C:',
+                labelTempCold: 'Cold Side Temperature (T₂) in °C:',
+                labelThickness: 'Thickness (d) in meters:',
+                calcButton: '🔥 Calculate Heat Transfer',
+                section4Title: 'How This Relates to Your Heat Transfer Apparatus',
+                quizTitle: 'Test Your Knowledge!',
+                quiz1Question: 'Question 1: Which type of heat transfer requires direct physical contact?',
+                experimentsTitle: 'Try These Experiments!'
+            },
+            fr: {
+                pageTitle: '🔥 Laboratoire 1: Introduction au Transfert Thermique',
+                pageSubtitle: 'Comprendre les Fondamentaux du Transfert d\'Énergie Thermique',
+                section1Title: 'Qu\'est-ce que le Transfert Thermique?',
+                section1Para1: 'Le transfert thermique est le mouvement de l\'énergie thermique d\'un endroit à un autre. Dans la nature et l\'ingénierie, la chaleur s\'écoule toujours d\'un objet plus chaud vers un objet plus froid jusqu\'à ce que l\'équilibre thermique soit atteint. Comprendre comment la chaleur se déplace est crucial pour concevoir tout, des processeurs d\'ordinateur aux réfrigérateurs en passant par les engins spatiaux.',
+                section1Para2: 'Dans ce laboratoire, vous apprendrez les trois principales méthodes de transfert thermique et comment elles s\'appliquent aux situations réelles, y compris votre appareil de transfert thermique!',
+                section2Title: 'Trois Types de Transfert Thermique',
+                section2Sub1: '1. Conduction (Contact Direct)',
+                section2Para1: 'La conduction est le transfert de chaleur par contact direct. Lorsque vous touchez une cuisinière chaude, la chaleur s\'écoule de la cuisinière vers votre main par conduction. Dans les solides, la chaleur est transférée par des molécules qui vibrent et transmettent de l\'énergie aux molécules voisines.',
+                section2Sub2: '2. Convection (Mouvement de Fluide)',
+                section2Para2: 'La convection est le transfert de chaleur par le mouvement de fluides (liquides ou gaz). Lorsque vous faites bouillir de l\'eau, l\'eau chaude monte et l\'eau froide descend, créant un schéma de circulation. C\'est aussi ainsi que fonctionne le radiateur de votre voiture!',
+                section2Sub3: '3. Rayonnement (Ondes Électromagnétiques)',
+                section2Para3: 'Le rayonnement est le transfert de chaleur par des ondes électromagnétiques. Le Soleil réchauffe la Terre par rayonnement - aucun contact physique nécessaire! Tous les objets émettent un rayonnement thermique, mais les objets plus chauds en émettent davantage.',
+                section3Title: 'Calculatrice Interactive de Transfert Thermique',
+                calcTitle: 'Calculer le Transfert Thermique par Conduction',
+                calcDesc: 'Utilisez cette calculatrice pour découvrir combien de chaleur circule à travers un matériau.',
+                labelThermalCond: 'Conductivité Thermique (k) en W/m·K:',
+                labelArea: 'Surface de Section (A) en m²:',
+                labelTempHot: 'Température Côté Chaud (T₁) en °C:',
+                labelTempCold: 'Température Côté Froid (T₂) en °C:',
+                labelThickness: 'Épaisseur (d) en mètres:',
+                calcButton: '🔥 Calculer le Transfert Thermique',
+                section4Title: 'Comment Cela Se Rapporte à Votre Appareil de Transfert Thermique',
+                quizTitle: 'Testez Vos Connaissances!',
+                quiz1Question: 'Question 1: Quel type de transfert thermique nécessite un contact physique direct?',
+                experimentsTitle: 'Essayez Ces Expériences!'
+            },
+            de: {
+                pageTitle: '🔥 Labor 1: Einführung in die Wärmeübertragung',
+                pageSubtitle: 'Verstehen der Grundlagen der Thermischen Energieübertragung',
+                section1Title: 'Was ist Wärmeübertragung?',
+                section1Para1: 'Wärmeübertragung ist die Bewegung thermischer Energie von einem Ort zum anderen. In der Natur und Technik fließt Wärme immer von einem heißeren Objekt zu einem kälteren, bis ein thermisches Gleichgewicht erreicht ist. Das Verständnis der Wärmebewegung ist entscheidend für die Entwicklung von allem, von Computerprozessoren über Kühlschränke bis hin zu Raumfahrzeugen.',
+                section1Para2: 'In diesem Labor lernen Sie die drei Hauptmethoden der Wärmeübertragung kennen und wie sie auf reale Situationen angewendet werden, einschließlich Ihres Wärmeübertragungsgeräts!',
+                section2Title: 'Drei Arten der Wärmeübertragung',
+                section2Sub1: '1. Leitung (Direkter Kontakt)',
+                section2Para1: 'Leitung ist Wärmeübertragung durch direkten Kontakt. Wenn Sie einen heißen Herd berühren, fließt Wärme vom Herd zu Ihrer Hand durch Leitung. In Festkörpern wird Wärme durch vibrierende Moleküle übertragen, die Energie an benachbarte Moleküle weitergeben.',
+                section2Sub2: '2. Konvektion (Flüssigkeitsbewegung)',
+                section2Para2: 'Konvektion ist Wärmeübertragung durch die Bewegung von Flüssigkeiten (Flüssigkeiten oder Gase). Wenn Sie Wasser kochen, steigt heißes Wasser auf und kaltes Wasser sinkt ab, wodurch ein Zirkulationsmuster entsteht. So funktioniert auch Ihr Autokühler!',
+                section2Sub3: '3. Strahlung (Elektromagnetische Wellen)',
+                section2Para3: 'Strahlung ist Wärmeübertragung durch elektromagnetische Wellen. Die Sonne erwärmt die Erde durch Strahlung - kein physischer Kontakt erforderlich! Alle Objekte emittieren Wärmestrahlung, aber heißere Objekte emittieren mehr.',
+                section3Title: 'Interaktiver Wärmeübertragungsrechner',
+                calcTitle: 'Leitungswärmeübertragung Berechnen',
+                calcDesc: 'Verwenden Sie diesen Rechner, um herauszufinden, wie viel Wärme durch ein Material fließt.',
+                labelThermalCond: 'Wärmeleitfähigkeit (k) in W/m·K:',
+                labelArea: 'Querschnittsfläche (A) in m²:',
+                labelTempHot: 'Temperatur Heiße Seite (T₁) in °C:',
+                labelTempCold: 'Temperatur Kalte Seite (T₂) in °C:',
+                labelThickness: 'Dicke (d) in Metern:',
+                calcButton: '🔥 Wärmeübertragung Berechnen',
+                section4Title: 'Wie Dies Sich auf Ihr Wärmeübertragungsgerät Bezieht',
+                quizTitle: 'Testen Sie Ihr Wissen!',
+                quiz1Question: 'Frage 1: Welche Art der Wärmeübertragung erfordert direkten physischen Kontakt?',
+                experimentsTitle: 'Probieren Sie Diese Experimente!'
+            },
+            es: {
+                pageTitle: '🔥 Laboratorio 1: Introducción a la Transferencia de Calor',
+                pageSubtitle: 'Comprender los Fundamentos de la Transferencia de Energía Térmica',
+                section1Title: '¿Qué es la Transferencia de Calor?',
+                section1Para1: 'La transferencia de calor es el movimiento de energía térmica de un lugar a otro. En la naturaleza y la ingeniería, el calor siempre fluye desde un objeto más caliente a uno más frío hasta que se alcanza el equilibrio térmico. Comprender cómo se mueve el calor es crucial para diseñar todo, desde procesadores de computadora hasta refrigeradores y naves espaciales.',
+                section1Para2: '¡En este laboratorio, aprenderá sobre los tres métodos principales de transferencia de calor y cómo se aplican a situaciones del mundo real, incluido su aparato de transferencia de calor!',
+                section2Title: 'Tres Tipos de Transferencia de Calor',
+                section2Sub1: '1. Conducción (Contacto Directo)',
+                section2Para1: 'La conducción es la transferencia de calor a través del contacto directo. Cuando toca una estufa caliente, el calor fluye desde la estufa a su mano a través de la conducción. En los sólidos, el calor se transfiere por moléculas que vibran y pasan energía a las moléculas vecinas.',
+                section2Sub2: '2. Convección (Movimiento de Fluidos)',
+                section2Para2: 'La convección es la transferencia de calor por el movimiento de fluidos (líquidos o gases). Cuando hierve agua, el agua caliente sube y el agua fría baja, creando un patrón de circulación. ¡Así también funciona el radiador de su automóvil!',
+                section2Sub3: '3. Radiación (Ondas Electromagnéticas)',
+                section2Para3: 'La radiación es la transferencia de calor a través de ondas electromagnéticas. El Sol calienta la Tierra a través de la radiación, ¡no se necesita contacto físico! Todos los objetos emiten radiación térmica, pero los objetos más calientes emiten más.',
+                section3Title: 'Calculadora Interactiva de Transferencia de Calor',
+                calcTitle: 'Calcular Transferencia de Calor por Conducción',
+                calcDesc: 'Use esta calculadora para averiguar cuánto calor fluye a través de un material.',
+                labelThermalCond: 'Conductividad Térmica (k) en W/m·K:',
+                labelArea: 'Área Transversal (A) en m²:',
+                labelTempHot: 'Temperatura Lado Caliente (T₁) en °C:',
+                labelTempCold: 'Temperatura Lado Frío (T₂) en °C:',
+                labelThickness: 'Espesor (d) en metros:',
+                calcButton: '🔥 Calcular Transferencia de Calor',
+                section4Title: 'Cómo Esto Se Relaciona con Su Aparato de Transferencia de Calor',
+                quizTitle: '¡Pruebe Sus Conocimientos!',
+                quiz1Question: 'Pregunta 1: ¿Qué tipo de transferencia de calor requiere contacto físico directo?',
+                experimentsTitle: '¡Pruebe Estos Experimentos!'
+            }
+        };
+
+        // Function to change the language of the page
+        function changeLanguage(languageCode) {
+            // Get the translations for the selected language
+            var languageTranslations = translations[languageCode];
+            
+            // Find all elements with data-translate attribute
+            var elementsToTranslate = document.querySelectorAll('[data-translate]');
+            
+            // Loop through each element and change its text
+            for (var i = 0; i < elementsToTranslate.length; i++) {
+                var element = elementsToTranslate[i];
+                var translationKey = element.getAttribute('data-translate');
+                var translatedText = languageTranslations[translationKey];
+                
+                if (translatedText) {
+                    element.textContent = translatedText;
+                }
+            }
+            
+            // Save the selected language to localStorage
+            localStorage.setItem('selectedLanguage', languageCode);
+        }
+
+        // Function to load the saved language when page loads
+        function loadSavedLanguage() {
+            // Get the saved language from localStorage
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            
+            // If there is a saved language, use it
+            if (savedLanguage) {
+                document.getElementById('languageSelector').value = savedLanguage;
+                changeLanguage(savedLanguage);
+            }
+        }
+
+        // Calculate heat transfer function
+        function calculateHeatTransfer() {
+            // Get input values
+            var k = parseFloat(document.getElementById('thermalConductivity').value);
+            var A = parseFloat(document.getElementById('area').value);
+            var T1 = parseFloat(document.getElementById('tempHot').value);
+            var T2 = parseFloat(document.getElementById('tempCold').value);
+            var d = parseFloat(document.getElementById('thickness').value);
+
+            // Validate inputs
+            if (isNaN(k) || isNaN(A) || isNaN(T1) || isNaN(T2) || isNaN(d)) {
+                alert('Please fill in all fields with valid numbers!');
+                return;
+            }
+
+            if (d <= 0 || A <= 0) {
+                alert('Thickness and Area must be greater than zero!');
+                return;
+            }
+
+            // Calculate heat transfer rate using Q = k * A * (T1 - T2) / d
+            var deltaT = T1 - T2;
+            var Q = k * A * deltaT / d;
+
+            // Display result
+            var resultBox = document.getElementById('resultBox');
+            var resultText = document.getElementById('resultText');
+            
+            resultText.innerHTML = `
+                <strong>Heat Transfer Rate (Q):</strong><br>
+                ${Q.toFixed(2)} Watts<br><br>
+                <small>This means ${Q.toFixed(2)} Joules of heat energy flows through the material every second!</small>
+            `;
+            
+            resultBox.classList.add('show');
+        }
+
+        // Check quiz answer function
+        function checkAnswer(questionName, correctAnswer, feedbackId) {
+            var selected = document.querySelector('input[name="' + questionName + '"]:checked');
+            var feedback = document.getElementById(feedbackId);
+            
+            if (!selected) {
+                alert('Please select an answer first!');
+                return;
+            }
+
+            if (selected.value === correctAnswer) {
+                feedback.className = 'feedback correct';
+                feedback.innerHTML = '✅ Correct! Great job!';
+            } else {
+                feedback.className = 'feedback incorrect';
+                feedback.innerHTML = '❌ Incorrect. Try again and think about the definition!';
+            }
+        }
+
+        // Function to handle window resize
+        function handleResize() {
+            // Get the window width
+            var windowWidth = window.innerWidth;
+            
+            // Get the language selector
+            var languageSelector = document.querySelector('.language-selector');
+            
+            // If window is very small, make sure language selector doesn't overflow
+            if (windowWidth < 600) {
+                // Language selector will be handled by CSS media query
+            }
+            
+            // Ensure container doesn't overflow
+            var container = document.querySelector('.container');
+            if (container) {
+                container.style.maxWidth = Math.min(1200, windowWidth - 40) + 'px';
+            }
+        }
+
+        // When the page loads, set up everything
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved language
+            loadSavedLanguage();
+            
+            // Add event listener to language selector
+            document.getElementById('languageSelector').addEventListener('change', function() {
+                var selectedLanguage = this.value;
+                changeLanguage(selectedLanguage);
+            });
+            
+            // Allow Enter key to calculate
+            var inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(function(input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        calculateHeatTransfer();
+                    }
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                handleResize();
+            });
+            
+            // Call once on load to set initial size
+            handleResize();
+        });
+    </script>
+    
+    <!-- Load Responsive Scaling Script -->
+    <script src="responsive-scaling.js"></script>
+</body>
+</html>

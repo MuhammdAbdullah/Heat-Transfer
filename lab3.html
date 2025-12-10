@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3 - Thermal Resistance</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.05) 0%, rgba(0, 242, 254, 0.05) 100%);
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .section h2 {
+            color: #4facfe;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h3 {
+            color: #00f2fe;
+            font-size: 1.4em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .section p {
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .interactive-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #4facfe;
+        }
+
+        .interactive-box h4 {
+            color: #4facfe;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.2em;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border-left: 4px solid #4facfe;
+            font-size: 1.1em;
+        }
+
+        .key-points {
+            background: #cfe2ff;
+            border-left: 5px solid #0d6efd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .key-points h4 {
+            color: #084298;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .key-points ul {
+            list-style-position: inside;
+            color: #084298;
+        }
+
+        .key-points li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .analogy-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .analogy-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(8, 66, 152, 0.1) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 2px solid #0d6efd;
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-question h4 {
+            color: #084298;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-options label:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .check-answer-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .circuit-box {
+            background: #f8f9fa;
+            border: 2px solid #4facfe;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .layer-item {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧱 Lab 3: Thermal Resistance</h1>
+            <p>Understanding Resistance to Heat Flow</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction -->
+            <div class="section">
+                <h2><span class="icon">📚</span> What is Thermal Resistance?</h2>
+                <p>
+                    <strong>Thermal resistance (R)</strong> is a material's ability to resist heat flow. 
+                    It's like electrical resistance, but for heat instead of electricity! Just as a resistor 
+                    slows down electric current, thermal resistance slows down heat flow.
+                </p>
+                
+                <div class="analogy-box">
+                    <h4>💡 Think of It Like Water Flow:</h4>
+                    <p style="color: #856404; line-height: 1.8;">
+                        Imagine water flowing through pipes. A narrow pipe (high resistance) slows the flow, 
+                        while a wide pipe (low resistance) allows fast flow. Similarly, insulation has high 
+                        thermal resistance (blocks heat), while metals have low thermal resistance (conduct heat easily).
+                    </p>
+                </div>
+
+                <div class="formula">
+                    Thermal Resistance: R = d / (k × A)
+                    <br><br>
+                    Or using temperature and heat flow:<br>
+                    R = ΔT / Q
+                    <br><br>
+                    Where:<br>
+                    • R = Thermal resistance (K/W or °C/W)<br>
+                    • d = Thickness (m)<br>
+                    • k = Thermal conductivity (W/m·K)<br>
+                    • A = Area (m²)<br>
+                    • ΔT = Temperature difference (K or °C)<br>
+                    • Q = Heat flow rate (W)
+                </div>
+            </div>
+
+            <!-- Key Concepts -->
+            <div class="section">
+                <h2><span class="icon">🎯</span> Key Concepts</h2>
+                
+                <h3>Relationship to Conductivity</h3>
+                <p>
+                    Thermal resistance is the <strong>inverse</strong> of thermal conductance. Materials with 
+                    high thermal conductivity (like copper) have LOW thermal resistance. Materials with low 
+                    thermal conductivity (like foam insulation) have HIGH thermal resistance.
+                </p>
+
+                <div class="key-points">
+                    <h4>Important Facts:</h4>
+                    <ul>
+                        <li><strong>Higher R-value:</strong> Better insulation (blocks more heat)</li>
+                        <li><strong>Lower R-value:</strong> Worse insulation (allows more heat)</li>
+                        <li><strong>Thicker materials:</strong> Higher resistance (more to get through)</li>
+                        <li><strong>Larger area:</strong> Lower resistance (more paths for heat)</li>
+                    </ul>
+                </div>
+
+                <h3>R-Values in Building Construction</h3>
+                <p>
+                    In construction, insulation is rated by R-value. For example:
+                </p>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>R-13:</strong> Standard wall insulation</li>
+                    <li><strong>R-30:</strong> Typical attic insulation</li>
+                    <li><strong>R-49:</strong> High-efficiency attic insulation</li>
+                    <li>Higher numbers = Better insulation!</li>
+                </ul>
+            </div>
+
+            <!-- Series and Parallel -->
+            <div class="section">
+                <h2><span class="icon">⚡</span> Thermal Circuits: Series and Parallel</h2>
+                
+                <h3>Series Resistance (Layers)</h3>
+                <p>
+                    When heat flows through multiple layers (like a wall with drywall, insulation, and siding), 
+                    the resistances ADD UP, just like series resistors in an electrical circuit.
+                </p>
+                
+                <div class="formula">
+                    R_total = R₁ + R₂ + R₃ + ... + Rₙ
+                </div>
+
+                <div class="circuit-box">
+                    <h4>Example: Wall with 3 Layers</h4>
+                    <p>🧱 Brick → 🧴 Insulation → 📋 Drywall</p>
+                    <p><strong>R_total = R_brick + R_insulation + R_drywall</strong></p>
+                </div>
+
+                <h3>Parallel Resistance (Side-by-Side Paths)</h3>
+                <p>
+                    When heat can flow through multiple parallel paths, thermal resistances combine like 
+                    parallel electrical resistors:
+                </p>
+                
+                <div class="formula">
+                    1/R_total = 1/R₁ + 1/R₂ + 1/R₃ + ... + 1/Rₙ
+                </div>
+            </div>
+
+            <!-- Interactive Calculator -->
+            <div class="section">
+                <h2><span class="icon">🧮</span> Thermal Resistance Calculator</h2>
+                
+                <div class="interactive-box">
+                    <h4>Calculate Thermal Resistance</h4>
+                    
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label for="material">Material:</label>
+                            <select id="material" onchange="updateKValue()">
+                                <option value="0.026">Air (k = 0.026 W/m·K)</option>
+                                <option value="0.04">Fiberglass Insulation (k = 0.04)</option>
+                                <option value="0.6">Wood (k = 0.6)</option>
+                                <option value="0.8">Glass (k = 0.8)</option>
+                                <option value="1.4">Concrete (k = 1.4)</option>
+                                <option value="50">Steel (k = 50)</option>
+                                <option value="205" selected>Aluminum (k = 205)</option>
+                                <option value="385">Copper (k = 385)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="thickness">Thickness (d) in meters:</label>
+                            <input type="number" id="thickness" value="0.01" step="0.001" min="0.001">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="area">Area (A) in m²:</label>
+                            <input type="number" id="area" value="1.0" step="0.01" min="0.01">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="kValue">Thermal Conductivity (k):</label>
+                            <input type="number" id="kValue" value="205" step="0.01" readonly style="background: #f0f0f0;">
+                        </div>
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateResistance()">🔧 Calculate Resistance</button>
+
+                    <div class="result-box" id="resistanceResult"></div>
+                </div>
+            </div>
+
+            <!-- Multi-Layer Calculator -->
+            <div class="section">
+                <h2><span class="icon">🏗️</span> Multi-Layer Wall Calculator</h2>
+                
+                <div class="interactive-box">
+                    <h4>Calculate Total Resistance of Layered Wall</h4>
+                    <p>Enter properties for each layer (heat flows through all layers in series):</p>
+                    
+                    <div class="layer-item">
+                        <h4 style="color: #4facfe;">Layer 1 (Outside)</h4>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Thickness (cm):</label>
+                                <input type="number" id="d1" value="10" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label>Thermal Conductivity (W/m·K):</label>
+                                <input type="number" id="k1" value="0.8" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layer-item">
+                        <h4 style="color: #4facfe;">Layer 2 (Middle)</h4>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Thickness (cm):</label>
+                                <input type="number" id="d2" value="15" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label>Thermal Conductivity (W/m·K):</label>
+                                <input type="number" id="k2" value="0.04" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layer-item">
+                        <h4 style="color: #4facfe;">Layer 3 (Inside)</h4>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Thickness (cm):</label>
+                                <input type="number" id="d3" value="1.5" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label>Thermal Conductivity (W/m·K):</label>
+                                <input type="number" id="k3" value="0.6" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Wall Area (m²):</label>
+                        <input type="number" id="wallArea" value="10" step="0.1">
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateMultiLayer()">🏗️ Calculate Total R-value</button>
+                    <button class="calculate-btn" onclick="calculateHeatLoss()">🔥 Calculate Heat Loss</button>
+
+                    <div class="result-box" id="multiLayerResult"></div>
+                </div>
+            </div>
+
+            <!-- Connection to Device -->
+            <div class="section">
+                <h2><span class="icon">🔬</span> Thermal Resistance in Your Apparatus</h2>
+                
+                <div class="key-points">
+                    <h4>Understanding Resistance in Your Experiment:</h4>
+                    <ul>
+                        <li><strong>Metal bar:</strong> Low thermal resistance → Heat conducts easily along the bar</li>
+                        <li><strong>Air around bar:</strong> High thermal resistance → Insulates the bar</li>
+                        <li><strong>With fan ON:</strong> Lower convective resistance → More heat removed</li>
+                        <li><strong>With fan OFF:</strong> Higher convective resistance → Less heat removed</li>
+                        <li><strong>Temperature drop:</strong> Larger drop = Higher resistance in that section</li>
+                    </ul>
+                </div>
+
+                <p>
+                    By measuring temperatures at different points (T1-T8), you can calculate the thermal 
+                    resistance of each section of the bar. Sections with bigger temperature drops have 
+                    higher resistance!
+                </p>
+            </div>
+
+            <!-- Quiz -->
+            <div class="quiz-section">
+                <h2><span class="icon">✅</span> Test Your Knowledge!</h2>
+                
+                <div class="quiz-question">
+                    <h4>Question 1: Which material has the HIGHEST thermal resistance?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q1" value="a"> A) Copper</label>
+                        <label><input type="radio" name="q1" value="b"> B) Aluminum</label>
+                        <label><input type="radio" name="q1" value="c"> C) Fiberglass insulation</label>
+                        <label><input type="radio" name="q1" value="d"> D) Steel</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'c', 'fb1')">Check Answer</button>
+                    <div class="feedback" id="fb1"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 2: How do resistances combine in a multi-layer wall?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q2" value="a"> A) They multiply together</label>
+                        <label><input type="radio" name="q2" value="b"> B) They add together (series)</label>
+                        <label><input type="radio" name="q2" value="c"> C) They average together</label>
+                        <label><input type="radio" name="q2" value="d"> D) Only the highest matters</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'b', 'fb2')">Check Answer</button>
+                    <div class="feedback" id="fb2"></div>
+                </div>
+
+                <div class="quiz-question">
+                    <h4>Question 3: What happens to thermal resistance if you double the thickness?</h4>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q3" value="a"> A) It stays the same</label>
+                        <label><input type="radio" name="q3" value="b"> B) It doubles</label>
+                        <label><input type="radio" name="q3" value="c"> C) It halves</label>
+                        <label><input type="radio" name="q3" value="d"> D) It quadruples</label>
+                    </div>
+                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'b', 'fb3')">Check Answer</button>
+                    <div class="feedback" id="fb3"></div>
+                </div>
+            </div>
+
+            <!-- Experiments -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> Suggested Experiments</h2>
+                
+                <div class="key-points">
+                    <h4>Try These:</h4>
+                    <ul>
+                        <li><strong>Exp 1:</strong> Measure Q (heat flow) and ΔT between two sensors. Calculate R = ΔT/Q.</li>
+                        <li><strong>Exp 2:</strong> Compare thermal resistance with fan OFF vs fan ON.</li>
+                        <li><strong>Exp 3:</strong> Calculate R for each bar segment. Which has highest resistance?</li>
+                        <li><strong>Exp 4:</strong> Add insulation around part of the bar. How does R change?</li>
+                        <li><strong>Exp 5:</strong> Verify that R₁ + R₂ = R_total for two bar segments.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateKValue() {
+            var k = document.getElementById('material').value;
+            document.getElementById('kValue').value = k;
+        }
+
+        function calculateResistance() {
+            var k = parseFloat(document.getElementById('kValue').value);
+            var d = parseFloat(document.getElementById('thickness').value);
+            var A = parseFloat(document.getElementById('area').value);
+
+            if (isNaN(k) || isNaN(d) || isNaN(A) || k <= 0 || d <= 0 || A <= 0) {
+                alert('Please enter valid positive numbers!');
+                return;
+            }
+
+            var R = d / (k * A);
+
+            document.getElementById('resistanceResult').innerHTML = `
+                <strong>Thermal Resistance (R):</strong> ${R.toFixed(4)} K/W<br>
+                <strong>R-value (imperial):</strong> ${(R * 5.678).toFixed(2)} °F·ft²·hr/BTU<br><br>
+                <small>${R > 0.01 ? 'Good insulator!' : 'Poor insulator (good conductor)'}</small>
+            `;
+            document.getElementById('resistanceResult').classList.add('show');
+        }
+
+        function calculateMultiLayer() {
+            var d1 = parseFloat(document.getElementById('d1').value) / 100; // cm to m
+            var k1 = parseFloat(document.getElementById('k1').value);
+            var d2 = parseFloat(document.getElementById('d2').value) / 100;
+            var k2 = parseFloat(document.getElementById('k2').value);
+            var d3 = parseFloat(document.getElementById('d3').value) / 100;
+            var k3 = parseFloat(document.getElementById('k3').value);
+            var A = parseFloat(document.getElementById('wallArea').value);
+
+            var R1 = d1 / (k1 * A);
+            var R2 = d2 / (k2 * A);
+            var R3 = d3 / (k3 * A);
+            var Rtotal = R1 + R2 + R3;
+
+            document.getElementById('multiLayerResult').innerHTML = `
+                <strong>Layer Resistances:</strong><br>
+                R₁ = ${R1.toFixed(4)} K/W<br>
+                R₂ = ${R2.toFixed(4)} K/W<br>
+                R₃ = ${R3.toFixed(4)} K/W<br><br>
+                <strong>Total Resistance:</strong> ${Rtotal.toFixed(4)} K/W<br>
+                <strong>Total R-value (imperial):</strong> ${(Rtotal * 5.678).toFixed(2)} °F·ft²·hr/BTU
+            `;
+            document.getElementById('multiLayerResult').classList.add('show');
+        }
+
+        function calculateHeatLoss() {
+            var d1 = parseFloat(document.getElementById('d1').value) / 100;
+            var k1 = parseFloat(document.getElementById('k1').value);
+            var d2 = parseFloat(document.getElementById('d2').value) / 100;
+            var k2 = parseFloat(document.getElementById('k2').value);
+            var d3 = parseFloat(document.getElementById('d3').value) / 100;
+            var k3 = parseFloat(document.getElementById('k3').value);
+            var A = parseFloat(document.getElementById('wallArea').value);
+
+            var R1 = d1 / (k1 * A);
+            var R2 = d2 / (k2 * A);
+            var R3 = d3 / (k3 * A);
+            var Rtotal = R1 + R2 + R3;
+
+            var Tin = parseFloat(prompt('Enter inside temperature (°C):', '20'));
+            var Tout = parseFloat(prompt('Enter outside temperature (°C):', '0'));
+            
+            if (isNaN(Tin) || isNaN(Tout)) return;
+
+            var deltaT = Tin - Tout;
+            var Q = deltaT / Rtotal;
+
+            document.getElementById('multiLayerResult').innerHTML = `
+                <strong>Heat Loss Calculation:</strong><br>
+                ΔT = ${deltaT.toFixed(1)} °C<br>
+                R_total = ${Rtotal.toFixed(4)} K/W<br><br>
+                <strong>Heat Loss (Q):</strong> ${Q.toFixed(2)} Watts<br>
+                <strong>Per Day:</strong> ${(Q * 24 / 1000).toFixed(2)} kWh<br>
+                <strong>Cost/Day @ $0.12/kWh:</strong> $${(Q * 24 / 1000 * 0.12).toFixed(2)}
+            `;
+            document.getElementById('multiLayerResult').classList.add('show');
+        }
+
+        function checkAnswer(q, correct, fbId) {
+            var selected = document.querySelector('input[name="' + q + '"]:checked');
+            var fb = document.getElementById(fbId);
+            if (!selected) {
+                alert('Please select an answer!');
+                return;
+            }
+            if (selected.value === correct) {
+                fb.className = 'feedback correct';
+                fb.innerHTML = '✅ Excellent!';
+            } else {
+                fb.className = 'feedback incorrect';
+                fb.innerHTML = '❌ Not quite - review the concepts!';
+            }
+        }
+    </script>
+    
+    <!-- Load Responsive Scaling Script -->
+    <script src="responsive-scaling.js"></script>
+</body>
+</html>

@@ -91,6 +91,14 @@ function initChart() {
             if (chartJsRef) {
                 chartJsRef.resize();
             }
+            // Also resize distance chart if it exists
+            if (distanceChartJsRef) {
+                distanceChartJsRef.resize();
+            }
+            // Resize live chart if it exists
+            if (window.liveChartRef) {
+                window.liveChartRef.resize();
+            }
         });
 		updateChartTheme();
     }
@@ -458,8 +466,7 @@ function initDistanceChart() {
 		},
 		options: {
 			responsive: true,
-			maintainAspectRatio: true,
-			aspectRatio: 2,
+			maintainAspectRatio: false,
 			interaction: {
 				mode: 'nearest',
 				intersect: false
@@ -541,12 +548,8 @@ function initDistanceChart() {
 		}
 	});
 	
-	// Handle window resize for distance chart
-	window.addEventListener('resize', function() {
-		if (distanceChartJsRef) {
-			distanceChartJsRef.resize();
-		}
-	});
+	// Handle window resize for distance chart (this is a duplicate, but kept for safety)
+	// The main resize handler in initChart() will handle this
 }
 
 // Update distance chart in real-time (called automatically every second)
@@ -2192,6 +2195,150 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Add event listener for the "Print Graph" button (Time Chart)
+    const printChartBtn = document.getElementById('printChartBtn');
+    if (printChartBtn) {
+        printChartBtn.addEventListener('click', function() {
+            printChart();
+        });
+    }
+
+    // Add event listener for the "Print Graph" button (Distance Chart)
+    const printDistanceChartBtn = document.getElementById('printDistanceChartBtn');
+    if (printDistanceChartBtn) {
+        printDistanceChartBtn.addEventListener('click', function() {
+            printDistanceChart();
+        });
+    }
+
+    // Function to print the Time chart
+    function printChart() {
+        // Get the chart canvas
+        var canvas = document.getElementById('testChart');
+        if (!canvas) {
+            alert('Chart not found!');
+            return;
+        }
+
+        // Convert canvas to image
+        var imageData = canvas.toDataURL('image/png');
+
+        // Create a new window for printing
+        var printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print Chart</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
+        printWindow.document.write('img { max-width: 100%; height: auto; }');
+        printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
+        printWindow.document.write('<img src="' + imageData + '" />');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+
+        // Wait for the image to load then print
+        printWindow.onload = function() {
+            printWindow.focus();
+            printWindow.print();
+        };
+    }
+
+    // Function to print the Distance chart
+    function printDistanceChart() {
+        // Get the chart canvas
+        var canvas = document.getElementById('tempDistanceChart');
+        if (!canvas) {
+            alert('Temperature vs Distance chart not found!');
+            return;
+        }
+
+        // Convert canvas to image
+        var imageData = canvas.toDataURL('image/png');
+
+        // Create a new window for printing
+        var printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print Chart</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
+        printWindow.document.write('img { max-width: 100%; height: auto; }');
+        printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
+        printWindow.document.write('<img src="' + imageData + '" />');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+
+        // Wait for the image to load then print
+        printWindow.onload = function() {
+            printWindow.focus();
+            printWindow.print();
+        };
+    }
+
+    // Function to print both charts together on separate pages
+    function printBothCharts() {
+        // Get both chart canvases
+        var timeCanvas = document.getElementById('testChart');
+        var distanceCanvas = document.getElementById('tempDistanceChart');
+
+        if (!timeCanvas || !distanceCanvas) {
+            alert('One or both charts not found!');
+            return;
+        }
+
+        // Convert both canvases to images
+        var timeImageData = timeCanvas.toDataURL('image/png');
+        var distanceImageData = distanceCanvas.toDataURL('image/png');
+
+        // Create a new window for printing both charts
+        var printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print Both Charts</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write('body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }');
+        printWindow.document.write('.chart-page { page-break-after: always; text-align: center; margin-bottom: 50px; }');
+        printWindow.document.write('.chart-page:last-child { page-break-after: auto; }');
+        printWindow.document.write('img { max-width: 100%; height: auto; margin-top: 20px; }');
+        printWindow.document.write('h2 { color: #333; }');
+        printWindow.document.write('@media print { .chart-page { page-break-after: always; } }');
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        
+        // First chart - Temperature vs Time
+        printWindow.document.write('<div class="chart-page">');
+        printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
+        printWindow.document.write('<img src="' + timeImageData + '" />');
+        printWindow.document.write('</div>');
+        
+        // Second chart - Temperature vs Distance
+        printWindow.document.write('<div class="chart-page">');
+        printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
+        printWindow.document.write('<img src="' + distanceImageData + '" />');
+        printWindow.document.write('</div>');
+        
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+
+        // Wait for images to load then print
+        printWindow.onload = function() {
+            printWindow.focus();
+            printWindow.print();
+        };
+    }
+
+    // Add keyboard shortcut Ctrl+P to print both charts
+    document.addEventListener('keydown', function(event) {
+        // Check if Ctrl+P is pressed (or Cmd+P on Mac)
+        if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+            // Prevent the default browser print behavior
+            event.preventDefault();
+            
+            // Print both charts
+            printBothCharts();
+        }
+    });
+
 	// Apply saved theme/layout
 	try {
 		var savedTheme = localStorage.getItem('appTheme') || 'dark';
@@ -2223,6 +2370,62 @@ document.addEventListener('DOMContentLoaded', function() {
             addToLog('Simulation window opened (STEP preview only).');
         });
     }
+
+    // Curriculum button - opens Curriculum menu
+    var curriculumBtn = document.getElementById('curriculumBtn');
+    if (curriculumBtn) {
+        curriculumBtn.addEventListener('click', function() {
+            // Open Curriculum menu window
+            var curriculumWindow = window.open('curriculum.html', 'curriculumWindow', 'width=1100,height=900,resizable=yes,scrollbars=yes');
+            if (curriculumWindow) {
+                curriculumWindow.focus();
+            }
+            
+            addToLog('Heat Transfer Curriculum opened.');
+        });
+    }
+
+    // Comprehensive window resize handler to fix layout issues
+    function handleWindowResize() {
+        // Resize all charts
+        if (chartJsRef) {
+            chartJsRef.resize();
+        }
+        if (distanceChartJsRef) {
+            distanceChartJsRef.resize();
+        }
+        if (window.liveChartRef) {
+            window.liveChartRef.resize();
+        }
+        
+        // Ensure container doesn't overflow
+        var container = document.querySelector('.container');
+        if (container) {
+            container.style.maxWidth = '100%';
+        }
+        
+        // Ensure header doesn't overflow
+        var headerContainer = document.querySelector('.header-container');
+        if (headerContainer) {
+            headerContainer.style.overflowX = 'hidden';
+        }
+        
+        // Ensure controls layout doesn't overflow
+        var controlsLayout = document.querySelector('.controls-layout');
+        if (controlsLayout) {
+            controlsLayout.style.overflowX = 'hidden';
+        }
+    }
+    
+    // Add resize event listener with debouncing for better performance
+    var resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleWindowResize, 100);
+    });
+    
+    // Call once on load to ensure initial layout is correct
+    handleWindowResize();
 });
 // Fan speed UI events
 if (fanSpeedInput) {
@@ -2238,34 +2441,7 @@ if (fanSpeedInput) {
     }
     
     function updateFanIcon(value) {
-        var percentage = parseInt(value, 10);
-        var fanIcon = document.getElementById('fanThumbIcon');
-        var sliderWrapper = document.querySelector('.slider-wrapper');
-        
-        if (fanIcon && sliderWrapper) {
-            // Calculate position of the fan icon based on slider value
-            var sliderWidth = sliderWrapper.offsetWidth;
-            var thumbWidth = 24; // Same as thumb size
-            var thumbRadius = thumbWidth / 2; // Half the thumb width for centering
-            
-            // Calculate the center position of the thumb
-            var maxPosition = sliderWidth - thumbWidth;
-            var thumbCenterPosition = (percentage / 100) * maxPosition + thumbRadius;
-            
-            // Position the fan icon at the center of the thumb
-            fanIcon.style.left = thumbCenterPosition + 'px';
-            
-            // Rotate the fan icon based on speed (faster speed = faster rotation)
-            var rotationSpeed = (percentage / 100) * 360; // 0 to 360 degrees
-            fanIcon.style.transform = 'translate(-50%, -50%) rotate(' + rotationSpeed + 'deg)';
-            
-            // Add a subtle animation for continuous rotation when speed > 0
-            if (percentage > 0) {
-                fanIcon.style.animation = 'fanSpin ' + (2 - (percentage / 100)) + 's linear infinite';
-            } else {
-                fanIcon.style.animation = 'none';
-            }
-        }
+        // Fan emoji removed - no animation needed
     }
     
     function updateFanTextIcon(value) {
@@ -2419,12 +2595,12 @@ function updateHeaterButtons() {
     }
     if (heaterLeftBtn) {
         heaterLeftBtn.classList.remove('active');
-        heaterLeftBtn.textContent = '🔥 Radial Heater ' + heaterLeftTemp.toFixed(1) + '°C';
+        heaterLeftBtn.textContent = 'Radial Heater ' + heaterLeftTemp.toFixed(1) + '°C';
         addToLog('DEBUG: Removed active class from heaterLeftBtn, set text: ' + heaterLeftBtn.textContent);
     }
     if (heaterRightBtn) {
         heaterRightBtn.classList.remove('active');
-        heaterRightBtn.textContent = '🔥 Linear Heater ' + heaterRightTemp.toFixed(1) + '°C';
+        heaterRightBtn.textContent = 'Linear Heater ' + heaterRightTemp.toFixed(1) + '°C';
         addToLog('DEBUG: Removed active class from heaterRightBtn, set text: ' + heaterRightBtn.textContent);
     }
     
@@ -2492,17 +2668,9 @@ if (heaterRightBtn) {
 
 if (coolerBtn) {
     coolerBtn.addEventListener('click', function() {
-        // Toggle cooler on/off
-        var isActive = coolerBtn.classList.contains('active');
-        if (isActive) {
-            // Turn off cooler
-            coolerBtn.classList.remove('active');
-            setCoolerMode(false);
-        } else {
-            // Turn on cooler
-            coolerBtn.classList.add('active');
-            setCoolerMode(true);
-        }
+        // Always turn cooler ON (cooling mode)
+        coolerBtn.classList.add('active');
+        setCoolerMode(true);
     });
 }
 
