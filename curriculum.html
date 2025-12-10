@@ -15,165 +15,219 @@
     <link rel="manifest" href="assets/site.webmanifest">
     
     <style>
+        /* Base font size will be controlled by responsive-scaling.js */
+        html {
+            font-size: 16px; /* Base size - will be scaled automatically */
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* Minimal theme variables to match overall app */
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --panel: #333333;
+            --border: #444444;
+            --accent: #2ed573;
+            --chart-bg: #1a1a1a;
+            --chart-border: #444444;
+            --chart-grid: #444444;
+            --chart-text: #000000;
+        }
+        body.theme-dark {
+            --bg: #000000;
+            --text: #ffffff;
+            --panel: #333333;
+            --border: #444444;
+            --accent: #2ed573;
+            --chart-bg: #1a1a1a;
+            --chart-border: #444444;
+            --chart-grid: #444444;
+            --chart-text: #eeeeee;
+        }
+        body.theme-light {
+            --bg: #ffffff;
+            --text: #ffffff;
+            --panel: #6c6b6d;
+            --border: #444444;
+            --accent: #2ed573;
+            --chart-bg: #6c6b6d;
+            --chart-border: #444444;
+            --chart-grid: #444444;
+            --chart-text: #eeeeee;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: var(--bg, #000000);
+            padding: 1.25rem; /* Changed from 20px to rem */
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1rem; /* Use rem units instead of fixed pixels */
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 62.5rem; /* Changed from 1000px to rem */
             width: 100%;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: var(--panel, #333);
+            border-radius: 1.25rem; /* Changed from 20px to rem */
+            box-shadow: 0 1.25rem 3.75rem rgba(0, 0, 0, 0.5); /* Changed from 0 20px 60px to rem */
+            border: 0.0625rem solid var(--border, #444); /* Changed from 1px to rem */
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
+            background: var(--panel, #333);
+            color: var(--text, #ffffff);
+            padding: 2.5rem; /* Changed from 40px to rem */
             text-align: center;
             position: relative;
+            border-bottom: 0.125rem solid var(--border, #444); /* Changed from 2px to rem */
         }
 
         .language-selector {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 1.25rem; /* Changed from 20px to rem */
+            right: 1.25rem; /* Changed from 20px to rem */
             z-index: 100;
         }
 
         .language-selector select {
-            padding: 10px 15px;
+            padding: 0.625rem 0.9375rem; /* Changed from 10px 15px to rem */
             font-size: 1em;
-            border-radius: 8px;
-            border: 2px solid white;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            border-radius: 0.5rem; /* Changed from 8px to rem */
+            border: 0.125rem solid var(--accent, #2ed573); /* Changed from 2px to rem */
+            background: var(--chart-bg, #1a1a1a);
+            color: var(--text, #ffffff);
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
         }
 
         .language-selector select:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: var(--panel, #333);
+            border-color: var(--accent, #2ed573);
         }
 
         .language-selector select option {
-            background: #667eea;
-            color: white;
+            background: var(--panel, #333);
+            color: var(--text, #ffffff);
         }
 
         .header h1 {
             font-size: 3em;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 0.9375rem; /* Changed from 15px to rem */
+            text-shadow: 0.125rem 0.125rem 0.25rem rgba(0, 0, 0, 0.5); /* Changed from 2px 2px 4px to rem */
+            color: var(--text, #ffffff);
         }
 
         .header p {
             font-size: 1.3em;
             opacity: 0.9;
+            color: var(--text, #ffffff);
         }
 
         .content {
-            padding: 40px;
+            padding: 2.5rem; /* Changed from 40px to rem */
+            background: var(--bg, #000);
         }
 
         .intro {
             text-align: center;
-            margin-bottom: 40px;
-            color: #555;
+            margin-bottom: 2.5rem; /* Changed from 40px to rem */
+            color: var(--text, #ffffff);
+            opacity: 0.9;
             font-size: 1.1em;
             line-height: 1.8;
         }
 
         .labs-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr)); /* Changed from 300px to rem */
+            gap: 1.5625rem; /* Changed from 25px to rem */
+            margin-bottom: 1.875rem; /* Changed from 30px to rem */
         }
 
         .lab-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 240, 255, 0.95) 100%);
-            border-radius: 15px;
-            padding: 30px;
+            background: var(--panel, #333);
+            border-radius: 0.9375rem; /* Changed from 15px to rem */
+            padding: 1.875rem; /* Changed from 30px to rem */
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 3px solid transparent;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 0.1875rem solid var(--border, #444); /* Changed from 3px to rem */
+            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3); /* Changed from 0 4px 15px to rem */
         }
 
         .lab-card:hover {
-            transform: translateY(-5px);
-            border-color: #667eea;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-0.3125rem); /* Changed from -5px to rem */
+            border-color: var(--accent, #2ed573);
+            box-shadow: 0 0.75rem 2.5rem rgba(46, 213, 115, 0.4); /* Changed from 0 8px 25px to rem */
         }
 
         .lab-card .icon {
             font-size: 3em;
-            margin-bottom: 15px;
+            margin-bottom: 0.9375rem; /* Changed from 15px to rem */
         }
 
         .lab-card h2 {
-            color: #667eea;
+            color: var(--accent, #2ed573);
             font-size: 1.5em;
-            margin-bottom: 10px;
+            margin-bottom: 0.625rem; /* Changed from 10px to rem */
         }
 
         .lab-card h3 {
-            color: #764ba2;
+            color: var(--text, #ffffff);
+            opacity: 0.9;
             font-size: 1.2em;
-            margin-bottom: 15px;
+            margin-bottom: 0.9375rem; /* Changed from 15px to rem */
             font-weight: normal;
         }
 
         .lab-card p {
-            color: #666;
+            color: var(--text, #ffffff);
+            opacity: 0.8;
             font-size: 1em;
             line-height: 1.6;
-            margin-bottom: 15px;
+            margin-bottom: 0.9375rem; /* Changed from 15px to rem */
         }
 
         .lab-card .duration {
             display: inline-block;
-            background: #667eea;
+            background: linear-gradient(135deg, var(--accent, #2ed573) 0%, #1e90ff 100%);
             color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
+            padding: 0.3125rem 0.9375rem; /* Changed from 5px 15px to rem */
+            border-radius: 1.25rem; /* Changed from 20px to rem */
             font-size: 0.9em;
             font-weight: bold;
         }
 
         .lab-card .topics {
-            margin-top: 15px;
+            margin-top: 0.9375rem; /* Changed from 15px to rem */
             font-size: 0.9em;
-            color: #888;
+            color: var(--text, #ffffff);
+            opacity: 0.7;
         }
 
-        .lab-card1 { border-top: 5px solid #667eea; }
-        .lab-card2 { border-top: 5px solid #f093fb; }
-        .lab-card3 { border-top: 5px solid #4facfe; }
-        .lab-card4 { border-top: 5px solid #43e97b; }
-        .lab-card5 { border-top: 5px solid #fa709a; }
+        .lab-card1 { border-top: 0.3125rem solid #2ed573; } /* Changed from 5px to rem */
+        .lab-card2 { border-top: 0.3125rem solid #f093fb; } /* Changed from 5px to rem */
+        .lab-card3 { border-top: 0.3125rem solid #4facfe; } /* Changed from 5px to rem */
+        .lab-card4 { border-top: 0.3125rem solid #43e97b; } /* Changed from 5px to rem */
+        .lab-card5 { border-top: 0.3125rem solid #fa709a; } /* Changed from 5px to rem */
 
         .footer {
             text-align: center;
-            padding: 20px;
-            color: #888;
+            padding: 1.25rem; /* Changed from 20px to rem */
+            color: var(--text, #ffffff);
+            opacity: 0.8;
             font-size: 0.9em;
+            background: var(--panel, #333);
+            border-top: 0.0625rem solid var(--border, #444); /* Changed from 1px to rem */
         }
 
         @media (max-width: 768px) {
@@ -187,7 +241,7 @@
         }
     </style>
 </head>
-<body>
+<body class="theme-dark">
     <div class="container">
         <div class="header">
             <!-- Language Selector -->

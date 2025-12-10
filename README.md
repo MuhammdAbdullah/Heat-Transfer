@@ -18,6 +18,7 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 - **Auto-Connect**: Automatically detects and connects to target device on startup
 - **Hot-Plug Detection**: Automatically reconnects when device is plugged in
 - **Connection Monitoring**: Real-time connection status with automatic disconnect detection
+- **Auto-Graph Reset**: Graphs automatically clear when device reconnects after disconnection, ensuring clean data collection
 - **Data Validation**: Validates 56-byte data packets with proper headers (0x55 0x55) and footers (0xAA 0xAA)
 - **Packet Processing**: Handles multiple packet types including 4-byte control packets
 
@@ -42,6 +43,7 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 - **Graph Window**: Pop-out graph window for better visualization
 - **Print Support**: Print graphs directly from the application
 - **Data Export**: CSV export functionality with Start/Stop saving controls
+- **Auto-Clear on Reconnect**: Graphs automatically clear when hardware device disconnects and reconnects, ensuring fresh data collection
 
 ### 🎓 Educational Features
 - **Lab Modules**: Five interactive lab experiments (Lab 1-5)
@@ -144,6 +146,7 @@ The app also handles 4-byte control packets:
 3. **Control devices** - Use sliders and buttons to control fan, heater, and cooler
 4. **View graphs** - Watch live data visualization in the charts section
 5. **Export data** - Click "Start Saving" to begin CSV export
+6. **Device reconnection** - If your device disconnects and reconnects, graphs will automatically clear and restart data collection
 
 ### Admin Panel
 
@@ -293,6 +296,10 @@ All dependencies are included in `package.json` and will be installed with `npm 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history and changes.
 
 **Current Version**: 1.2.6
+
+### Recent Updates
+- **Graph Auto-Clear**: Graphs automatically clear when hardware device reconnects after disconnection
+- **UI Improvements**: Updated Control section heading styling
 
 ## 🤝 Contributing
 

@@ -36,10 +36,7 @@ function initChart() {
 		var themeColors = getChartThemeColors();
 		canvas.style.background = themeColors.background;
 		canvas.style.borderColor = themeColors.border;
-		var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
-		if (document.body.classList.contains('theme-dark')) {
-			colors[10] = '#ffffff';
-		}
+		var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
         var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target Temp'];
         var datasets = [];
         for (var i = 0; i < 12; i++) {
@@ -108,7 +105,7 @@ function initChart() {
     chartDivRef = chartDiv;
 	
 	// Define colors for each series (same as original)
-	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
+	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
 	var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target Temp'];
 	
 	// Create initial empty traces
@@ -330,7 +327,7 @@ function redrawChart() {
 	if (chartData.time.length === 0) return;
 	
 	// Define colors for each series (same as original)
-	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
+	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
 	var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target Temp'];
 	
     // Create traces with current data
@@ -711,6 +708,9 @@ const heaterOffBtn = document.getElementById('heaterOff');
 const heaterLeftBtn = document.getElementById('heaterLeft');
 const heaterRightBtn = document.getElementById('heaterRight');
 const coolerBtn = document.getElementById('coolerBtn');
+const fanOffBtn = document.getElementById('fanOff');
+const fan50Btn = document.getElementById('fan50');
+const fan100Btn = document.getElementById('fan100');
 var heaterMode = 0; // 0=off,1=left,2=right,3=cooler
 var heaterLeftTemp = 0; // Store left heater temperature
 var heaterRightTemp = 0; // Store right heater temperature
@@ -940,8 +940,13 @@ function updateConnectionStatus(connected, portInfo) {
 		if (connectBtn) connectBtn.disabled = true;
 		if (disconnectBtn) disconnectBtn.disabled = false;
 		
-		// Send safety shutdown commands only when hardware actually reconnects (not on every packet)
+		// When hardware reconnects (was offline, now online), clear graphs and restart plotting
 		if (!wasConnected && connected) {
+			// Clear all graphs when device reconnects
+			clearAllGraphs();
+			addToLog('Device reconnected - graphs cleared, restarting data collection');
+			
+			// Send safety shutdown commands only when hardware actually reconnects (not on every packet)
 			setTimeout(() => {
 				sendShutdownCommandsOnReconnect();
 			}, 1000); // Wait 1 second before sending safety commands
@@ -1231,6 +1236,29 @@ function handleIncomingData(data) {
 	}
 }
 
+// Function to update fan button states
+function updateFanButtons(currentSpeed) {
+    // Remove active class from all fan buttons
+    if (fanOffBtn) {
+        fanOffBtn.classList.remove('active');
+    }
+    if (fan50Btn) {
+        fan50Btn.classList.remove('active');
+    }
+    if (fan100Btn) {
+        fan100Btn.classList.remove('active');
+    }
+    
+    // Add active class to the button matching current speed
+    if (currentSpeed === 0 && fanOffBtn) {
+        fanOffBtn.classList.add('active');
+    } else if (currentSpeed === 50 && fan50Btn) {
+        fan50Btn.classList.add('active');
+    } else if (currentSpeed === 100 && fan100Btn) {
+        fan100Btn.classList.add('active');
+    }
+}
+
 // Function to update fan slider when receiving data from hardware
 function updateFanSliderFromHardware(fanSpeed) {
     // Ensure fan speed is within valid range (0-100)
@@ -1258,6 +1286,9 @@ function updateFanSliderFromHardware(fanSpeed) {
         // Update the fan icon animation
         updateFanIcon(fanSpeed);
         addToLog('DEBUG: Called updateFanIcon with: ' + fanSpeed);
+        
+        // Update button states
+        updateFanButtons(fanSpeed);
         
         addToLog('Fan slider updated from hardware: ' + fanSpeed + '%');
     } else {
@@ -1869,9 +1900,9 @@ function updateChartTheme() {
 	if (chartJsRef) {
 		try {
 			if (chartJsRef.data && chartJsRef.data.datasets && chartJsRef.data.datasets.length > 10) {
-				var powerColor = document.body.classList.contains('theme-dark') ? '#ffffff' : '#000000';
-				chartJsRef.data.datasets[10].borderColor = powerColor;
-				chartJsRef.data.datasets[10].backgroundColor = powerColor;
+				// Power line is always pure red for visibility
+				chartJsRef.data.datasets[10].borderColor = '#ff0000';
+				chartJsRef.data.datasets[10].backgroundColor = '#ff0000';
 			}
 			chartJsRef.options.scales.x.grid.color = colors.grid;
 			chartJsRef.options.scales.x.ticks.color = colors.text;
@@ -1891,9 +1922,9 @@ function updateChartTheme() {
 		try {
 			var liveChart = window.liveChartRef;
 			if (liveChart.data && liveChart.data.datasets && liveChart.data.datasets.length > 10) {
-				var livePowerColor = document.body.classList.contains('theme-dark') ? '#ffffff' : '#000000';
-				liveChart.data.datasets[10].borderColor = livePowerColor;
-				liveChart.data.datasets[10].backgroundColor = livePowerColor;
+				// Power line is always pure red for visibility
+				liveChart.data.datasets[10].borderColor = '#ff0000';
+				liveChart.data.datasets[10].backgroundColor = '#ff0000';
 			}
 			liveChart.options.scales.x.grid.color = colors.grid;
 			liveChart.options.scales.x.ticks.color = colors.text;
@@ -2121,7 +2152,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			var themeColors = getChartThemeColors();
 			testCanvas.style.background = themeColors.background;
 			testCanvas.style.borderColor = themeColors.border;
-            var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#000000','#ff007a'];
+            var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
             var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target'];
             var ds = [];
             for (var i = 0; i < 12; i++) {
@@ -2211,120 +2242,575 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Helper function to prepare chart for printing (invert colors for visibility)
+    function prepareChartForPrint(chart) {
+        if (!chart || !chart.options) return null;
+        
+        // Store original colors
+        var originalColors = {
+            scales: {},
+            datasets: []
+        };
+        
+        // Store original scale colors
+        if (chart.options.scales) {
+            if (chart.options.scales.x) {
+                originalColors.scales.x = {
+                    grid: chart.options.scales.x.grid ? chart.options.scales.x.grid.color : null,
+                    ticks: chart.options.scales.x.ticks ? chart.options.scales.x.ticks.color : null,
+                    title: chart.options.scales.x.title ? chart.options.scales.x.title.color : null
+                };
+                if (chart.options.scales.x.grid) chart.options.scales.x.grid.color = '#000000';
+                if (chart.options.scales.x.ticks) chart.options.scales.x.ticks.color = '#000000';
+                if (chart.options.scales.x.title) chart.options.scales.x.title.color = '#000000';
+            }
+            if (chart.options.scales.y) {
+                originalColors.scales.y = {
+                    grid: chart.options.scales.y.grid ? chart.options.scales.y.grid.color : null,
+                    ticks: chart.options.scales.y.ticks ? chart.options.scales.y.ticks.color : null,
+                    title: chart.options.scales.y.title ? chart.options.scales.y.title.color : null
+                };
+                if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = '#000000';
+                if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = '#000000';
+                if (chart.options.scales.y.title) chart.options.scales.y.title.color = '#000000';
+            }
+            if (chart.options.scales.y2) {
+                originalColors.scales.y2 = {
+                    grid: chart.options.scales.y2.grid ? chart.options.scales.y2.grid.color : null,
+                    ticks: chart.options.scales.y2.ticks ? chart.options.scales.y2.ticks.color : null,
+                    title: chart.options.scales.y2.title ? chart.options.scales.y2.title.color : null
+                };
+                if (chart.options.scales.y2.grid) chart.options.scales.y2.grid.color = '#000000';
+                if (chart.options.scales.y2.ticks) chart.options.scales.y2.ticks.color = '#000000';
+                if (chart.options.scales.y2.title) chart.options.scales.y2.title.color = '#000000';
+            }
+        }
+        
+        // Store and change dataset colors (especially Power line to black)
+        if (chart.data && chart.data.datasets) {
+            for (var i = 0; i < chart.data.datasets.length; i++) {
+                originalColors.datasets[i] = {
+                    borderColor: chart.data.datasets[i].borderColor,
+                    backgroundColor: chart.data.datasets[i].backgroundColor
+                };
+                // Power line (index 10) is already red, no need to change
+            }
+        }
+        
+        // Store and change legend colors
+        if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+            originalColors.legend = chart.options.plugins.legend.labels.color;
+            chart.options.plugins.legend.labels.color = '#000000';
+        }
+        
+        return originalColors;
+    }
+    
+    // Helper function to restore chart colors after printing
+    function restoreChartColors(chart, originalColors) {
+        if (!chart || !originalColors) return;
+        
+        // Restore scale colors
+        if (originalColors.scales && chart.options.scales) {
+            if (originalColors.scales.x && chart.options.scales.x) {
+                if (chart.options.scales.x.grid) chart.options.scales.x.grid.color = originalColors.scales.x.grid;
+                if (chart.options.scales.x.ticks) chart.options.scales.x.ticks.color = originalColors.scales.x.ticks;
+                if (chart.options.scales.x.title) chart.options.scales.x.title.color = originalColors.scales.x.title;
+            }
+            if (originalColors.scales.y && chart.options.scales.y) {
+                if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = originalColors.scales.y.grid;
+                if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = originalColors.scales.y.ticks;
+                if (chart.options.scales.y.title) chart.options.scales.y.title.color = originalColors.scales.y.title;
+            }
+            if (originalColors.scales.y2 && chart.options.scales.y2) {
+                if (chart.options.scales.y2.grid) chart.options.scales.y2.grid.color = originalColors.scales.y2.grid;
+                if (chart.options.scales.y2.ticks) chart.options.scales.y2.ticks.color = originalColors.scales.y2.ticks;
+                if (chart.options.scales.y2.title) chart.options.scales.y2.title.color = originalColors.scales.y2.title;
+            }
+        }
+        
+        // Restore dataset colors
+        if (originalColors.datasets && chart.data && chart.data.datasets) {
+            for (var i = 0; i < originalColors.datasets.length && i < chart.data.datasets.length; i++) {
+                if (originalColors.datasets[i]) {
+                    chart.data.datasets[i].borderColor = originalColors.datasets[i].borderColor;
+                    chart.data.datasets[i].backgroundColor = originalColors.datasets[i].backgroundColor;
+                }
+            }
+        }
+        
+        // Restore legend colors
+        if (originalColors.legend && chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+            chart.options.plugins.legend.labels.color = originalColors.legend;
+        }
+    }
+
     // Function to print the Time chart
     function printChart() {
-        // Get the chart canvas
-        var canvas = document.getElementById('testChart');
+        // Try to initialize chart if it doesn't exist
+        if (!window.liveChartRef) {
+            // Try to initialize the live chart
+            try {
+                var testCanvas = document.getElementById('testChart');
+                if (testCanvas && window.Chart) {
+                    var ctx = testCanvas.getContext('2d');
+                    var themeColors = getChartThemeColors();
+                    testCanvas.style.background = themeColors.background;
+                    testCanvas.style.borderColor = themeColors.border;
+                    var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
+                    var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target'];
+                    var ds = [];
+                    for (var i = 0; i < 12; i++) {
+                        ds.push({ label: labels[i], data: [], borderColor: colors[i], backgroundColor: colors[i], pointRadius: 0, borderWidth: 2, tension: 0.2, yAxisID: i === 10 ? 'y2' : 'y' });
+                    }
+                    window.liveChartRef = new Chart(ctx, {
+                        type: 'line',
+                        data: { labels: [], datasets: ds },
+                        options: {
+                            responsive: true,
+                            animation: false,
+                            interaction: { mode: 'nearest', intersect: false },
+                            plugins: { legend: { position: 'right', labels: { color: themeColors.text } } },
+                            scales: {
+                                x: { 
+                                    grid: { color: themeColors.grid },
+                                    ticks: { color: themeColors.text }
+                                },
+                                y: { 
+                                    type: 'linear', 
+                                    position: 'left', 
+                                    title: { display: true, text: 'Temperature (°C)', color: themeColors.text },
+                                    grid: { color: themeColors.grid },
+                                    ticks: { color: themeColors.text }
+                                },
+                                y2: { 
+                                    type: 'linear', 
+                                    position: 'right', 
+                                    grid: { drawOnChartArea: false, color: themeColors.grid }, 
+                                    title: { display: true, text: 'Power (W)', color: themeColors.text },
+                                    ticks: { color: themeColors.text }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error initializing chart:', e);
+            }
+        }
+
+        // Check if chart exists after trying to initialize
+        var chart = null;
+        var canvas = null;
+        
+        if (window.liveChartRef && window.liveChartRef.canvas) {
+            chart = window.liveChartRef;
+            canvas = chart.canvas;
+        } else if (chartJsRef && chartJsRef.canvas) {
+            // Fallback: try to use chartJsRef if available
+            chart = chartJsRef;
+            canvas = chart.canvas;
+        } else {
+            alert('Chart is not initialized yet. Please wait for the chart to load or refresh the page.');
+            return;
+        }
+        
         if (!canvas) {
-            alert('Chart not found!');
+            alert('Chart canvas not found!');
             return;
         }
 
-        // Convert canvas to image
-        var imageData = canvas.toDataURL('image/png');
+        // Check if chart has any data
+        var hasData = false;
+        if (chart.data && chart.data.datasets) {
+            for (var i = 0; i < chart.data.datasets.length; i++) {
+                if (chart.data.datasets[i].data && chart.data.datasets[i].data.length > 0) {
+                    hasData = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!hasData) {
+            alert('Chart has no data to print! Please make sure data is being received.');
+            return;
+        }
 
-        // Create a new window for printing
-        var printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print Chart</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
-        printWindow.document.write('img { max-width: 100%; height: auto; }');
-        printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body>');
-        printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
-        printWindow.document.write('<img src="' + imageData + '" />');
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
+        // Prepare chart for printing (invert colors)
+        var originalColors = prepareChartForPrint(chart);
+        
+        // Force chart to resize and update to ensure it's fully rendered
+        chart.resize();
+        chart.update('none');
 
-        // Wait for the image to load then print
-        printWindow.onload = function() {
-            printWindow.focus();
-            printWindow.print();
-        };
+        // Wait for chart to fully render, then export
+        setTimeout(function() {
+            try {
+                // Check if canvas has content
+                if (canvas.width === 0 || canvas.height === 0) {
+                    restoreChartColors(chart, originalColors);
+                    chart.update('none');
+                    alert('Chart canvas is empty. Please wait for data to load.');
+                    return;
+                }
+
+                // Convert canvas to image - use higher quality
+                var imageData = canvas.toDataURL('image/png', 1.0);
+                
+                // Restore original colors immediately after export
+                restoreChartColors(chart, originalColors);
+                chart.update('none');
+                
+                // Check if we got valid image data
+                if (!imageData || imageData === 'data:,' || imageData.length < 100) {
+                    alert('Chart export failed. Please try again.');
+                    console.error('Image data length:', imageData ? imageData.length : 0);
+                    return;
+                }
+
+                // Create a new window for printing
+                var printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    alert('Please allow popups to print the chart.');
+                    return;
+                }
+                
+                printWindow.document.write('<!DOCTYPE html><html><head><title>Print Chart</title>');
+                printWindow.document.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
+                printWindow.document.write('<style>');
+                printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
+                printWindow.document.write('img { max-width: 100%; height: auto; display: block; margin: 0 auto; }');
+                printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
+                printWindow.document.write('.print-button { margin: 20px auto; padding: 15px 30px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }');
+                printWindow.document.write('.print-button:hover { background: #0056b3; }');
+                printWindow.document.write('.help-text { color: #666; font-size: 14px; margin-top: 10px; }');
+                printWindow.document.write('@media print { .print-button { display: none; } .help-text { display: none; } }');
+                printWindow.document.write('</style>');
+                printWindow.document.write('<script>');
+                printWindow.document.write('function doPrint() { window.print(); }');
+                printWindow.document.write('window.onload = function() { window.focus(); setTimeout(function(){ window.print(); }, 200); };');
+                printWindow.document.write('</script>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
+                printWindow.document.write('<img src="' + imageData + '" id="chartImage" onerror="alert(\'Image failed to load\');" />');
+                printWindow.document.write('<button class="print-button" onclick="doPrint();">🖨️ Print This Page</button>');
+                printWindow.document.write('<p class="help-text">The print dialog should open automatically. If not, click the button above or press Ctrl+P (Cmd+P on Mac).</p>');
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+            } catch (error) {
+                alert('Error printing chart: ' + error.message);
+                console.error('Print error:', error);
+            }
+        }, 500);
     }
 
     // Function to print the Distance chart
     function printDistanceChart() {
-        // Get the chart canvas
-        var canvas = document.getElementById('tempDistanceChart');
-        if (!canvas) {
-            alert('Temperature vs Distance chart not found!');
+        // Try to initialize chart if it doesn't exist
+        if (!distanceChartJsRef) {
+            initDistanceChart();
+        }
+
+        // Check if chart exists after trying to initialize
+        if (!distanceChartJsRef) {
+            alert('Distance chart could not be initialized. Please make sure Chart.js is loaded.');
             return;
         }
 
-        // Convert canvas to image
-        var imageData = canvas.toDataURL('image/png');
+        var chart = distanceChartJsRef;
+        var canvas = chart.canvas;
+        
+        if (!canvas) {
+            alert('Distance chart canvas not found!');
+            return;
+        }
 
-        // Create a new window for printing
-        var printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print Chart</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
-        printWindow.document.write('img { max-width: 100%; height: auto; }');
-        printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body>');
-        printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
-        printWindow.document.write('<img src="' + imageData + '" />');
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
+        // Prepare chart for printing (invert colors)
+        var originalColors = prepareChartForPrint(chart);
+        
+        // Force chart to resize and update to ensure it's fully rendered
+        chart.resize();
+        chart.update('none');
 
-        // Wait for the image to load then print
-        printWindow.onload = function() {
-            printWindow.focus();
-            printWindow.print();
-        };
+        // Wait for chart to fully render, then export
+        setTimeout(function() {
+            try {
+                // Check if canvas has content
+                if (canvas.width === 0 || canvas.height === 0) {
+                    restoreChartColors(chart, originalColors);
+                    chart.update('none');
+                    alert('Distance chart canvas is empty. Please wait for data to load.');
+                    return;
+                }
+
+                // Convert canvas to image - use higher quality
+                var imageData = canvas.toDataURL('image/png', 1.0);
+                
+                // Restore original colors immediately after export
+                restoreChartColors(chart, originalColors);
+                chart.update('none');
+                
+                // Check if we got valid image data
+                if (!imageData || imageData === 'data:,' || imageData.length < 100) {
+                    alert('Distance chart has no data to print! Please make sure the chart has data points.');
+                    return;
+                }
+
+                // Create a new window for printing
+                var printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    alert('Please allow popups to print the chart.');
+                    return;
+                }
+                
+                printWindow.document.write('<!DOCTYPE html><html><head><title>Print Chart</title>');
+                printWindow.document.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
+                printWindow.document.write('<style>');
+                printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
+                printWindow.document.write('img { max-width: 100%; height: auto; display: block; margin: 0 auto; }');
+                printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
+                printWindow.document.write('.print-button { margin: 20px auto; padding: 15px 30px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }');
+                printWindow.document.write('.print-button:hover { background: #0056b3; }');
+                printWindow.document.write('.help-text { color: #666; font-size: 14px; margin-top: 10px; }');
+                printWindow.document.write('@media print { .print-button { display: none; } .help-text { display: none; } }');
+                printWindow.document.write('</style>');
+                printWindow.document.write('<script>');
+                printWindow.document.write('function doPrint() { window.print(); }');
+                printWindow.document.write('window.onload = function() { window.focus(); setTimeout(function(){ window.print(); }, 200); };');
+                printWindow.document.write('</script>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
+                printWindow.document.write('<img src="' + imageData + '" id="chartImage" />');
+                printWindow.document.write('<button class="print-button" onclick="doPrint();">🖨️ Print This Page</button>');
+                printWindow.document.write('<p class="help-text">The print dialog should open automatically. If not, click the button above or press Ctrl+P (Cmd+P on Mac).</p>');
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+            } catch (error) {
+                alert('Error printing distance chart: ' + error.message);
+                console.error('Print error:', error);
+            }
+        }, 500);
     }
 
     // Function to print both charts together on separate pages
     function printBothCharts() {
-        // Get both chart canvases
-        var timeCanvas = document.getElementById('testChart');
-        var distanceCanvas = document.getElementById('tempDistanceChart');
+        // Try to initialize time chart if it doesn't exist
+        if (!window.liveChartRef) {
+            try {
+                var testCanvas = document.getElementById('testChart');
+                if (testCanvas && window.Chart) {
+                    var ctx = testCanvas.getContext('2d');
+                    var themeColors = getChartThemeColors();
+                    testCanvas.style.background = themeColors.background;
+                    testCanvas.style.borderColor = themeColors.border;
+                    var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
+                    var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target'];
+                    var ds = [];
+                    for (var i = 0; i < 12; i++) {
+                        ds.push({ label: labels[i], data: [], borderColor: colors[i], backgroundColor: colors[i], pointRadius: 0, borderWidth: 2, tension: 0.2, yAxisID: i === 10 ? 'y2' : 'y' });
+                    }
+                    window.liveChartRef = new Chart(ctx, {
+                        type: 'line',
+                        data: { labels: [], datasets: ds },
+                        options: {
+                            responsive: true,
+                            animation: false,
+                            interaction: { mode: 'nearest', intersect: false },
+                            plugins: { legend: { position: 'right', labels: { color: themeColors.text } } },
+                            scales: {
+                                x: { 
+                                    grid: { color: themeColors.grid },
+                                    ticks: { color: themeColors.text }
+                                },
+                                y: { 
+                                    type: 'linear', 
+                                    position: 'left', 
+                                    title: { display: true, text: 'Temperature (°C)', color: themeColors.text },
+                                    grid: { color: themeColors.grid },
+                                    ticks: { color: themeColors.text }
+                                },
+                                y2: { 
+                                    type: 'linear', 
+                                    position: 'right', 
+                                    grid: { drawOnChartArea: false, color: themeColors.grid }, 
+                                    title: { display: true, text: 'Power (W)', color: themeColors.text },
+                                    ticks: { color: themeColors.text }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error initializing time chart:', e);
+            }
+        }
 
-        if (!timeCanvas || !distanceCanvas) {
-            alert('One or both charts not found!');
+        // Try to initialize distance chart if it doesn't exist
+        if (!distanceChartJsRef) {
+            initDistanceChart();
+        }
+
+        // Check if at least one chart exists
+        if (!window.liveChartRef && !distanceChartJsRef) {
+            alert('Charts are not initialized yet. Please wait for the charts to load.');
             return;
         }
 
-        // Convert both canvases to images
-        var timeImageData = timeCanvas.toDataURL('image/png');
-        var distanceImageData = distanceCanvas.toDataURL('image/png');
+        var timeChart = window.liveChartRef;
+        var distanceChart = distanceChartJsRef;
+        var timeCanvas = null;
+        var distanceCanvas = null;
 
-        // Create a new window for printing both charts
-        var printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print Both Charts</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write('body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }');
-        printWindow.document.write('.chart-page { page-break-after: always; text-align: center; margin-bottom: 50px; }');
-        printWindow.document.write('.chart-page:last-child { page-break-after: auto; }');
-        printWindow.document.write('img { max-width: 100%; height: auto; margin-top: 20px; }');
-        printWindow.document.write('h2 { color: #333; }');
-        printWindow.document.write('@media print { .chart-page { page-break-after: always; } }');
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body>');
+        // Get canvases from chart instances and prepare for printing
+        var timeOriginalColors = null;
+        var distanceOriginalColors = null;
         
-        // First chart - Temperature vs Time
-        printWindow.document.write('<div class="chart-page">');
-        printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
-        printWindow.document.write('<img src="' + timeImageData + '" />');
-        printWindow.document.write('</div>');
-        
-        // Second chart - Temperature vs Distance
-        printWindow.document.write('<div class="chart-page">');
-        printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
-        printWindow.document.write('<img src="' + distanceImageData + '" />');
-        printWindow.document.write('</div>');
-        
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
+        if (timeChart && timeChart.canvas) {
+            timeCanvas = timeChart.canvas;
+            timeOriginalColors = prepareChartForPrint(timeChart);
+            timeChart.resize();
+            timeChart.update('none');
+        } else if (chartJsRef && chartJsRef.canvas) {
+            // Fallback to chartJsRef
+            timeChart = chartJsRef;
+            timeCanvas = chartJsRef.canvas;
+            timeOriginalColors = prepareChartForPrint(timeChart);
+            timeChart.resize();
+            timeChart.update('none');
+        }
+        if (distanceChart && distanceChart.canvas) {
+            distanceCanvas = distanceChart.canvas;
+            distanceOriginalColors = prepareChartForPrint(distanceChart);
+            distanceChart.resize();
+            distanceChart.update('none');
+        }
 
-        // Wait for images to load then print
-        printWindow.onload = function() {
-            printWindow.focus();
-            printWindow.print();
-        };
+        if (!timeCanvas && !distanceCanvas) {
+            alert('One or both chart canvases not found!');
+            return;
+        }
+
+        // Wait for charts to fully render, then convert canvases to images
+        setTimeout(function() {
+            try {
+                var timeImageData = null;
+                var distanceImageData = null;
+
+                // Export time chart
+                if (timeCanvas && timeCanvas.width > 0 && timeCanvas.height > 0) {
+                    timeImageData = timeCanvas.toDataURL('image/png', 1.0);
+                    if (!timeImageData || timeImageData === 'data:,' || timeImageData.length < 100) {
+                        timeImageData = null;
+                    } else {
+                        // Restore original colors after export
+                        if (timeChart && timeOriginalColors) {
+                            restoreChartColors(timeChart, timeOriginalColors);
+                            timeChart.update('none');
+                        }
+                    }
+                }
+
+                // Export distance chart
+                if (distanceCanvas && distanceCanvas.width > 0 && distanceCanvas.height > 0) {
+                    distanceImageData = distanceCanvas.toDataURL('image/png', 1.0);
+                    if (!distanceImageData || distanceImageData === 'data:,' || distanceImageData.length < 100) {
+                        distanceImageData = null;
+                    } else {
+                        // Restore original colors after export
+                        if (distanceChart && distanceOriginalColors) {
+                            restoreChartColors(distanceChart, distanceOriginalColors);
+                            distanceChart.update('none');
+                        }
+                    }
+                }
+
+                if (!timeImageData && !distanceImageData) {
+                    alert('Charts have no data to print! Please make sure the charts have data points.');
+                    return;
+                }
+
+                // Create a new window for printing both charts
+                var printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    alert('Please allow popups to print the charts.');
+                    return;
+                }
+                
+                printWindow.document.write('<!DOCTYPE html><html><head><title>Print Both Charts</title>');
+                printWindow.document.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
+                printWindow.document.write('<style>');
+                printWindow.document.write('body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: white; }');
+                printWindow.document.write('.print-controls { text-align: center; margin-bottom: 20px; }');
+                printWindow.document.write('.chart-page { width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; page-break-after: always; page-break-inside: avoid; background: white; }');
+                printWindow.document.write('.chart-page:last-child { page-break-after: auto; }');
+                printWindow.document.write('img { max-width: 90%; height: auto; display: block; margin: 20px auto; }');
+                printWindow.document.write('h2 { color: #333; margin: 20px 0; }');
+                printWindow.document.write('.print-button { margin: 20px auto; padding: 15px 30px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }');
+                printWindow.document.write('.print-button:hover { background: #0056b3; }');
+                printWindow.document.write('.help-text { color: #666; font-size: 14px; margin-top: 10px; }');
+                printWindow.document.write('@media print {');
+                printWindow.document.write('  body { margin: 0; padding: 0; background: white !important; }');
+                printWindow.document.write('  .print-controls { display: none; }');
+                printWindow.document.write('  .chart-page { page-break-after: always; page-break-inside: avoid; background: white !important; }');
+                printWindow.document.write('  .chart-page:last-child { page-break-after: auto; }');
+                printWindow.document.write('}');
+                printWindow.document.write('</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<div class="print-controls">');
+                printWindow.document.write('<button class="print-button" onclick="doPrint();">🖨️ Print Both Charts</button>');
+                printWindow.document.write('<p class="help-text">The print dialog should open automatically. If not, click the button above or press Ctrl+P (Cmd+P on Mac).</p>');
+                printWindow.document.write('</div>');
+                
+                var imagesLoaded = 0;
+                var totalImages = 0;
+                if (timeImageData) totalImages++;
+                if (distanceImageData) totalImages++;
+                
+                // First chart - Temperature vs Time
+                if (timeImageData) {
+                    printWindow.document.write('<div class="chart-page">');
+                    printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
+                    printWindow.document.write('<img src="' + timeImageData + '" id="img1" onerror="alert(\'Time chart image failed to load\');" />');
+                    printWindow.document.write('</div>');
+                }
+                
+                // Second chart - Temperature vs Distance
+                if (distanceImageData) {
+                    printWindow.document.write('<div class="chart-page">');
+                    printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
+                    printWindow.document.write('<img src="' + distanceImageData + '" id="img2" onerror="alert(\'Distance chart image failed to load\');" />');
+                    printWindow.document.write('</div>');
+                }
+                
+                printWindow.document.write('<script>');
+                printWindow.document.write('function doPrint() { window.print(); }');
+                printWindow.document.write('var imagesLoaded = 0;');
+                printWindow.document.write('var totalImages = ' + totalImages + ';');
+                printWindow.document.write('function checkAndPrint() {');
+                printWindow.document.write('  imagesLoaded++;');
+                printWindow.document.write('  if (imagesLoaded >= totalImages) {');
+                printWindow.document.write('    window.focus();');
+                printWindow.document.write('    setTimeout(function(){ window.print(); }, 200);');
+                printWindow.document.write('  }');
+                printWindow.document.write('}');
+                printWindow.document.write('window.onload = function() {');
+                if (timeImageData) {
+                    printWindow.document.write('  var img1 = document.getElementById("img1");');
+                    printWindow.document.write('  if (img1) { img1.onload = checkAndPrint; if (img1.complete) checkAndPrint(); }');
+                }
+                if (distanceImageData) {
+                    printWindow.document.write('  var img2 = document.getElementById("img2");');
+                    printWindow.document.write('  if (img2) { img2.onload = checkAndPrint; if (img2.complete) checkAndPrint(); }');
+                }
+                printWindow.document.write('};');
+                printWindow.document.write('</script>');
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+            } catch (error) {
+                alert('Error printing charts: ' + error.message);
+                console.error('Print error:', error);
+            }
+        }, 500);
     }
 
     // Add keyboard shortcut Ctrl+P to print both charts
@@ -2470,6 +2956,8 @@ if (fanSpeedInput) {
         if (fanSpeedDisplay) fanSpeedDisplay.textContent = percentage + '%';
         updateSliderFill(fanSpeedInput.value);
         updateFanIcon(fanSpeedInput.value);
+        // Update button states in real-time
+        updateFanButtons(percentage);
     });
     
     // Fan slider hover tooltip
@@ -2486,6 +2974,8 @@ if (fanSpeedInput) {
     fanSpeedInput.addEventListener('change', async function() {
         try {
             var v = parseInt(fanSpeedInput.value, 10);
+            // Update button states when slider changes
+            updateFanButtons(v);
             var result = await window.electronAPI.sendFanSpeed(v);
             if (!result || !result.success) {
                 addToLog('Failed to send fan speed: ' + (result && result.error ? result.error : 'Unknown error'));
@@ -2501,6 +2991,9 @@ if (fanSpeedInput) {
     updateSliderFill(fanSpeedInput.value);
     updateFanIcon(fanSpeedInput.value);
     if (fanSpeedDisplay) fanSpeedDisplay.textContent = parseInt(fanSpeedInput.value, 10) + '%';
+    // Initialize button states
+    var initialSpeed = parseInt(fanSpeedInput.value, 10);
+    updateFanButtons(initialSpeed);
 }
 
 // Heater controls
@@ -2674,6 +3167,63 @@ if (coolerBtn) {
     });
 }
 
+// Fan speed button functions
+async function setFanSpeed(speed) {
+    // Make sure speed is valid (0, 50, or 100)
+    if (speed !== 0 && speed !== 50 && speed !== 100) {
+        addToLog('Invalid fan speed: ' + speed + '. Must be 0, 50, or 100.');
+        return;
+    }
+    
+    // Update the slider value
+    if (fanSpeedInput) {
+        fanSpeedInput.value = speed;
+    }
+    
+    // Update the display
+    if (fanSpeedDisplay) {
+        fanSpeedDisplay.textContent = speed + '%';
+    }
+    
+    // Update slider fill and icon
+    updateSliderFill(speed);
+    updateFanIcon(speed);
+    
+    // Update button states
+    updateFanButtons(speed);
+    
+    // Send the command to hardware
+    try {
+        var result = await window.electronAPI.sendFanSpeed(speed);
+        if (!result || !result.success) {
+            addToLog('Failed to send fan speed: ' + (result && result.error ? result.error : 'Unknown error'));
+        } else {
+            addToLog('Fan speed set to: ' + speed + '%');
+        }
+    } catch (e) {
+        addToLog('Error sending fan speed: ' + e.message);
+    }
+}
+
+// Fan button event listeners
+if (fanOffBtn) {
+    fanOffBtn.addEventListener('click', function() {
+        setFanSpeed(0);
+    });
+}
+
+if (fan50Btn) {
+    fan50Btn.addEventListener('click', function() {
+        setFanSpeed(50);
+    });
+}
+
+if (fan100Btn) {
+    fan100Btn.addEventListener('click', function() {
+        setFanSpeed(100);
+    });
+}
+
 // Admin panel functionality
 async function openAdminPanel() {
     // Open admin panel using IPC to ensure preload script access
@@ -2793,6 +3343,51 @@ function setupAdminCommunication(adminWindow) {
             adminWindow.addRawDataEntry(data, 'hex');
         }
     };
+}
+
+// Function to clear all graph data (used when hardware device reconnects)
+function clearAllGraphs() {
+    // Clear all chart data
+    chartData.time = [];
+    for (var i = 0; i < 12; i++) {
+        chartData.series[i] = [];
+    }
+    
+    // Clear Chart.js data
+    if (window.liveChartRef) {
+        window.liveChartRef.data.labels = [];
+        for (var j = 0; j < window.liveChartRef.data.datasets.length; j++) {
+            window.liveChartRef.data.datasets[j].data = [];
+        }
+        window.liveChartRef.update('none');
+    }
+    
+    if (chartJsRef) {
+        chartJsRef.data.labels = [];
+        for (var k = 0; k < chartJsRef.data.datasets.length; k++) {
+            chartJsRef.data.datasets[k].data = [];
+        }
+        chartJsRef.update('none');
+    }
+    
+    // Clear distance chart data
+    if (distanceChartData && distanceChartData.samples) {
+        distanceChartData.samples = [];
+    }
+    if (distanceChartJsRef) {
+        distanceChartJsRef.data.datasets[0].data = [];
+        distanceChartJsRef.update('none');
+    }
+    
+    // Clear Plotly chart
+    if (chartInitialized && window.Plotly && chartDivRef) {
+        try {
+            window.Plotly.newPlot(chartDivRef, [], plotlyLayout, plotlyConfig);
+        } catch (e) { /* ignore */ }
+    }
+    
+    redrawChart();
+    console.log('All graphs cleared after hardware device reconnected');
 }
 
 window.addEventListener('beforeunload', function() {

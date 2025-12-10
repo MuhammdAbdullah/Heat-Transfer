@@ -196,3 +196,5 @@ const dampenedScale = 0.5 + (scaleFactor * 0.5);  // Less aggressive
 
 That's it! Everything now scales proportionally when you resize. 🎉
 
+
+
