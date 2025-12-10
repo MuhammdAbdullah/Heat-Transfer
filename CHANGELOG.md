@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - None
 
+## [1.2.6] - 2024-12-10
+
+### Fixed
+- Fixed Matrix logo not displaying in main window (corrected image path)
+- Fixed app icon showing as generic Electron icon (created proper 256x256 icon.ico)
+- App now displays custom icon in Windows Start menu, taskbar, and installer
+
 ## [1.2.5] - 2024-12-08
 
 ### Changed

@@ -1,6 +1,6 @@
 {
   "name": "heat-transfer-app",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Heat Transfer Data Reader - Web App for Android Tablets",
   "main": "main.js",
   "scripts": {
@@ -27,7 +27,9 @@
   "devDependencies": {
     "electron": "^38.2.2",
     "electron-builder": "^25.1.8",
-    "nodemon": "^3.1.10"
+    "jimp": "^1.6.0",
+    "nodemon": "^3.1.10",
+    "to-ico": "^1.1.5"
   },
   "dependencies": {
     "chart.js": "^4.4.4",
@@ -79,7 +81,6 @@
     "win": {
       "target": "nsis",
       "icon": "icon.ico"
-     }
+    }
   }
 }
-
