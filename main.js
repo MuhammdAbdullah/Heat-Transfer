@@ -80,20 +80,50 @@ function createWindow() {
 
   // Handle child windows opened with window.open() (Curriculum, Lab windows, etc.)
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    return {
-      action: 'allow',
-      overrideBrowserWindowOptions: {
-        width: 1500,
-        height: 850,
-        resizable: true,  // Allow resizing
-        icon: path.join(__dirname, 'assets', 'favicon.ico'),  // Set icon for child windows
+    // Check if this is the simulation window (needs specific size)
+    const isSimulationWindow = url.includes('simulation.html');
+    
+    // Default window options for most windows
+    let windowOptions = {
+      width: 1500,
+      height: 850,
+      resizable: true,
+      icon: path.join(__dirname, 'assets', 'favicon.ico'),
+      autoHideMenuBar: true,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true
+      }
+    };
+    
+    // Special configuration for simulation window (maximized)
+    if (isSimulationWindow) {
+      windowOptions = {
+        width: 1920,
+        height: 1080,
+        resizable: true,
+        icon: path.join(__dirname, 'assets', 'favicon.ico'),
         autoHideMenuBar: true,
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true
         }
-      }
+      };
+    }
+    
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: windowOptions
     };
+  });
+  
+  // Maximize simulation window when it's created
+  mainWindow.webContents.on('did-create-window', (childWindow, details) => {
+    if (details.url && details.url.includes('simulation.html')) {
+      childWindow.once('ready-to-show', () => {
+        childWindow.maximize();
+      });
+    }
   });
 
   // Show window when ready (with minimum splash screen display time)

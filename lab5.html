@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab 5 - Data Analysis and Graphing</title>
     
@@ -15,7 +16,6 @@
     <link rel="manifest" href="assets/site.webmanifest">
     
     <style>
-        /* Base font size will be controlled by responsive-scaling.js */
         html {
             font-size: 16px; /* Base size - will be scaled automatically */
         }
@@ -43,17 +43,6 @@
             --chart-grid: #444444;
             --chart-text: #eeeeee;
         }
-        body.theme-light {
-            --bg: #ffffff;
-            --text: #ffffff;
-            --panel: #6c6b6d;
-            --border: #444444;
-            --accent: #2ed573;
-            --chart-bg: #6c6b6d;
-            --chart-border: #444444;
-            --chart-grid: #444444;
-            --chart-text: #eeeeee;
-        }
         
         * {
             margin: 0;
@@ -68,6 +57,67 @@
             padding: 1.25rem; /* Changed from 20px to rem */
             min-height: 100vh;
             font-size: 1rem; /* Use rem units */
+        }
+        
+        /* RTL (Right-to-Left) support for Arabic */
+        body.rtl,
+        body.rtl .container,
+        body.rtl .header,
+        body.rtl .content,
+        body.rtl .section,
+        body.rtl .section p,
+        body.rtl .section h2,
+        body.rtl .section h3,
+        body.rtl .section h4,
+        body.rtl .interactive-box,
+        body.rtl .key-points,
+        body.rtl .key-points ul,
+        body.rtl .key-points li,
+        body.rtl .quiz-section,
+        body.rtl .quiz-question,
+        body.rtl .quiz-question h4,
+        body.rtl .quiz-options,
+        body.rtl .quiz-options label,
+        body.rtl .formula,
+        body.rtl ul,
+        body.rtl ol,
+        body.rtl li,
+        body.rtl p,
+        body.rtl .input-group,
+        body.rtl .input-group label {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        body.rtl .header {
+            text-align: center;
+        }
+        
+        body.rtl .section {
+            border-left: none;
+            border-right: 0.3125rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .key-points {
+            border-left: none;
+            border-right: 0.3125rem solid #ffc107;
+        }
+        
+        body.rtl .formula {
+            border-left: none;
+            border-right: 0.25rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .quiz-options label:hover {
+            transform: translateX(-0.3125rem);
+        }
+        
+        body.rtl table,
+        body.rtl .data-table,
+        body.rtl .data-table th,
+        body.rtl .data-table td {
+            direction: rtl;
+            text-align: right;
         }
 
         .container {
@@ -86,7 +136,9 @@
             padding: 1.875rem; /* Changed from 30px to rem */
             text-align: center;
             border-bottom: 0.125rem solid var(--border, #444); /* Changed from 2px to rem */
+            position: relative;
         }
+
 
         .header h1 {
             font-size: 2.5em;
@@ -412,15 +464,15 @@
 <body class="theme-dark">
     <div class="container">
         <div class="header">
-            <h1>📊 Lab 5: Data Analysis and Graphing</h1>
-            <p>Turning Raw Data into Meaningful Results</p>
+            <h1 data-translate="pageTitle">📊 Lab 5: Data Analysis and Graphing</h1>
+            <p data-translate="pageSubtitle">Turning Raw Data into Meaningful Results</p>
         </div>
 
         <div class="content">
             <!-- Introduction -->
             <div class="section">
-                <h2><span class="icon">📚</span> Why Data Analysis Matters</h2>
-                <p>
+                <h2><span class="icon">📚</span> <span data-translate="section1Title">Why Data Analysis Matters</span></h2>
+                <p data-translate="section1Para1">
                     In any experiment, collecting data is just the first step. The real science happens when 
                     you <strong>analyze</strong> that data to find patterns, calculate important values, and 
                     draw conclusions. This lab teaches you how to turn your temperature measurements into 
@@ -428,23 +480,23 @@
                 </p>
 
                 <div class="key-points">
-                    <h4>What You'll Learn:</h4>
+                    <h4 data-translate="learnTitle">What You'll Learn:</h4>
                     <ul>
-                        <li>Calculate statistical measures (mean, standard deviation, error)</li>
-                        <li>Create professional graphs and interpret them</li>
-                        <li>Perform linear regression to find slopes and trends</li>
-                        <li>Calculate heat transfer coefficients from experimental data</li>
-                        <li>Compare experimental results to theoretical predictions</li>
-                        <li>Present data in tables and reports</li>
+                        <li data-translate="learn1">Calculate statistical measures (mean, standard deviation, error)</li>
+                        <li data-translate="learn2">Create professional graphs and interpret them</li>
+                        <li data-translate="learn3">Perform linear regression to find slopes and trends</li>
+                        <li data-translate="learn4">Calculate heat transfer coefficients from experimental data</li>
+                        <li data-translate="learn5">Compare experimental results to theoretical predictions</li>
+                        <li data-translate="learn6">Present data in tables and reports</li>
                     </ul>
                 </div>
             </div>
 
             <!-- Statistics Basics -->
             <div class="section">
-                <h2><span class="icon">📈</span> Statistical Analysis</h2>
+                <h2><span class="icon">📈</span> <span data-translate="section2Title">Statistical Analysis</span></h2>
                 
-                <h3>Key Statistical Measures</h3>
+                <h3 data-translate="section2Sub1">Key Statistical Measures</h3>
                 
                 <div class="formula">
                     <strong>Mean (Average):</strong><br>
@@ -458,15 +510,15 @@
                 </div>
 
                 <div class="interactive-box">
-                    <h4>Statistical Calculator</h4>
-                    <p>Enter your temperature measurements (comma-separated):</p>
+                    <h4 data-translate="statsCalcTitle">Statistical Calculator</h4>
+                    <p data-translate="statsCalcDesc">Enter your temperature measurements (comma-separated):</p>
                     
                     <div class="input-group">
-                        <label for="dataPoints">Data Points (e.g., 25.3, 26.1, 25.8, 26.0, 25.5):</label>
+                        <label for="dataPoints" data-translate="labelDataPoints">Data Points (e.g., 25.3, 26.1, 25.8, 26.0, 25.5):</label>
                         <input type="text" id="dataPoints" value="25.3, 26.1, 25.8, 26.0, 25.5">
                     </div>
 
-                    <button class="calculate-btn" onclick="calculateStats()">📊 Analyze Data</button>
+                    <button class="calculate-btn" onclick="calculateStats()" data-translate="btnAnalyze">📊 Analyze Data</button>
 
                     <div class="result-box" id="statsResult"></div>
                 </div>
@@ -474,9 +526,9 @@
 
             <!-- Linear Regression -->
             <div class="section">
-                <h2><span class="icon">📉</span> Linear Regression & Curve Fitting</h2>
+                <h2><span class="icon">📉</span> <span data-translate="section3Title">Linear Regression & Curve Fitting</span></h2>
                 
-                <p>
+                <p data-translate="section3Para1">
                     When you plot Temperature vs Distance, you often get a straight line (or close to it). 
                     Linear regression finds the "best fit" line through your data points and gives you its slope and intercept.
                 </p>
@@ -491,23 +543,23 @@
                 </div>
 
                 <div class="interactive-box">
-                    <h4>Linear Regression Calculator</h4>
-                    <p>Enter X (distance) and Y (temperature) data pairs:</p>
+                    <h4 data-translate="regressionTitle">Linear Regression Calculator</h4>
+                    <p data-translate="regressionDesc">Enter X (distance) and Y (temperature) data pairs:</p>
                     
                     <div class="grid-2">
                         <div class="input-group">
-                            <label for="xData">X Values (distances, comma-separated):</label>
+                            <label for="xData" data-translate="labelXData">X Values (distances, comma-separated):</label>
                             <input type="text" id="xData" value="1.5, 4.5, 7.5, 10.5, 13.5, 16.5, 19.5, 22.5">
                         </div>
 
                         <div class="input-group">
-                            <label for="yData">Y Values (temperatures, comma-separated):</label>
+                            <label for="yData" data-translate="labelYData">Y Values (temperatures, comma-separated):</label>
                             <input type="text" id="yData" value="85, 75, 65, 55, 48, 42, 37, 33">
                         </div>
                     </div>
 
-                    <button class="calculate-btn" onclick="calculateLinearRegression()">📐 Calculate Best Fit Line</button>
-                    <button class="calculate-btn" onclick="predictValue()">🔮 Predict Value</button>
+                    <button class="calculate-btn" onclick="calculateLinearRegression()" data-translate="btnBestFit">📐 Calculate Best Fit Line</button>
+                    <button class="calculate-btn" onclick="predictValue()" data-translate="btnPredict">🔮 Predict Value</button>
 
                     <div class="result-box" id="regressionResult"></div>
                 </div>
@@ -515,20 +567,20 @@
 
             <!-- Data Table Analysis -->
             <div class="section">
-                <h2><span class="icon">🗂️</span> Data Table Analysis</h2>
+                <h2><span class="icon">🗂️</span> <span data-translate="section4Title">Data Table Analysis</span></h2>
                 
                 <div class="interactive-box">
-                    <h4>Analyze Your Experimental Data</h4>
-                    <p>Enter data from your heat transfer apparatus:</p>
+                    <h4 data-translate="tableTitle">Analyze Your Experimental Data</h4>
+                    <p data-translate="tableDesc">Enter data from your heat transfer apparatus:</p>
                     
                     <table class="data-table" id="experimentTable">
                         <thead>
                             <tr>
-                                <th>Sensor</th>
-                                <th>Distance (cm)</th>
-                                <th>Temp (°C)</th>
-                                <th>ΔT from prev</th>
-                                <th>Gradient (°C/cm)</th>
+                                <th data-translate="tableSensor">Sensor</th>
+                                <th data-translate="tableDistance">Distance (cm)</th>
+                                <th data-translate="tableTemp">Temp (°C)</th>
+                                <th data-translate="tableDeltaT">ΔT from prev</th>
+                                <th data-translate="tableGradient">Gradient (°C/cm)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -591,8 +643,8 @@
                         </tbody>
                     </table>
 
-                    <button class="calculate-btn" onclick="analyzeTable()">🔍 Analyze Table</button>
-                    <button class="calculate-btn" onclick="exportCSV()">💾 Export to CSV</button>
+                    <button class="calculate-btn" onclick="analyzeTable()" data-translate="btnAnalyzeTable">🔍 Analyze Table</button>
+                    <button class="calculate-btn" onclick="exportCSV()" data-translate="btnExport">💾 Export to CSV</button>
 
                     <div class="result-box" id="tableResult"></div>
                 </div>
@@ -600,59 +652,59 @@
 
             <!-- Graphing Best Practices -->
             <div class="section">
-                <h2><span class="icon">📊</span> Creating Professional Graphs</h2>
+                <h2><span class="icon">📊</span> <span data-translate="section5Title">Creating Professional Graphs</span></h2>
                 
-                <h3>Essential Elements of a Good Graph:</h3>
+                <h3 data-translate="graphElementsTitle">Essential Elements of a Good Graph:</h3>
                 <div class="key-points">
-                    <h4>Your Graph Must Include:</h4>
+                    <h4 data-translate="graphMustInclude">Your Graph Must Include:</h4>
                     <ul>
-                        <li><strong>Title:</strong> Descriptive title (e.g., "Temperature vs Distance for Aluminum Bar")</li>
-                        <li><strong>Axis Labels:</strong> Include units! (e.g., "Distance (cm)", "Temperature (°C)")</li>
-                        <li><strong>Legend:</strong> If multiple data series, label each one</li>
-                        <li><strong>Grid Lines:</strong> Helps read values accurately</li>
-                        <li><strong>Data Points:</strong> Mark actual measurements with symbols</li>
-                        <li><strong>Best Fit Line:</strong> Show the trend if applicable</li>
-                        <li><strong>Equation:</strong> Display the line equation and R² value</li>
+                        <li data-translate="graphItem1"><strong>Title:</strong> Descriptive title (e.g., "Temperature vs Distance for Aluminum Bar")</li>
+                        <li data-translate="graphItem2"><strong>Axis Labels:</strong> Include units! (e.g., "Distance (cm)", "Temperature (°C)")</li>
+                        <li data-translate="graphItem3"><strong>Legend:</strong> If multiple data series, label each one</li>
+                        <li data-translate="graphItem4"><strong>Grid Lines:</strong> Helps read values accurately</li>
+                        <li data-translate="graphItem5"><strong>Data Points:</strong> Mark actual measurements with symbols</li>
+                        <li data-translate="graphItem6"><strong>Best Fit Line:</strong> Show the trend if applicable</li>
+                        <li data-translate="graphItem7"><strong>Equation:</strong> Display the line equation and R² value</li>
                     </ul>
                 </div>
 
-                <h3>Using Your App's Graphing Features:</h3>
-                <p style="margin-left: 20px; line-height: 1.8;">
+                <h3 data-translate="appFeaturesTitle">Using Your App's Graphing Features:</h3>
+                <p style="margin-left: 20px; line-height: 1.8;" data-translate="appFeaturesPara">
                     Your Heat Transfer App has built-in graphing tools:
                 </p>
                 <ul style="margin-left: 40px; line-height: 1.8;">
-                    <li><strong>Temperature vs Time:</strong> Main chart shows all sensors over time</li>
-                    <li><strong>Temperature vs Distance:</strong> Shows spatial temperature profile</li>
-                    <li><strong>CSV Export:</strong> Click "Start Saving" to save data for Excel/Python analysis</li>
-                    <li><strong>Open Graph:</strong> Opens separate window for detailed view</li>
+                    <li data-translate="appFeature1"><strong>Temperature vs Time:</strong> Main chart shows all sensors over time</li>
+                    <li data-translate="appFeature2"><strong>Temperature vs Distance:</strong> Shows spatial temperature profile</li>
+                    <li data-translate="appFeature3"><strong>CSV Export:</strong> Click "Start Saving" to save data for Excel/Python analysis</li>
+                    <li data-translate="appFeature4"><strong>Open Graph:</strong> Opens separate window for detailed view</li>
                 </ul>
             </div>
 
             <!-- Error Analysis -->
             <div class="section">
-                <h2><span class="icon">⚠️</span> Error Analysis & Uncertainty</h2>
+                <h2><span class="icon">⚠️</span> <span data-translate="section6Title">Error Analysis & Uncertainty</span></h2>
                 
-                <p>
+                <p data-translate="section6Para1">
                     No measurement is perfect! Understanding and quantifying errors is crucial in engineering.
                 </p>
 
-                <h3>Types of Errors:</h3>
+                <h3 data-translate="errorTypesTitle">Types of Errors:</h3>
                 <div class="grid-2">
                     <div class="stats-box">
-                        <h4>Random Errors</h4>
+                        <h4 data-translate="randomErrorsTitle">Random Errors</h4>
                         <ul style="margin-left: 20px;">
-                            <li>Unpredictable fluctuations</li>
-                            <li>Can be reduced by averaging</li>
-                            <li>Example: Temperature sensor noise</li>
+                            <li data-translate="randomError1">Unpredictable fluctuations</li>
+                            <li data-translate="randomError2">Can be reduced by averaging</li>
+                            <li data-translate="randomError3">Example: Temperature sensor noise</li>
                         </ul>
                     </div>
 
                     <div class="stats-box">
-                        <h4>Systematic Errors</h4>
+                        <h4 data-translate="systematicErrorsTitle">Systematic Errors</h4>
                         <ul style="margin-left: 20px;">
-                            <li>Consistent bias in measurements</li>
-                            <li>Require calibration to fix</li>
-                            <li>Example: Sensor offset by +2°C</li>
+                            <li data-translate="systematicError1">Consistent bias in measurements</li>
+                            <li data-translate="systematicError2">Require calibration to fix</li>
+                            <li data-translate="systematicError3">Example: Sensor offset by +2°C</li>
                         </ul>
                     </div>
                 </div>
@@ -666,79 +718,79 @@
 
             <!-- Report Writing -->
             <div class="section">
-                <h2><span class="icon">📝</span> Writing Lab Reports</h2>
+                <h2><span class="icon">📝</span> <span data-translate="section7Title">Writing Lab Reports</span></h2>
                 
                 <div class="key-points">
-                    <h4>Standard Lab Report Structure:</h4>
+                    <h4 data-translate="reportStructureTitle">Standard Lab Report Structure:</h4>
                     <ul>
-                        <li><strong>1. Title:</strong> Experiment name and date</li>
-                        <li><strong>2. Objective:</strong> What you're trying to find out</li>
-                        <li><strong>3. Theory:</strong> Relevant equations and concepts</li>
-                        <li><strong>4. Apparatus:</strong> Equipment used (your heat transfer apparatus)</li>
-                        <li><strong>5. Procedure:</strong> Step-by-step what you did</li>
-                        <li><strong>6. Data:</strong> Raw measurements in tables</li>
-                        <li><strong>7. Analysis:</strong> Calculations, graphs, processed data</li>
-                        <li><strong>8. Results:</strong> Key findings and values</li>
-                        <li><strong>9. Discussion:</strong> Interpretation and error sources</li>
-                        <li><strong>10. Conclusion:</strong> Summary and learning outcomes</li>
+                        <li data-translate="reportItem1"><strong>1. Title:</strong> Experiment name and date</li>
+                        <li data-translate="reportItem2"><strong>2. Objective:</strong> What you're trying to find out</li>
+                        <li data-translate="reportItem3"><strong>3. Theory:</strong> Relevant equations and concepts</li>
+                        <li data-translate="reportItem4"><strong>4. Apparatus:</strong> Equipment used (your heat transfer apparatus)</li>
+                        <li data-translate="reportItem5"><strong>5. Procedure:</strong> Step-by-step what you did</li>
+                        <li data-translate="reportItem6"><strong>6. Data:</strong> Raw measurements in tables</li>
+                        <li data-translate="reportItem7"><strong>7. Analysis:</strong> Calculations, graphs, processed data</li>
+                        <li data-translate="reportItem8"><strong>8. Results:</strong> Key findings and values</li>
+                        <li data-translate="reportItem9"><strong>9. Discussion:</strong> Interpretation and error sources</li>
+                        <li data-translate="reportItem10"><strong>10. Conclusion:</strong> Summary and learning outcomes</li>
                     </ul>
                 </div>
             </div>
 
             <!-- Quiz -->
             <div class="quiz-section">
-                <h2><span class="icon">✅</span> Test Your Knowledge!</h2>
+                <h2><span class="icon">✅</span> <span data-translate="quizTitle">Test Your Knowledge!</span></h2>
                 
                 <div class="quiz-question">
-                    <h4>Question 1: What does R² = 0.95 mean in linear regression?</h4>
+                    <h4 data-translate="quiz1Question">Question 1: What does R² = 0.95 mean in linear regression?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q1" value="a"> A) 95% of data points are on the line</label>
-                        <label><input type="radio" name="q1" value="b"> B) 95% of variance is explained by the line</label>
-                        <label><input type="radio" name="q1" value="c"> C) 95% error in measurements</label>
-                        <label><input type="radio" name="q1" value="d"> D) Line has 95% slope</label>
+                        <label><input type="radio" name="q1" value="a"> <span data-translate="quiz1OptionA">A) 95% of data points are on the line</span></label>
+                        <label><input type="radio" name="q1" value="b"> <span data-translate="quiz1OptionB">B) 95% of variance is explained by the line</span></label>
+                        <label><input type="radio" name="q1" value="c"> <span data-translate="quiz1OptionC">C) 95% error in measurements</span></label>
+                        <label><input type="radio" name="q1" value="d"> <span data-translate="quiz1OptionD">D) Line has 95% slope</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb1"></div>
                 </div>
 
                 <div class="quiz-question">
-                    <h4>Question 2: What's the best way to reduce random errors?</h4>
+                    <h4 data-translate="quiz2Question">Question 2: What's the best way to reduce random errors?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q2" value="a"> A) Take multiple measurements and average</label>
-                        <label><input type="radio" name="q2" value="b"> B) Use only one very careful measurement</label>
-                        <label><input type="radio" name="q2" value="c"> C) Ignore outliers</label>
-                        <label><input type="radio" name="q2" value="d"> D) Round all numbers</label>
+                        <label><input type="radio" name="q2" value="a"> <span data-translate="quiz2OptionA">A) Take multiple measurements and average</span></label>
+                        <label><input type="radio" name="q2" value="b"> <span data-translate="quiz2OptionB">B) Use only one very careful measurement</span></label>
+                        <label><input type="radio" name="q2" value="c"> <span data-translate="quiz2OptionC">C) Ignore outliers</span></label>
+                        <label><input type="radio" name="q2" value="d"> <span data-translate="quiz2OptionD">D) Round all numbers</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'a', 'fb2')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'a', 'fb2')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb2"></div>
                 </div>
 
                 <div class="quiz-question">
-                    <h4>Question 3: In Temperature vs Distance graph, what does the slope represent?</h4>
+                    <h4 data-translate="quiz3Question">Question 3: In Temperature vs Distance graph, what does the slope represent?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q3" value="a"> A) Heat flow rate</label>
-                        <label><input type="radio" name="q3" value="b"> B) Temperature gradient</label>
-                        <label><input type="radio" name="q3" value="c"> C) Thermal conductivity</label>
-                        <label><input type="radio" name="q3" value="d"> D) Time constant</label>
+                        <label><input type="radio" name="q3" value="a"> <span data-translate="quiz3OptionA">A) Heat flow rate</span></label>
+                        <label><input type="radio" name="q3" value="b"> <span data-translate="quiz3OptionB">B) Temperature gradient</span></label>
+                        <label><input type="radio" name="q3" value="c"> <span data-translate="quiz3OptionC">C) Thermal conductivity</span></label>
+                        <label><input type="radio" name="q3" value="d"> <span data-translate="quiz3OptionD">D) Time constant</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'b', 'fb3')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'b', 'fb3')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb3"></div>
                 </div>
             </div>
 
             <!-- Suggested Exercises -->
             <div class="section">
-                <h2><span class="icon">🧪</span> Practice Exercises</h2>
+                <h2><span class="icon">🧪</span> <span data-translate="section8Title">Practice Exercises</span></h2>
                 
                 <div class="key-points">
-                    <h4>Try These Data Analysis Tasks:</h4>
+                    <h4 data-translate="exercisesTitle">Try These Data Analysis Tasks:</h4>
                     <ul>
-                        <li><strong>Exercise 1:</strong> Collect 5 steady-state readings and calculate mean and standard deviation</li>
-                        <li><strong>Exercise 2:</strong> Plot Temperature vs Distance and perform linear regression</li>
-                        <li><strong>Exercise 3:</strong> Compare experimental gradient to theoretical prediction</li>
-                        <li><strong>Exercise 4:</strong> Export data to CSV and create graphs in Excel or Python</li>
-                        <li><strong>Exercise 5:</strong> Write a complete lab report for your favorite experiment</li>
-                        <li><strong>Exercise 6:</strong> Calculate percent error between two experimental runs</li>
+                        <li data-translate="exercise1"><strong>Exercise 1:</strong> Collect 5 steady-state readings and calculate mean and standard deviation</li>
+                        <li data-translate="exercise2"><strong>Exercise 2:</strong> Plot Temperature vs Distance and perform linear regression</li>
+                        <li data-translate="exercise3"><strong>Exercise 3:</strong> Compare experimental gradient to theoretical prediction</li>
+                        <li data-translate="exercise4"><strong>Exercise 4:</strong> Export data to CSV and create graphs in Excel or Python</li>
+                        <li data-translate="exercise5"><strong>Exercise 5:</strong> Write a complete lab report for your favorite experiment</li>
+                        <li data-translate="exercise6"><strong>Exercise 6:</strong> Calculate percent error between two experimental runs</li>
                     </ul>
                 </div>
             </div>
@@ -916,9 +968,661 @@
                 fb.innerHTML = '❌ Not quite - review the concepts!';
             }
         }
+        // Translation data for all languages
+        var translations = {
+            en: {
+                pageTitle: '📊 Lab 5: Data Analysis and Graphing',
+                pageSubtitle: 'Turning Raw Data into Meaningful Results',
+                section1Title: 'Why Data Analysis Matters',
+                section1Para1: 'In any experiment, collecting data is just the first step. The real science happens when you analyze that data to find patterns, calculate important values, and draw conclusions. This lab teaches you how to turn your temperature measurements into useful engineering information!',
+                learnTitle: 'What You\'ll Learn:',
+                learn1: 'Calculate statistical measures (mean, standard deviation, error)',
+                learn2: 'Create professional graphs and interpret them',
+                learn3: 'Perform linear regression to find slopes and trends',
+                learn4: 'Calculate heat transfer coefficients from experimental data',
+                learn5: 'Compare experimental results to theoretical predictions',
+                learn6: 'Present data in tables and reports',
+                section2Title: 'Statistical Analysis',
+                section2Sub1: 'Key Statistical Measures',
+                statsCalcTitle: 'Statistical Calculator',
+                statsCalcDesc: 'Enter your temperature measurements (comma-separated):',
+                labelDataPoints: 'Data Points (e.g., 25.3, 26.1, 25.8, 26.0, 25.5):',
+                btnAnalyze: '📊 Analyze Data',
+                section3Title: 'Linear Regression & Curve Fitting',
+                section3Para1: 'When you plot Temperature vs Distance, you often get a straight line (or close to it). Linear regression finds the "best fit" line through your data points and gives you its slope and intercept.',
+                regressionTitle: 'Linear Regression Calculator',
+                regressionDesc: 'Enter X (distance) and Y (temperature) data pairs:',
+                labelXData: 'X Values (distances, comma-separated):',
+                labelYData: 'Y Values (temperatures, comma-separated):',
+                btnBestFit: '📐 Calculate Best Fit Line',
+                btnPredict: '🔮 Predict Value',
+                section4Title: 'Data Table Analysis',
+                tableTitle: 'Analyze Your Experimental Data',
+                tableDesc: 'Enter data from your heat transfer apparatus:',
+                tableSensor: 'Sensor',
+                tableDistance: 'Distance (cm)',
+                tableTemp: 'Temp (°C)',
+                tableDeltaT: 'ΔT from prev',
+                tableGradient: 'Gradient (°C/cm)',
+                btnAnalyzeTable: '🔍 Analyze Table',
+                btnExport: '💾 Export to CSV',
+                section5Title: 'Creating Professional Graphs',
+                graphElementsTitle: 'Essential Elements of a Good Graph:',
+                graphMustInclude: 'Your Graph Must Include:',
+                graphItem1: 'Title: Descriptive title (e.g., "Temperature vs Distance for Aluminum Bar")',
+                graphItem2: 'Axis Labels: Include units! (e.g., "Distance (cm)", "Temperature (°C)")',
+                graphItem3: 'Legend: If multiple data series, label each one',
+                graphItem4: 'Grid Lines: Helps read values accurately',
+                graphItem5: 'Data Points: Mark actual measurements with symbols',
+                graphItem6: 'Best Fit Line: Show the trend if applicable',
+                graphItem7: 'Equation: Display the line equation and R² value',
+                appFeaturesTitle: 'Using Your App\'s Graphing Features:',
+                appFeaturesPara: 'Your Heat Transfer App has built-in graphing tools:',
+                appFeature1: 'Temperature vs Time: Main chart shows all sensors over time',
+                appFeature2: 'Temperature vs Distance: Shows spatial temperature profile',
+                appFeature3: 'CSV Export: Click "Start Saving" to save data for Excel/Python analysis',
+                appFeature4: 'Open Graph: Opens separate window for detailed view',
+                section6Title: 'Error Analysis & Uncertainty',
+                section6Para1: 'No measurement is perfect! Understanding and quantifying errors is crucial in engineering.',
+                errorTypesTitle: 'Types of Errors:',
+                randomErrorsTitle: 'Random Errors',
+                randomError1: 'Unpredictable fluctuations',
+                randomError2: 'Can be reduced by averaging',
+                randomError3: 'Example: Temperature sensor noise',
+                systematicErrorsTitle: 'Systematic Errors',
+                systematicError1: 'Consistent bias in measurements',
+                systematicError2: 'Require calibration to fix',
+                systematicError3: 'Example: Sensor offset by +2°C',
+                section7Title: 'Writing Lab Reports',
+                reportStructureTitle: 'Standard Lab Report Structure:',
+                reportItem1: '1. Title: Experiment name and date',
+                reportItem2: '2. Objective: What you\'re trying to find out',
+                reportItem3: '3. Theory: Relevant equations and concepts',
+                reportItem4: '4. Apparatus: Equipment used (your heat transfer apparatus)',
+                reportItem5: '5. Procedure: Step-by-step what you did',
+                reportItem6: '6. Data: Raw measurements in tables',
+                reportItem7: '7. Analysis: Calculations, graphs, processed data',
+                reportItem8: '8. Results: Key findings and values',
+                reportItem9: '9. Discussion: Interpretation and error sources',
+                reportItem10: '10. Conclusion: Summary and learning outcomes',
+                quizTitle: 'Test Your Knowledge!',
+                quiz1Question: 'Question 1: What does R² = 0.95 mean in linear regression?',
+                quiz1OptionA: 'A) 95% of data points are on the line',
+                quiz1OptionB: 'B) 95% of variance is explained by the line',
+                quiz1OptionC: 'C) 95% error in measurements',
+                quiz1OptionD: 'D) Line has 95% slope',
+                quiz2Question: 'Question 2: What\'s the best way to reduce random errors?',
+                quiz2OptionA: 'A) Take multiple measurements and average',
+                quiz2OptionB: 'B) Use only one very careful measurement',
+                quiz2OptionC: 'C) Ignore outliers',
+                quiz2OptionD: 'D) Round all numbers',
+                quiz3Question: 'Question 3: In Temperature vs Distance graph, what does the slope represent?',
+                quiz3OptionA: 'A) Heat flow rate',
+                quiz3OptionB: 'B) Temperature gradient',
+                quiz3OptionC: 'C) Thermal conductivity',
+                quiz3OptionD: 'D) Time constant',
+                checkAnswerBtn: 'Check Answer',
+                section8Title: 'Practice Exercises',
+                exercisesTitle: 'Try These Data Analysis Tasks:',
+                exercise1: 'Exercise 1: Collect 5 steady-state readings and calculate mean and standard deviation',
+                exercise2: 'Exercise 2: Plot Temperature vs Distance and perform linear regression',
+                exercise3: 'Exercise 3: Compare experimental gradient to theoretical prediction',
+                exercise4: 'Exercise 4: Export data to CSV and create graphs in Excel or Python',
+                exercise5: 'Exercise 5: Write a complete lab report for your favorite experiment',
+                exercise6: 'Exercise 6: Calculate percent error between two experimental runs'
+            },
+            fr: {
+                pageTitle: '📊 Laboratoire 5: Analyse de Données et Graphiques',
+                pageSubtitle: 'Transformer les Données Brutes en Résultats Significatifs',
+                section1Title: 'Pourquoi l\'Analyse de Données est Importante',
+                section1Para1: 'Dans toute expérience, collecter des données n\'est que la première étape. La vraie science se produit lorsque vous analysez ces données pour trouver des modèles, calculer des valeurs importantes et tirer des conclusions. Ce laboratoire vous apprend à transformer vos mesures de température en informations techniques utiles!',
+                learnTitle: 'Ce Que Vous Apprendrez:',
+                learn1: 'Calculer des mesures statistiques (moyenne, écart-type, erreur)',
+                learn2: 'Créer des graphiques professionnels et les interpréter',
+                learn3: 'Effectuer une régression linéaire pour trouver les pentes et tendances',
+                learn4: 'Calculer les coefficients de transfert de chaleur à partir de données expérimentales',
+                learn5: 'Comparer les résultats expérimentaux aux prédictions théoriques',
+                learn6: 'Présenter des données dans des tableaux et rapports',
+                section2Title: 'Analyse Statistique',
+                section2Sub1: 'Mesures Statistiques Clés',
+                statsCalcTitle: 'Calculateur Statistique',
+                statsCalcDesc: 'Entrez vos mesures de température (séparées par des virgules):',
+                labelDataPoints: 'Points de Données (ex: 25.3, 26.1, 25.8, 26.0, 25.5):',
+                btnAnalyze: '📊 Analyser les Données',
+                section3Title: 'Régression Linéaire et Ajustement de Courbe',
+                section3Para1: 'Lorsque vous tracez Température vs Distance, vous obtenez souvent une ligne droite (ou proche). La régression linéaire trouve la ligne de "meilleur ajustement" à travers vos points de données et vous donne sa pente et son ordonnée à l\'origine.',
+                regressionTitle: 'Calculateur de Régression Linéaire',
+                regressionDesc: 'Entrez des paires de données X (distance) et Y (température):',
+                labelXData: 'Valeurs X (distances, séparées par des virgules):',
+                labelYData: 'Valeurs Y (températures, séparées par des virgules):',
+                btnBestFit: '📐 Calculer la Ligne de Meilleur Ajustement',
+                btnPredict: '🔮 Prédire une Valeur',
+                section4Title: 'Analyse de Tableau de Données',
+                tableTitle: 'Analyser Vos Données Expérimentales',
+                tableDesc: 'Entrez les données de votre appareil de transfert de chaleur:',
+                tableSensor: 'Capteur',
+                tableDistance: 'Distance (cm)',
+                tableTemp: 'Temp (°C)',
+                tableDeltaT: 'ΔT depuis précédent',
+                tableGradient: 'Gradient (°C/cm)',
+                btnAnalyzeTable: '🔍 Analyser le Tableau',
+                btnExport: '💾 Exporter en CSV',
+                section5Title: 'Créer des Graphiques Professionnels',
+                graphElementsTitle: 'Éléments Essentiels d\'un Bon Graphique:',
+                graphMustInclude: 'Votre Graphique Doit Inclure:',
+                graphItem1: 'Titre: Titre descriptif (ex: "Température vs Distance pour Barre d\'Aluminium")',
+                graphItem2: 'Étiquettes d\'Axe: Incluez les unités! (ex: "Distance (cm)", "Température (°C)")',
+                graphItem3: 'Légende: Si plusieurs séries de données, étiquetez chacune',
+                graphItem4: 'Lignes de Grille: Aide à lire les valeurs avec précision',
+                graphItem5: 'Points de Données: Marquez les mesures réelles avec des symboles',
+                graphItem6: 'Ligne de Meilleur Ajustement: Montrez la tendance si applicable',
+                graphItem7: 'Équation: Affichez l\'équation de la ligne et la valeur R²',
+                appFeaturesTitle: 'Utiliser les Fonctionnalités de Graphique de Votre App:',
+                appFeaturesPara: 'Votre Application de Transfert de Chaleur a des outils de graphique intégrés:',
+                appFeature1: 'Température vs Temps: Le graphique principal montre tous les capteurs au fil du temps',
+                appFeature2: 'Température vs Distance: Montre le profil spatial de température',
+                appFeature3: 'Export CSV: Cliquez sur "Start Saving" pour sauvegarder les données pour analyse Excel/Python',
+                appFeature4: 'Ouvrir Graphique: Ouvre une fenêtre séparée pour vue détaillée',
+                section6Title: 'Analyse d\'Erreur et Incertitude',
+                section6Para1: 'Aucune mesure n\'est parfaite! Comprendre et quantifier les erreurs est crucial en ingénierie.',
+                errorTypesTitle: 'Types d\'Erreurs:',
+                randomErrorsTitle: 'Erreurs Aléatoires',
+                randomError1: 'Fluctuations imprévisibles',
+                randomError2: 'Peut être réduit par moyenne',
+                randomError3: 'Exemple: Bruit du capteur de température',
+                systematicErrorsTitle: 'Erreurs Systématiques',
+                systematicError1: 'Biais cohérent dans les mesures',
+                systematicError2: 'Nécessitent un étalonnage pour corriger',
+                systematicError3: 'Exemple: Décalage du capteur de +2°C',
+                section7Title: 'Rédaction de Rapports de Laboratoire',
+                reportStructureTitle: 'Structure Standard de Rapport de Laboratoire:',
+                reportItem1: '1. Titre: Nom de l\'expérience et date',
+                reportItem2: '2. Objectif: Ce que vous essayez de découvrir',
+                reportItem3: '3. Théorie: Équations et concepts pertinents',
+                reportItem4: '4. Appareil: Équipement utilisé (votre appareil de transfert de chaleur)',
+                reportItem5: '5. Procédure: Étape par étape ce que vous avez fait',
+                reportItem6: '6. Données: Mesures brutes dans des tableaux',
+                reportItem7: '7. Analyse: Calculs, graphiques, données traitées',
+                reportItem8: '8. Résultats: Découvertes et valeurs clés',
+                reportItem9: '9. Discussion: Interprétation et sources d\'erreur',
+                reportItem10: '10. Conclusion: Résumé et résultats d\'apprentissage',
+                quizTitle: 'Testez Vos Connaissances!',
+                quiz1Question: 'Question 1: Que signifie R² = 0.95 dans la régression linéaire?',
+                quiz1OptionA: 'A) 95% des points de données sont sur la ligne',
+                quiz1OptionB: 'B) 95% de la variance est expliquée par la ligne',
+                quiz1OptionC: 'C) 95% d\'erreur dans les mesures',
+                quiz1OptionD: 'D) La ligne a une pente de 95%',
+                quiz2Question: 'Question 2: Quelle est la meilleure façon de réduire les erreurs aléatoires?',
+                quiz2OptionA: 'A) Prendre plusieurs mesures et faire la moyenne',
+                quiz2OptionB: 'B) Utiliser une seule mesure très soigneuse',
+                quiz2OptionC: 'C) Ignorer les valeurs aberrantes',
+                quiz2OptionD: 'D) Arrondir tous les nombres',
+                quiz3Question: 'Question 3: Dans le graphique Température vs Distance, que représente la pente?',
+                quiz3OptionA: 'A) Taux de flux de chaleur',
+                quiz3OptionB: 'B) Gradient de température',
+                quiz3OptionC: 'C) Conductivité thermique',
+                quiz3OptionD: 'D) Constante de temps',
+                checkAnswerBtn: 'Vérifier la Réponse',
+                section8Title: 'Exercices Pratiques',
+                exercisesTitle: 'Essayez Ces Tâches d\'Analyse de Données:',
+                exercise1: 'Exercice 1: Collecter 5 lectures à l\'état stable et calculer la moyenne et l\'écart-type',
+                exercise2: 'Exercice 2: Tracer Température vs Distance et effectuer une régression linéaire',
+                exercise3: 'Exercice 3: Comparer le gradient expérimental à la prédiction théorique',
+                exercise4: 'Exercice 4: Exporter les données en CSV et créer des graphiques dans Excel ou Python',
+                exercise5: 'Exercice 5: Rédiger un rapport de laboratoire complet pour votre expérience préférée',
+                exercise6: 'Exercice 6: Calculer l\'erreur en pourcentage entre deux exécutions expérimentales'
+            },
+            de: {
+                pageTitle: '📊 Labor 5: Datenanalyse und Diagramme',
+                pageSubtitle: 'Rohdaten in Bedeutungsvolle Ergebnisse Umwandeln',
+                section1Title: 'Warum Datenanalyse Wichtig Ist',
+                section1Para1: 'Bei jedem Experiment ist das Sammeln von Daten nur der erste Schritt. Die echte Wissenschaft passiert, wenn Sie diese Daten analysieren, um Muster zu finden, wichtige Werte zu berechnen und Schlussfolgerungen zu ziehen. Dieses Labor lehrt Sie, wie Sie Ihre Temperaturmessungen in nützliche technische Informationen umwandeln!',
+                learnTitle: 'Was Sie Lernen Werden:',
+                learn1: 'Statistische Maße berechnen (Mittelwert, Standardabweichung, Fehler)',
+                learn2: 'Professionelle Diagramme erstellen und interpretieren',
+                learn3: 'Lineare Regression durchführen, um Steigungen und Trends zu finden',
+                learn4: 'Wärmeübertragungskoeffizienten aus experimentellen Daten berechnen',
+                learn5: 'Experimentelle Ergebnisse mit theoretischen Vorhersagen vergleichen',
+                learn6: 'Daten in Tabellen und Berichten präsentieren',
+                section2Title: 'Statistische Analyse',
+                section2Sub1: 'Wichtige Statistische Maße',
+                statsCalcTitle: 'Statistikrechner',
+                statsCalcDesc: 'Geben Sie Ihre Temperaturmessungen ein (kommagetrennt):',
+                labelDataPoints: 'Datenpunkte (z.B. 25.3, 26.1, 25.8, 26.0, 25.5):',
+                btnAnalyze: '📊 Daten Analysieren',
+                section3Title: 'Lineare Regression und Kurvenanpassung',
+                section3Para1: 'Wenn Sie Temperatur vs Abstand auftragen, erhalten Sie oft eine gerade Linie (oder nahe daran). Lineare Regression findet die "beste Anpassungslinie" durch Ihre Datenpunkte und gibt Ihnen ihre Steigung und ihren Achsenabschnitt.',
+                regressionTitle: 'Lineare Regressionsrechner',
+                regressionDesc: 'Geben Sie X (Abstand) und Y (Temperatur) Datenpaare ein:',
+                labelXData: 'X-Werte (Abstände, kommagetrennt):',
+                labelYData: 'Y-Werte (Temperaturen, kommagetrennt):',
+                btnBestFit: '📐 Beste Anpassungslinie Berechnen',
+                btnPredict: '🔮 Wert Vorhersagen',
+                section4Title: 'Daten-Tabellenanalyse',
+                tableTitle: 'Analysieren Sie Ihre Experimentellen Daten',
+                tableDesc: 'Geben Sie Daten von Ihrem Wärmeübertragungsgerät ein:',
+                tableSensor: 'Sensor',
+                tableDistance: 'Abstand (cm)',
+                tableTemp: 'Temp (°C)',
+                tableDeltaT: 'ΔT vom vorherigen',
+                tableGradient: 'Gradient (°C/cm)',
+                btnAnalyzeTable: '🔍 Tabelle Analysieren',
+                btnExport: '💾 Nach CSV Exportieren',
+                section5Title: 'Professionelle Diagramme Erstellen',
+                graphElementsTitle: 'Wesentliche Elemente eines Guten Diagramms:',
+                graphMustInclude: 'Ihr Diagramm Muss Enthalten:',
+                graphItem1: 'Titel: Beschreibender Titel (z.B. "Temperatur vs Abstand für Aluminiumstange")',
+                graphItem2: 'Achsenbeschriftungen: Einheiten angeben! (z.B. "Abstand (cm)", "Temperatur (°C)")',
+                graphItem3: 'Legende: Bei mehreren Datenserien jede beschriften',
+                graphItem4: 'Gitternetzlinien: Hilft Werte genau zu lesen',
+                graphItem5: 'Datenpunkte: Tatsächliche Messungen mit Symbolen markieren',
+                graphItem6: 'Beste Anpassungslinie: Trend zeigen, falls anwendbar',
+                graphItem7: 'Gleichung: Liniengleichung und R²-Wert anzeigen',
+                appFeaturesTitle: 'Verwenden der Diagrammfunktionen Ihrer App:',
+                appFeaturesPara: 'Ihre Wärmeübertragungs-App hat integrierte Diagrammtools:',
+                appFeature1: 'Temperatur vs Zeit: Hauptdiagramm zeigt alle Sensoren über die Zeit',
+                appFeature2: 'Temperatur vs Abstand: Zeigt räumliches Temperaturprofil',
+                appFeature3: 'CSV-Export: Klicken Sie auf "Start Saving", um Daten für Excel/Python-Analyse zu speichern',
+                appFeature4: 'Diagramm Öffnen: Öffnet separates Fenster für detaillierte Ansicht',
+                section6Title: 'Fehleranalyse und Unsicherheit',
+                section6Para1: 'Keine Messung ist perfekt! Fehler zu verstehen und zu quantifizieren ist in der Technik entscheidend.',
+                errorTypesTitle: 'Arten von Fehlern:',
+                randomErrorsTitle: 'Zufällige Fehler',
+                randomError1: 'Unvorhersehbare Schwankungen',
+                randomError2: 'Kann durch Mittelung reduziert werden',
+                randomError3: 'Beispiel: Temperatursensorrauschen',
+                systematicErrorsTitle: 'Systematische Fehler',
+                systematicError1: 'Konsistente Verzerrung in Messungen',
+                systematicError2: 'Erfordern Kalibrierung zur Behebung',
+                systematicError3: 'Beispiel: Sensor um +2°C versetzt',
+                section7Title: 'Laborberichte Schreiben',
+                reportStructureTitle: 'Standard Laborberichtsstruktur:',
+                reportItem1: '1. Titel: Experimentname und Datum',
+                reportItem2: '2. Ziel: Was Sie herausfinden wollen',
+                reportItem3: '3. Theorie: Relevante Gleichungen und Konzepte',
+                reportItem4: '4. Gerät: Verwendete Ausrüstung (Ihr Wärmeübertragungsgerät)',
+                reportItem5: '5. Verfahren: Schritt für Schritt was Sie getan haben',
+                reportItem6: '6. Daten: Rohe Messungen in Tabellen',
+                reportItem7: '7. Analyse: Berechnungen, Diagramme, verarbeitete Daten',
+                reportItem8: '8. Ergebnisse: Wichtige Erkenntnisse und Werte',
+                reportItem9: '9. Diskussion: Interpretation und Fehlerquellen',
+                reportItem10: '10. Schlussfolgerung: Zusammenfassung und Lernergebnisse',
+                quizTitle: 'Testen Sie Ihr Wissen!',
+                quiz1Question: 'Frage 1: Was bedeutet R² = 0.95 in linearer Regression?',
+                quiz1OptionA: 'A) 95% der Datenpunkte sind auf der Linie',
+                quiz1OptionB: 'B) 95% der Varianz wird durch die Linie erklärt',
+                quiz1OptionC: 'C) 95% Fehler in Messungen',
+                quiz1OptionD: 'D) Linie hat 95% Steigung',
+                quiz2Question: 'Frage 2: Was ist der beste Weg, um zufällige Fehler zu reduzieren?',
+                quiz2OptionA: 'A) Mehrere Messungen nehmen und mitteln',
+                quiz2OptionB: 'B) Nur eine sehr sorgfältige Messung verwenden',
+                quiz2OptionC: 'C) Ausreißer ignorieren',
+                quiz2OptionD: 'D) Alle Zahlen runden',
+                quiz3Question: 'Frage 3: Im Diagramm Temperatur vs Abstand, was stellt die Steigung dar?',
+                quiz3OptionA: 'A) Wärmeflussrate',
+                quiz3OptionB: 'B) Temperaturgradient',
+                quiz3OptionC: 'C) Wärmeleitfähigkeit',
+                quiz3OptionD: 'D) Zeitkonstante',
+                checkAnswerBtn: 'Antwort Überprüfen',
+                section8Title: 'Übungsaufgaben',
+                exercisesTitle: 'Versuchen Sie Diese Datenanalysaufgaben:',
+                exercise1: 'Übung 1: Sammeln Sie 5 stationäre Messwerte und berechnen Sie Mittelwert und Standardabweichung',
+                exercise2: 'Übung 2: Zeichnen Sie Temperatur vs Abstand und führen Sie lineare Regression durch',
+                exercise3: 'Übung 3: Vergleichen Sie experimentellen Gradienten mit theoretischer Vorhersage',
+                exercise4: 'Übung 4: Exportieren Sie Daten nach CSV und erstellen Sie Diagramme in Excel oder Python',
+                exercise5: 'Übung 5: Schreiben Sie einen vollständigen Laborbericht für Ihr Lieblingsexperiment',
+                exercise6: 'Übung 6: Berechnen Sie Prozentfehler zwischen zwei experimentellen Durchläufen'
+            },
+            es: {
+                pageTitle: '📊 Laboratorio 5: Análisis de Datos y Gráficos',
+                pageSubtitle: 'Convertir Datos en Bruto en Resultados Significativos',
+                section1Title: 'Por Qué Importa el Análisis de Datos',
+                section1Para1: 'En cualquier experimento, recopilar datos es solo el primer paso. La verdadera ciencia ocurre cuando analiza esos datos para encontrar patrones, calcular valores importantes y sacar conclusiones. ¡Este laboratorio le enseña cómo convertir sus mediciones de temperatura en información de ingeniería útil!',
+                learnTitle: 'Lo Que Aprenderá:',
+                learn1: 'Calcular medidas estadísticas (media, desviación estándar, error)',
+                learn2: 'Crear gráficos profesionales e interpretarlos',
+                learn3: 'Realizar regresión lineal para encontrar pendientes y tendencias',
+                learn4: 'Calcular coeficientes de transferencia de calor a partir de datos experimentales',
+                learn5: 'Comparar resultados experimentales con predicciones teóricas',
+                learn6: 'Presentar datos en tablas e informes',
+                section2Title: 'Análisis Estadístico',
+                section2Sub1: 'Medidas Estadísticas Clave',
+                statsCalcTitle: 'Calculadora Estadística',
+                statsCalcDesc: 'Ingrese sus mediciones de temperatura (separadas por comas):',
+                labelDataPoints: 'Puntos de Datos (ej: 25.3, 26.1, 25.8, 26.0, 25.5):',
+                btnAnalyze: '📊 Analizar Datos',
+                section3Title: 'Regresión Lineal y Ajuste de Curvas',
+                section3Para1: 'Cuando traza Temperatura vs Distancia, a menudo obtiene una línea recta (o cerca). La regresión lineal encuentra la línea de "mejor ajuste" a través de sus puntos de datos y le da su pendiente e intersección.',
+                regressionTitle: 'Calculadora de Regresión Lineal',
+                regressionDesc: 'Ingrese pares de datos X (distancia) e Y (temperatura):',
+                labelXData: 'Valores X (distancias, separados por comas):',
+                labelYData: 'Valores Y (temperaturas, separados por comas):',
+                btnBestFit: '📐 Calcular Línea de Mejor Ajuste',
+                btnPredict: '🔮 Predecir Valor',
+                section4Title: 'Análisis de Tabla de Datos',
+                tableTitle: 'Analice Sus Datos Experimentales',
+                tableDesc: 'Ingrese datos de su aparato de transferencia de calor:',
+                tableSensor: 'Sensor',
+                tableDistance: 'Distancia (cm)',
+                tableTemp: 'Temp (°C)',
+                tableDeltaT: 'ΔT desde anterior',
+                tableGradient: 'Gradiente (°C/cm)',
+                btnAnalyzeTable: '🔍 Analizar Tabla',
+                btnExport: '💾 Exportar a CSV',
+                section5Title: 'Crear Gráficos Profesionales',
+                graphElementsTitle: 'Elementos Esenciales de un Buen Gráfico:',
+                graphMustInclude: 'Su Gráfico Debe Incluir:',
+                graphItem1: 'Título: Título descriptivo (ej: "Temperatura vs Distancia para Barra de Aluminio")',
+                graphItem2: 'Etiquetas de Eje: ¡Incluya unidades! (ej: "Distancia (cm)", "Temperatura (°C)")',
+                graphItem3: 'Leyenda: Si múltiples series de datos, etiquete cada una',
+                graphItem4: 'Líneas de Cuadrícula: Ayuda a leer valores con precisión',
+                graphItem5: 'Puntos de Datos: Marque mediciones reales con símbolos',
+                graphItem6: 'Línea de Mejor Ajuste: Muestre la tendencia si es aplicable',
+                graphItem7: 'Ecuación: Muestre la ecuación de la línea y el valor R²',
+                appFeaturesTitle: 'Usando las Características de Gráficos de Su App:',
+                appFeaturesPara: 'Su Aplicación de Transferencia de Calor tiene herramientas de gráficos integradas:',
+                appFeature1: 'Temperatura vs Tiempo: El gráfico principal muestra todos los sensores a lo largo del tiempo',
+                appFeature2: 'Temperatura vs Distancia: Muestra perfil espacial de temperatura',
+                appFeature3: 'Exportar CSV: Haga clic en "Start Saving" para guardar datos para análisis Excel/Python',
+                appFeature4: 'Abrir Gráfico: Abre ventana separada para vista detallada',
+                section6Title: 'Análisis de Errores e Incertidumbre',
+                section6Para1: '¡Ninguna medición es perfecta! Entender y cuantificar errores es crucial en ingeniería.',
+                errorTypesTitle: 'Tipos de Errores:',
+                randomErrorsTitle: 'Errores Aleatorios',
+                randomError1: 'Fluctuaciones impredecibles',
+                randomError2: 'Puede reducirse promediando',
+                randomError3: 'Ejemplo: Ruido del sensor de temperatura',
+                systematicErrorsTitle: 'Errores Sistemáticos',
+                systematicError1: 'Sesgo consistente en mediciones',
+                systematicError2: 'Requieren calibración para corregir',
+                systematicError3: 'Ejemplo: Sensor desplazado por +2°C',
+                section7Title: 'Escribir Informes de Laboratorio',
+                reportStructureTitle: 'Estructura Estándar de Informe de Laboratorio:',
+                reportItem1: '1. Título: Nombre del experimento y fecha',
+                reportItem2: '2. Objetivo: Lo que está tratando de descubrir',
+                reportItem3: '3. Teoría: Ecuaciones y conceptos relevantes',
+                reportItem4: '4. Aparato: Equipo usado (su aparato de transferencia de calor)',
+                reportItem5: '5. Procedimiento: Paso a paso lo que hizo',
+                reportItem6: '6. Datos: Mediciones en bruto en tablas',
+                reportItem7: '7. Análisis: Cálculos, gráficos, datos procesados',
+                reportItem8: '8. Resultados: Hallazgos y valores clave',
+                reportItem9: '9. Discusión: Interpretación y fuentes de error',
+                reportItem10: '10. Conclusión: Resumen y resultados de aprendizaje',
+                quizTitle: '¡Pruebe Sus Conocimientos!',
+                quiz1Question: 'Pregunta 1: ¿Qué significa R² = 0.95 en regresión lineal?',
+                quiz1OptionA: 'A) 95% de los puntos de datos están en la línea',
+                quiz1OptionB: 'B) 95% de la varianza es explicada por la línea',
+                quiz1OptionC: 'C) 95% de error en mediciones',
+                quiz1OptionD: 'D) La línea tiene 95% de pendiente',
+                quiz2Question: 'Pregunta 2: ¿Cuál es la mejor manera de reducir errores aleatorios?',
+                quiz2OptionA: 'A) Tomar múltiples mediciones y promediar',
+                quiz2OptionB: 'B) Usar solo una medición muy cuidadosa',
+                quiz2OptionC: 'C) Ignorar valores atípicos',
+                quiz2OptionD: 'D) Redondear todos los números',
+                quiz3Question: 'Pregunta 3: En el gráfico Temperatura vs Distancia, ¿qué representa la pendiente?',
+                quiz3OptionA: 'A) Tasa de flujo de calor',
+                quiz3OptionB: 'B) Gradiente de temperatura',
+                quiz3OptionC: 'C) Conductividad térmica',
+                quiz3OptionD: 'D) Constante de tiempo',
+                checkAnswerBtn: 'Verificar Respuesta',
+                section8Title: 'Ejercicios de Práctica',
+                exercisesTitle: 'Pruebe Estas Tareas de Análisis de Datos:',
+                exercise1: 'Ejercicio 1: Recopile 5 lecturas en estado estable y calcule media y desviación estándar',
+                exercise2: 'Ejercicio 2: Trace Temperatura vs Distancia y realice regresión lineal',
+                exercise3: 'Ejercicio 3: Compare gradiente experimental con predicción teórica',
+                exercise4: 'Ejercicio 4: Exporte datos a CSV y cree gráficos en Excel o Python',
+                exercise5: 'Ejercicio 5: Escriba un informe de laboratorio completo para su experimento favorito',
+                exercise6: 'Ejercicio 6: Calcule error porcentual entre dos ejecuciones experimentales'
+            },
+            nl: {
+                pageTitle: '📊 Lab 5: Data-analyse en Grafieken',
+                pageSubtitle: 'Ruwe Gegevens Omzetten in Betekenisvolle Resultaten',
+                section1Title: 'Waarom Data-analyse Belangrijk Is',
+                section1Para1: 'In elk experiment is het verzamelen van gegevens slechts de eerste stap. De echte wetenschap gebeurt wanneer u die gegevens analyseert om patronen te vinden, belangrijke waarden te berekenen en conclusies te trekken. Dit lab leert u hoe u uw temperatuurmetingen omzet in nuttige technische informatie!',
+                learnTitle: 'Wat U Zult Leren:',
+                learn1: 'Statistische maatstaven berekenen (gemiddelde, standaarddeviatie, fout)',
+                learn2: 'Professionele grafieken maken en interpreteren',
+                learn3: 'Lineaire regressie uitvoeren om hellingen en trends te vinden',
+                learn4: 'Warmteoverdrachtscoëfficiënten berekenen uit experimentele gegevens',
+                learn5: 'Experimentele resultaten vergelijken met theoretische voorspellingen',
+                learn6: 'Gegevens presenteren in tabellen en rapporten',
+                section2Title: 'Statistische Analyse',
+                section2Sub1: 'Belangrijke Statistische Maatstaven',
+                statsCalcTitle: 'Statistische Calculator',
+                statsCalcDesc: 'Voer uw temperatuurmetingen in (gescheiden door komma\'s):',
+                labelDataPoints: 'Gegevenspunten (bijv. 25.3, 26.1, 25.8, 26.0, 25.5):',
+                btnAnalyze: '📊 Analyseer Gegevens',
+                section3Title: 'Lineaire Regressie en Curve Fitting',
+                section3Para1: 'Wanneer u Temperatuur vs Afstand uitzet, krijgt u vaak een rechte lijn (of dichtbij). Lineaire regressie vindt de "beste paslijn" door uw gegevenspunten en geeft u de helling en het snijpunt.',
+                regressionTitle: 'Lineaire Regressie Calculator',
+                regressionDesc: 'Voer X (afstand) en Y (temperatuur) gegevensparen in:',
+                labelXData: 'X-waarden (afstanden, komma-gescheiden):',
+                labelYData: 'Y-waarden (temperaturen, komma-gescheiden):',
+                btnBestFit: '📐 Bereken Beste Paslijn',
+                btnPredict: '🔮 Voorspel Waarde',
+                section4Title: 'Gegevens Tabel Analyse',
+                tableTitle: 'Analyseer Uw Experimentele Gegevens',
+                tableDesc: 'Voer gegevens in van uw warmteoverdrachtapparaat:',
+                tableSensor: 'Sensor',
+                tableDistance: 'Afstand (cm)',
+                tableTemp: 'Temp (°C)',
+                tableDeltaT: 'ΔT van vorige',
+                tableGradient: 'Gradiënt (°C/cm)',
+                btnAnalyzeTable: '🔍 Analyseer Tabel',
+                btnExport: '💾 Exporteer naar CSV',
+                section5Title: 'Professionele Grafieken Maken',
+                graphElementsTitle: 'Essentiële Elementen van een Goede Grafiek:',
+                graphMustInclude: 'Uw Grafiek Moet Bevatten:',
+                graphItem1: 'Titel: Beschrijvende titel (bijv. "Temperatuur vs Afstand voor Aluminiumstaaf")',
+                graphItem2: 'Aslabels: Voeg eenheden toe! (bijv. "Afstand (cm)", "Temperatuur (°C)")',
+                graphItem3: 'Legenda: Als meerdere gegevensreeksen, label elk',
+                graphItem4: 'Rasterlijnen: Helpt waarden nauwkeurig te lezen',
+                graphItem5: 'Gegevenspunten: Markeer werkelijke metingen met symbolen',
+                graphItem6: 'Beste Paslijn: Toon de trend indien van toepassing',
+                graphItem7: 'Vergelijking: Toon de lijnvergelijking en R²-waarde',
+                appFeaturesTitle: 'Gebruikmaken van Grafiekfuncties van Uw App:',
+                appFeaturesPara: 'Uw Warmteoverdracht App heeft ingebouwde grafiekgereedschappen:',
+                appFeature1: 'Temperatuur vs Tijd: Hoofdgrafiek toont alle sensoren in de tijd',
+                appFeature2: 'Temperatuur vs Afstand: Toont ruimtelijk temperatuurprofiel',
+                appFeature3: 'CSV Export: Klik op "Start Saving" om gegevens op te slaan voor Excel/Python-analyse',
+                appFeature4: 'Open Grafiek: Opent apart venster voor gedetailleerde weergave',
+                section6Title: 'Foutanalyse en Onzekerheid',
+                section6Para1: 'Geen meting is perfect! Fouten begrijpen en kwantificeren is cruciaal in de techniek.',
+                errorTypesTitle: 'Soorten Fouten:',
+                randomErrorsTitle: 'Willekeurige Fouten',
+                randomError1: 'Onvoorspelbare fluctuaties',
+                randomError2: 'Kan worden verminderd door middeling',
+                randomError3: 'Voorbeeld: Temperatuursensorruis',
+                systematicErrorsTitle: 'Systematische Fouten',
+                systematicError1: 'Consistente bias in metingen',
+                systematicError2: 'Vereisen kalibratie om te repareren',
+                systematicError3: 'Voorbeeld: Sensor verschoven met +2°C',
+                section7Title: 'Labrapporten Schrijven',
+                reportStructureTitle: 'Standaard Labrapportstructuur:',
+                reportItem1: '1. Titel: Experimentnaam en datum',
+                reportItem2: '2. Doel: Wat u probeert te achterhalen',
+                reportItem3: '3. Theorie: Relevante vergelijkingen en concepten',
+                reportItem4: '4. Apparaat: Gebruikte apparatuur (uw warmteoverdrachtapparaat)',
+                reportItem5: '5. Procedure: Stap voor stap wat u deed',
+                reportItem6: '6. Gegevens: Ruwe metingen in tabellen',
+                reportItem7: '7. Analyse: Berekeningen, grafieken, verwerkte gegevens',
+                reportItem8: '8. Resultaten: Belangrijke bevindingen en waarden',
+                reportItem9: '9. Discussie: Interpretatie en foutbronnen',
+                reportItem10: '10. Conclusie: Samenvatting en leerresultaten',
+                quizTitle: 'Test Je Kennis!',
+                quiz1Question: 'Vraag 1: Wat betekent R² = 0.95 in lineaire regressie?',
+                quiz1OptionA: 'A) 95% van de gegevenspunten zijn op de lijn',
+                quiz1OptionB: 'B) 95% van de variantie wordt verklaard door de lijn',
+                quiz1OptionC: 'C) 95% fout in metingen',
+                quiz1OptionD: 'D) Lijn heeft 95% helling',
+                quiz2Question: 'Vraag 2: Wat is de beste manier om willekeurige fouten te verminderen?',
+                quiz2OptionA: 'A) Neem meerdere metingen en gemiddelde',
+                quiz2OptionB: 'B) Gebruik slechts één zeer zorgvuldige meting',
+                quiz2OptionC: 'C) Negeer uitschieters',
+                quiz2OptionD: 'D) Rond alle nummers af',
+                quiz3Question: 'Vraag 3: In de grafiek Temperatuur vs Afstand, wat vertegenwoordigt de helling?',
+                quiz3OptionA: 'A) Warmtestroomsnelheid',
+                quiz3OptionB: 'B) Temperatuurgradiënt',
+                quiz3OptionC: 'C) Thermische geleidbaarheid',
+                quiz3OptionD: 'D) Tijdconstante',
+                checkAnswerBtn: 'Controleer Antwoord',
+                section8Title: 'Oefenoefeningen',
+                exercisesTitle: 'Probeer Deze Data-analysetaken:',
+                exercise1: 'Oefening 1: Verzamel 5 steady-state metingen en bereken gemiddelde en standaarddeviatie',
+                exercise2: 'Oefening 2: Plot Temperatuur vs Afstand en voer lineaire regressie uit',
+                exercise3: 'Oefening 3: Vergelijk experimentele gradiënt met theoretische voorspelling',
+                exercise4: 'Oefening 4: Exporteer gegevens naar CSV en maak grafieken in Excel of Python',
+                exercise5: 'Oefening 5: Schrijf een volledig labrapport voor uw favoriete experiment',
+                exercise6: 'Oefening 6: Bereken procentuele fout tussen twee experimentele runs'
+            },
+            ar: {
+                pageTitle: '📊 المعمل 5: تحليل البيانات والرسم البياني',
+                pageSubtitle: 'تحويل البيانات الخام إلى نتائج ذات معنى',
+                section1Title: 'لماذا يهم تحليل البيانات',
+                section1Para1: 'في أي تجربة، جمع البيانات هو مجرد الخطوة الأولى. يحدث العلم الحقيقي عندما تحلل تلك البيانات للعثور على الأنماط وحساب القيم المهمة واستخلاص الاستنتاجات. يعلمك هذا المعمل كيفية تحويل قياسات درجة الحرارة إلى معلومات هندسية مفيدة!',
+                learnTitle: 'ما سوف تتعلمه:',
+                learn1: 'حساب المقاييس الإحصائية (المتوسط، الانحراف المعياري، الخطأ)',
+                learn2: 'إنشاء رسوم بيانية احترافية وتفسيرها',
+                learn3: 'إجراء الانحدار الخطي للعثور على المنحدرات والاتجاهات',
+                learn4: 'حساب معاملات انتقال الحرارة من البيانات التجريبية',
+                learn5: 'مقارنة النتائج التجريبية بالتنبؤات النظرية',
+                learn6: 'عرض البيانات في الجداول والتقارير',
+                section2Title: 'التحليل الإحصائي',
+                section2Sub1: 'المقاييس الإحصائية الرئيسية',
+                statsCalcTitle: 'آلة حاسبة إحصائية',
+                statsCalcDesc: 'أدخل قياسات درجة الحرارة (مفصولة بفواصل):',
+                labelDataPoints: 'نقاط البيانات (مثلاً: 25.3, 26.1, 25.8, 26.0, 25.5):',
+                btnAnalyze: '📊 تحليل البيانات',
+                section3Title: 'الانحدار الخطي وملاءمة المنحنى',
+                section3Para1: 'عندما ترسم درجة الحرارة مقابل المسافة، غالباً ما تحصل على خط مستقيم (أو قريب منه). يجد الانحدار الخطي خط "الملاءمة الأفضل" من خلال نقاط البيانات ويعطيك المنحدر والاعتراض.',
+                regressionTitle: 'آلة حاسبة الانحدار الخطي',
+                regressionDesc: 'أدخل أزواج البيانات X (المسافة) و Y (درجة الحرارة):',
+                labelXData: 'قيم X (المسافات، مفصولة بفواصل):',
+                labelYData: 'قيم Y (درجات الحرارة، مفصولة بفواصل):',
+                btnBestFit: '📐 احسب خط الملاءمة الأفضل',
+                btnPredict: '🔮 توقع القيمة',
+                section4Title: 'تحليل جدول البيانات',
+                tableTitle: 'حلل بياناتك التجريبية',
+                tableDesc: 'أدخل البيانات من جهاز انتقال الحرارة:',
+                tableSensor: 'المستشعر',
+                tableDistance: 'المسافة (cm)',
+                tableTemp: 'درجة الحرارة (°C)',
+                tableDeltaT: 'ΔT من السابق',
+                tableGradient: 'التدرج (°C/cm)',
+                btnAnalyzeTable: '🔍 تحليل الجدول',
+                btnExport: '💾 تصدير إلى CSV',
+                section5Title: 'إنشاء رسوم بيانية احترافية',
+                graphElementsTitle: 'العناصر الأساسية للرسم البياني الجيد:',
+                graphMustInclude: 'يجب أن يتضمن الرسم البياني:',
+                graphItem1: 'العنوان: عنوان وصفي (مثلاً: "درجة الحرارة مقابل المسافة لقضيب الألومنيوم")',
+                graphItem2: 'تسميات المحاور: أضف الوحدات! (مثلاً: "المسافة (cm)", "درجة الحرارة (°C)")',
+                graphItem3: 'الأسطورة: إذا كانت هناك سلاسل بيانات متعددة، قم بتسمية كل واحدة',
+                graphItem4: 'خطوط الشبكة: تساعد على قراءة القيم بدقة',
+                graphItem5: 'نقاط البيانات: ضع علامة على القياسات الفعلية برموز',
+                graphItem6: 'خط الملاءمة الأفضل: اعرض الاتجاه إن أمكن',
+                graphItem7: 'المعادلة: اعرض معادلة الخط وقيمة R²',
+                appFeaturesTitle: 'استخدام ميزات الرسم البياني للتطبيق:',
+                appFeaturesPara: 'تطبيق انتقال الحرارة لديه أدوات رسم بياني مدمجة:',
+                appFeature1: 'درجة الحرارة مقابل الوقت: يظهر الرسم البياني الرئيسي جميع المستشعرات بمرور الوقت',
+                appFeature2: 'درجة الحرارة مقابل المسافة: يظهر الملف الشخصي المكاني لدرجة الحرارة',
+                appFeature3: 'تصدير CSV: انقر على "Start Saving" لحفظ البيانات لتحليل Excel/Python',
+                appFeature4: 'فتح الرسم البياني: يفتح نافذة منفصلة للعرض التفصيلي',
+                section6Title: 'تحليل الخطأ وال uncertainty',
+                section6Para1: 'لا يوجد قياس مثالي! فهم وتحديد الأخطاء أمر بالغ الأهمية في الهندسة.',
+                errorTypesTitle: 'أنواع الأخطاء:',
+                randomErrorsTitle: 'أخطاء عشوائية',
+                randomError1: 'تقلبات غير متوقعة',
+                randomError2: 'يمكن تقليلها بالمتوسط',
+                randomError3: 'مثال: ضوضاء مستشعر درجة الحرارة',
+                systematicErrorsTitle: 'أخطاء منهجية',
+                systematicError1: 'تحيز ثابت في القياسات',
+                systematicError2: 'تتطلب معايرة للإصلاح',
+                systematicError3: 'مثال: المستشعر منحرف بمقدار +2°C',
+                section7Title: 'كتابة تقارير المعمل',
+                reportStructureTitle: 'هيكل تقرير المعمل القياسي:',
+                reportItem1: '1. العنوان: اسم التجربة والتاريخ',
+                reportItem2: '2. الهدف: ما تحاول اكتشافه',
+                reportItem3: '3. النظرية: المعادلات والمفاهيم ذات الصلة',
+                reportItem4: '4. الجهاز: المعدات المستخدمة (جهاز انتقال الحرارة)',
+                reportItem5: '5. الإجراء: خطوة بخطوة ما فعلته',
+                reportItem6: '6. البيانات: القياسات الخام في الجداول',
+                reportItem7: '7. التحليل: الحسابات، الرسوم البيانية، البيانات المعالجة',
+                reportItem8: '8. النتائج: النتائج والقيم الرئيسية',
+                reportItem9: '9. المناقشة: التفسير ومصادر الخطأ',
+                reportItem10: '10. الخلاصة: الملخص ونتائج التعلم',
+                quizTitle: 'اختبر معرفتك!',
+                quiz1Question: 'السؤال 1: ماذا يعني R² = 0.95 في الانحدار الخطي؟',
+                quiz1OptionA: 'أ) 95% من نقاط البيانات على الخط',
+                quiz1OptionB: 'ب) 95% من التباين موضح بالخط',
+                quiz1OptionC: 'ج) 95% خطأ في القياسات',
+                quiz1OptionD: 'د) الخط له منحدر 95%',
+                quiz2Question: 'السؤال 2: ما هي أفضل طريقة لتقليل الأخطاء العشوائية؟',
+                quiz2OptionA: 'أ) خذ قياسات متعددة ووسطها',
+                quiz2OptionB: 'ب) استخدم قياساً واحداً دقيقاً جداً',
+                quiz2OptionC: 'ج) تجاهل القيم الشاذة',
+                quiz2OptionD: 'د) قرب جميع الأرقام',
+                quiz3Question: 'السؤال 3: في الرسم البياني درجة الحرارة مقابل المسافة، ماذا يمثل المنحدر؟',
+                quiz3OptionA: 'أ) معدل تدفق الحرارة',
+                quiz3OptionB: 'ب) تدرج درجة الحرارة',
+                quiz3OptionC: 'ج) التوصيل الحراري',
+                quiz3OptionD: 'د) ثابت الوقت',
+                checkAnswerBtn: 'تحقق من الإجابة',
+                section8Title: 'تمارين الممارسة',
+                exercisesTitle: 'جرب مهام تحليل البيانات هذه:',
+                exercise1: 'التمرين 1: اجمع 5 قراءات في الحالة المستقرة واحسب المتوسط والانحراف المعياري',
+                exercise2: 'التمرين 2: ارسم درجة الحرارة مقابل المسافة وقم بإجراء الانحدار الخطي',
+                exercise3: 'التمرين 3: قارن التدرج التجريبي بالتنبؤ النظري',
+                exercise4: 'التمرين 4: صدّر البيانات إلى CSV وأنشئ رسوم بيانية في Excel أو Python',
+                exercise5: 'التمرين 5: اكتب تقرير معمل كامل لتجربتك المفضلة',
+                exercise6: 'التمرين 6: احسب الخطأ النسبي بين عمليتين تجريبيتين'
+            }
+        };
+
+        // Function to change the language of the page
+        function changeLanguage(languageCode) {
+            var languageTranslations = translations[languageCode];
+            if (!languageTranslations) return;
+            
+            var elementsToTranslate = document.querySelectorAll('[data-translate]');
+            for (var i = 0; i < elementsToTranslate.length; i++) {
+                var element = elementsToTranslate[i];
+                var translationKey = element.getAttribute('data-translate');
+                var translatedText = languageTranslations[translationKey];
+                
+                if (translatedText) {
+                    element.textContent = translatedText;
+                }
+            }
+            
+            // Add or remove RTL class for Arabic
+            if (languageCode === 'ar') {
+                document.body.classList.add('rtl');
+                document.documentElement.setAttribute('dir', 'rtl');
+                document.documentElement.setAttribute('lang', 'ar');
+            } else {
+                document.body.classList.remove('rtl');
+                document.documentElement.setAttribute('dir', 'ltr');
+                document.documentElement.setAttribute('lang', languageCode);
+            }
+            
+            localStorage.setItem('selectedLanguage', languageCode);
+        }
+
+        // Function to load the saved language when page loads
+        function loadSavedLanguage() {
+            // Get the saved language from localStorage (set from Curriculum page)
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            if (savedLanguage) {
+                changeLanguage(savedLanguage);
+            }
+        }
+
+        // When the page loads, load the saved language
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSavedLanguage();
+        });
     </script>
     
     <!-- Load Responsive Scaling Script -->
-    <script src="responsive-scaling.js"></script>
 </body>
 </html>

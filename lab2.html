@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab 2 - Temperature Gradients</title>
     
@@ -15,7 +16,6 @@
     <link rel="manifest" href="assets/site.webmanifest">
     
     <style>
-        /* Base font size will be controlled by responsive-scaling.js */
         html {
             font-size: 16px; /* Base size - will be scaled automatically */
         }
@@ -43,17 +43,6 @@
             --chart-grid: #444444;
             --chart-text: #eeeeee;
         }
-        body.theme-light {
-            --bg: #ffffff;
-            --text: #ffffff;
-            --panel: #6c6b6d;
-            --border: #444444;
-            --accent: #2ed573;
-            --chart-bg: #6c6b6d;
-            --chart-border: #444444;
-            --chart-grid: #444444;
-            --chart-text: #eeeeee;
-        }
         
         * {
             margin: 0;
@@ -68,6 +57,67 @@
             padding: 1.25rem; /* Changed from 20px to rem */
             min-height: 100vh;
             font-size: 1rem; /* Use rem units */
+        }
+        
+        /* RTL (Right-to-Left) support for Arabic */
+        body.rtl,
+        body.rtl .container,
+        body.rtl .header,
+        body.rtl .content,
+        body.rtl .section,
+        body.rtl .section p,
+        body.rtl .section h2,
+        body.rtl .section h3,
+        body.rtl .section h4,
+        body.rtl .interactive-box,
+        body.rtl .key-points,
+        body.rtl .key-points ul,
+        body.rtl .key-points li,
+        body.rtl .quiz-section,
+        body.rtl .quiz-question,
+        body.rtl .quiz-question h4,
+        body.rtl .quiz-options,
+        body.rtl .quiz-options label,
+        body.rtl .formula,
+        body.rtl ul,
+        body.rtl ol,
+        body.rtl li,
+        body.rtl p,
+        body.rtl .input-group,
+        body.rtl .input-group label {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        body.rtl .header {
+            text-align: center;
+        }
+        
+        body.rtl .section {
+            border-left: none;
+            border-right: 0.3125rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .key-points {
+            border-left: none;
+            border-right: 0.3125rem solid #ffc107;
+        }
+        
+        body.rtl .formula {
+            border-left: none;
+            border-right: 0.25rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .quiz-options label:hover {
+            transform: translateX(-0.3125rem);
+        }
+        
+        body.rtl table,
+        body.rtl .data-table,
+        body.rtl .data-table th,
+        body.rtl .data-table td {
+            direction: rtl;
+            text-align: right;
         }
 
         .container {
@@ -86,7 +136,9 @@
             padding: 1.875rem; /* Changed from 30px to rem */
             text-align: center;
             border-bottom: 0.125rem solid var(--border, #444); /* Changed from 2px to rem */
+            position: relative;
         }
+
 
         .header h1 {
             font-size: 2.5em;
@@ -392,20 +444,20 @@
 <body class="theme-dark">
     <div class="container">
         <div class="header">
-            <h1>📐 Lab 2: Temperature Gradients</h1>
-            <p>Understanding How Temperature Changes with Distance</p>
+            <h1 data-translate="pageTitle">📐 Lab 2: Temperature Gradients</h1>
+            <p data-translate="pageSubtitle">Understanding How Temperature Changes with Distance</p>
         </div>
 
         <div class="content">
             <!-- Introduction -->
             <div class="section">
-                <h2><span class="icon">📚</span> What is a Temperature Gradient?</h2>
-                <p>
+                <h2><span class="icon">📚</span> <span data-translate="section1Title">What is a Temperature Gradient?</span></h2>
+                <p data-translate="section1Para1">
                     A <strong>temperature gradient</strong> is the rate at which temperature changes over distance. 
                     Think of it like the slope of a hill - the steeper the hill, the faster the elevation changes. 
                     Similarly, a steeper temperature gradient means temperature changes more rapidly with distance.
                 </p>
-                <p>
+                <p data-translate="section1Para2">
                     Temperature gradients are crucial in heat transfer because they drive the flow of heat. 
                     Heat always flows from high temperature to low temperature, and the steeper the gradient, 
                     the faster the heat transfer!
@@ -422,27 +474,27 @@
 
             <!-- Understanding Gradients -->
             <div class="section">
-                <h2><span class="icon">📊</span> Understanding Temperature Profiles</h2>
+                <h2><span class="icon">📊</span> <span data-translate="section2Title">Understanding Temperature Profiles</span></h2>
                 
-                <h3>What is a Temperature Profile?</h3>
-                <p>
+                <h3 data-translate="section2Sub1">What is a Temperature Profile?</h3>
+                <p data-translate="section2Para1">
                     A temperature profile is a graph showing how temperature changes along a distance. 
                     In your apparatus, when you plot T1, T2, T3... T8 against their distances from the heater, 
                     you create a temperature profile.
                 </p>
 
                 <div class="key-points">
-                    <h4>Key Observations:</h4>
+                    <h4 data-translate="keyObservations">Key Observations:</h4>
                     <ul>
-                        <li><strong>Steep slope:</strong> High temperature gradient → Fast heat transfer</li>
-                        <li><strong>Gentle slope:</strong> Low temperature gradient → Slow heat transfer</li>
-                        <li><strong>Flat line:</strong> Zero gradient → No heat transfer (thermal equilibrium)</li>
-                        <li><strong>Curved profile:</strong> Gradient changes with distance (common in real systems)</li>
+                        <li data-translate="obs1"><strong>Steep slope:</strong> High temperature gradient → Fast heat transfer</li>
+                        <li data-translate="obs2"><strong>Gentle slope:</strong> Low temperature gradient → Slow heat transfer</li>
+                        <li data-translate="obs3"><strong>Flat line:</strong> Zero gradient → No heat transfer (thermal equilibrium)</li>
+                        <li data-translate="obs4"><strong>Curved profile:</strong> Gradient changes with distance (common in real systems)</li>
                     </ul>
                 </div>
 
-                <h3>Why Gradients Matter</h3>
-                <p>
+                <h3 data-translate="section2Sub2">Why Gradients Matter</h3>
+                <p data-translate="section2Para2">
                     In engineering, understanding temperature gradients helps us:
                 </p>
                 <ul style="margin-left: 20px; line-height: 1.8;">
@@ -456,39 +508,39 @@
 
             <!-- Interactive Gradient Calculator -->
             <div class="section">
-                <h2><span class="icon">🧮</span> Temperature Gradient Calculator</h2>
+                <h2><span class="icon">🧮</span> <span data-translate="section3Title">Temperature Gradient Calculator</span></h2>
                 
                 <div class="interactive-box">
-                    <h4>Calculate Temperature Gradient Between Two Points</h4>
-                    <p>Enter temperature and position data from two sensors:</p>
+                    <h4 data-translate="calcTitle">Calculate Temperature Gradient Between Two Points</h4>
+                    <p data-translate="calcDesc">Enter temperature and position data from two sensors:</p>
                     
                     <div class="grid-2">
                         <div>
-                            <h4 style="color: #f093fb; margin-bottom: 15px;">📍 Point 1</h4>
+                            <h4 style="color: #f093fb; margin-bottom: 15px;">📍 <span data-translate="point1">Point 1</span></h4>
                             <div class="input-group">
-                                <label for="temp1">Temperature (T₁) in °C:</label>
+                                <label for="temp1" data-translate="labelTemp1">Temperature (T₁) in °C:</label>
                                 <input type="number" id="temp1" value="80" step="0.1">
                             </div>
                             <div class="input-group">
-                                <label for="pos1">Position (x₁) in cm:</label>
+                                <label for="pos1" data-translate="labelPos1">Position (x₁) in cm:</label>
                                 <input type="number" id="pos1" value="5" step="0.1">
                             </div>
                         </div>
 
                         <div>
-                            <h4 style="color: #f5576c; margin-bottom: 15px;">📍 Point 2</h4>
+                            <h4 style="color: #f5576c; margin-bottom: 15px;">📍 <span data-translate="point2">Point 2</span></h4>
                             <div class="input-group">
-                                <label for="temp2">Temperature (T₂) in °C:</label>
+                                <label for="temp2" data-translate="labelTemp2">Temperature (T₂) in °C:</label>
                                 <input type="number" id="temp2" value="40" step="0.1">
                             </div>
                             <div class="input-group">
-                                <label for="pos2">Position (x₂) in cm:</label>
+                                <label for="pos2" data-translate="labelPos2">Position (x₂) in cm:</label>
                                 <input type="number" id="pos2" value="15" step="0.1">
                             </div>
                         </div>
                     </div>
 
-                    <button class="calculate-btn" onclick="calculateGradient()">📐 Calculate Gradient</button>
+                    <button class="calculate-btn" onclick="calculateGradient()" data-translate="calcButton">📐 Calculate Gradient</button>
 
                     <div class="result-box" id="gradientResult"></div>
                 </div>
@@ -496,11 +548,11 @@
 
             <!-- Multi-Point Analysis -->
             <div class="section">
-                <h2><span class="icon">📈</span> Multi-Point Temperature Analysis</h2>
+                <h2><span class="icon">📈</span> <span data-translate="section4Title">Multi-Point Temperature Analysis</span></h2>
                 
                 <div class="interactive-box">
-                    <h4>Analyze Your 8-Sensor Data</h4>
-                    <p>Enter data from all 8 temperature sensors (T1-T8) from your apparatus:</p>
+                    <h4 data-translate="multiPointTitle">Analyze Your 8-Sensor Data</h4>
+                    <p data-translate="multiPointDesc">Enter data from all 8 temperature sensors (T1-T8) from your apparatus:</p>
                     
                     <table class="data-table" id="sensorTable">
                         <thead>
@@ -554,9 +606,9 @@
                         </tbody>
                     </table>
 
-                    <button class="calculate-btn" onclick="analyzeMultiPoint()">📊 Analyze All Gradients</button>
-                    <button class="calculate-btn" onclick="findHottest()">🔥 Find Hottest Region</button>
-                    <button class="calculate-btn" onclick="findSteepest()">⚡ Find Steepest Gradient</button>
+                    <button class="calculate-btn" onclick="analyzeMultiPoint()" data-translate="btnAnalyze">📊 Analyze All Gradients</button>
+                    <button class="calculate-btn" onclick="findHottest()" data-translate="btnHottest">🔥 Find Hottest Region</button>
+                    <button class="calculate-btn" onclick="findSteepest()" data-translate="btnSteepest">⚡ Find Steepest Gradient</button>
 
                     <div class="result-box" id="multiResult"></div>
                 </div>
@@ -564,21 +616,21 @@
 
             <!-- Connection to Device -->
             <div class="section">
-                <h2><span class="icon">🔬</span> Using Your Apparatus to Study Gradients</h2>
+                <h2><span class="icon">🔬</span> <span data-translate="section5Title">Using Your Apparatus to Study Gradients</span></h2>
                 
                 <div class="key-points">
-                    <h4>What Your Device Shows:</h4>
+                    <h4 data-translate="deviceShows">What Your Device Shows:</h4>
                     <ul>
-                        <li><strong>Temperature Profile:</strong> The Temperature vs Distance graph shows the gradient visually</li>
-                        <li><strong>Steeper curve near heater:</strong> Higher heat transfer rate close to heat source</li>
-                        <li><strong>Flatter curve far from heater:</strong> Lower heat transfer rate far from source</li>
-                        <li><strong>Effect of fan:</strong> Increased convection makes gradients steeper</li>
-                        <li><strong>Effect of cooler:</strong> Creates a reverse gradient at the cold end</li>
+                        <li data-translate="deviceItem1"><strong>Temperature Profile:</strong> The Temperature vs Distance graph shows the gradient visually</li>
+                        <li data-translate="deviceItem2"><strong>Steeper curve near heater:</strong> Higher heat transfer rate close to heat source</li>
+                        <li data-translate="deviceItem3"><strong>Flatter curve far from heater:</strong> Lower heat transfer rate far from source</li>
+                        <li data-translate="deviceItem4"><strong>Effect of fan:</strong> Increased convection makes gradients steeper</li>
+                        <li data-translate="deviceItem5"><strong>Effect of cooler:</strong> Creates a reverse gradient at the cold end</li>
                     </ul>
                 </div>
 
-                <h3>Experimental Factors Affecting Gradients:</h3>
-                <p style="margin-left: 20px; line-height: 1.8;">
+                <h3 data-translate="section5Sub1">Experimental Factors Affecting Gradients:</h3>
+                <p style="margin-left: 20px; line-height: 1.8;" data-translate="section5Para1">
                     <strong>1. Heater Power:</strong> Higher temperature → Steeper gradients<br>
                     <strong>2. Fan Speed:</strong> More airflow → Steeper gradients (better heat removal)<br>
                     <strong>3. Material:</strong> Better conductors → More uniform temperatures (gentler gradients)<br>
@@ -588,45 +640,45 @@
 
             <!-- Quiz -->
             <div class="quiz-section">
-                <h2><span class="icon">✅</span> Check Your Understanding!</h2>
+                <h2><span class="icon">✅</span> <span data-translate="quizTitle">Check Your Understanding!</span></h2>
                 
                 <div class="quiz-question">
-                    <h4>Question 1: If temperature drops from 80°C to 40°C over 10 cm, what is the gradient?</h4>
+                    <h4 data-translate="quiz1Question">Question 1: If temperature drops from 80°C to 40°C over 10 cm, what is the gradient?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q1" value="a"> A) 4°C/cm</label>
-                        <label><input type="radio" name="q1" value="b"> B) -4°C/cm</label>
-                        <label><input type="radio" name="q1" value="c"> C) 8°C/cm</label>
-                        <label><input type="radio" name="q1" value="d"> D) -8°C/cm</label>
+                        <label><input type="radio" name="q1" value="a"> <span data-translate="quiz1OptionA">A) 4°C/cm</span></label>
+                        <label><input type="radio" name="q1" value="b"> <span data-translate="quiz1OptionB">B) -4°C/cm</span></label>
+                        <label><input type="radio" name="q1" value="c"> <span data-translate="quiz1OptionC">C) 8°C/cm</span></label>
+                        <label><input type="radio" name="q1" value="d"> <span data-translate="quiz1OptionD">D) -8°C/cm</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb1"></div>
                 </div>
 
                 <div class="quiz-question">
-                    <h4>Question 2: What does a steeper temperature gradient indicate?</h4>
+                    <h4 data-translate="quiz2Question">Question 2: What does a steeper temperature gradient indicate?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q2" value="a"> A) Slower heat transfer</label>
-                        <label><input type="radio" name="q2" value="b"> B) Faster heat transfer</label>
-                        <label><input type="radio" name="q2" value="c"> C) No heat transfer</label>
-                        <label><input type="radio" name="q2" value="d"> D) Constant temperature</label>
+                        <label><input type="radio" name="q2" value="a"> <span data-translate="quiz2OptionA">A) Slower heat transfer</span></label>
+                        <label><input type="radio" name="q2" value="b"> <span data-translate="quiz2OptionB">B) Faster heat transfer</span></label>
+                        <label><input type="radio" name="q2" value="c"> <span data-translate="quiz2OptionC">C) No heat transfer</span></label>
+                        <label><input type="radio" name="q2" value="d"> <span data-translate="quiz2OptionD">D) Constant temperature</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'b', 'fb2')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'b', 'fb2')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb2"></div>
                 </div>
             </div>
 
             <!-- Experiments -->
             <div class="section">
-                <h2><span class="icon">🧪</span> Suggested Experiments</h2>
+                <h2><span class="icon">🧪</span> <span data-translate="experimentsTitle">Suggested Experiments</span></h2>
                 
                 <div class="key-points">
-                    <h4>Try These:</h4>
+                    <h4 data-translate="tryThese">Try These:</h4>
                     <ul>
-                        <li><strong>Exp 1:</strong> Set heater to 70°C, fan OFF. Record all T1-T8. Calculate gradient between each pair.</li>
-                        <li><strong>Exp 2:</strong> Repeat Exp 1 with fan at 50%. Compare gradients - are they steeper?</li>
-                        <li><strong>Exp 3:</strong> Find which sensor pair has the steepest gradient. Why is it steeper there?</li>
-                        <li><strong>Exp 4:</strong> Plot temperature vs distance. Draw a line of best fit. What's its slope?</li>
-                        <li><strong>Exp 5:</strong> Turn on cooler. Observe how gradients change near the cold end.</li>
+                        <li data-translate="exp1"><strong>Exp 1:</strong> Set heater to 70°C, fan OFF. Record all T1-T8. Calculate gradient between each pair.</li>
+                        <li data-translate="exp2"><strong>Exp 2:</strong> Repeat Exp 1 with fan at 50%. Compare gradients - are they steeper?</li>
+                        <li data-translate="exp3"><strong>Exp 3:</strong> Find which sensor pair has the steepest gradient. Why is it steeper there?</li>
+                        <li data-translate="exp4"><strong>Exp 4:</strong> Plot temperature vs distance. Draw a line of best fit. What's its slope?</li>
+                        <li data-translate="exp5"><strong>Exp 5:</strong> Turn on cooler. Observe how gradients change near the cold end.</li>
                     </ul>
                 </div>
             </div>
@@ -744,9 +796,421 @@
                 fb.innerHTML = '❌ Try again!';
             }
         }
+
+        // Translation data for all languages
+        var translations = {
+            en: {
+                pageTitle: '📐 Lab 2: Temperature Gradients',
+                pageSubtitle: 'Understanding How Temperature Changes with Distance',
+                section1Title: 'What is a Temperature Gradient?',
+                section1Para1: 'A temperature gradient is the rate at which temperature changes over distance. Think of it like the slope of a hill - the steeper the hill, the faster the elevation changes. Similarly, a steeper temperature gradient means temperature changes more rapidly with distance.',
+                section1Para2: 'Temperature gradients are crucial in heat transfer because they drive the flow of heat. Heat always flows from high temperature to low temperature, and the steeper the gradient, the faster the heat transfer!',
+                section2Title: 'Understanding Temperature Profiles',
+                section2Sub1: 'What is a Temperature Profile?',
+                section2Para1: 'A temperature profile is a graph showing how temperature changes along a distance. In your apparatus, when you plot T1, T2, T3... T8 against their distances from the heater, you create a temperature profile.',
+                keyObservations: 'Key Observations:',
+                obs1: 'Steep slope: High temperature gradient → Fast heat transfer',
+                obs2: 'Gentle slope: Low temperature gradient → Slow heat transfer',
+                obs3: 'Flat line: Zero gradient → No heat transfer (thermal equilibrium)',
+                obs4: 'Curved profile: Gradient changes with distance (common in real systems)',
+                section2Sub2: 'Why Gradients Matter',
+                section2Para2: 'In engineering, understanding temperature gradients helps us:',
+                section3Title: 'Temperature Gradient Calculator',
+                calcTitle: 'Calculate Temperature Gradient Between Two Points',
+                calcDesc: 'Enter temperature and position data from two sensors:',
+                point1: 'Point 1',
+                point2: 'Point 2',
+                labelTemp1: 'Temperature (T₁) in °C:',
+                labelPos1: 'Position (x₁) in cm:',
+                labelTemp2: 'Temperature (T₂) in °C:',
+                labelPos2: 'Position (x₂) in cm:',
+                calcButton: '📐 Calculate Gradient',
+                section4Title: 'Multi-Point Temperature Analysis',
+                multiPointTitle: 'Analyze Your 8-Sensor Data',
+                multiPointDesc: 'Enter data from all 8 temperature sensors (T1-T8) from your apparatus:',
+                btnAnalyze: '📊 Analyze All Gradients',
+                btnHottest: '🔥 Find Hottest Region',
+                btnSteepest: '⚡ Find Steepest Gradient',
+                section5Title: 'Using Your Apparatus to Study Gradients',
+                deviceShows: 'What Your Device Shows:',
+                section5Sub1: 'Experimental Factors Affecting Gradients:',
+                quizTitle: 'Check Your Understanding!',
+                quiz1Question: 'Question 1: If temperature drops from 80°C to 40°C over 10 cm, what is the gradient?',
+                quiz2Question: 'Question 2: What does a steeper temperature gradient indicate?',
+                experimentsTitle: 'Suggested Experiments',
+                tryThese: 'Try These:',
+                deviceItem1: 'Temperature Profile: The Temperature vs Distance graph shows the gradient visually',
+                deviceItem2: 'Steeper curve near heater: Higher heat transfer rate close to heat source',
+                deviceItem3: 'Flatter curve far from heater: Lower heat transfer rate far from source',
+                deviceItem4: 'Effect of fan: Increased convection makes gradients steeper',
+                deviceItem5: 'Effect of cooler: Creates a reverse gradient at the cold end',
+                section5Para1: '1. Heater Power: Higher temperature → Steeper gradients\n2. Fan Speed: More airflow → Steeper gradients (better heat removal)\n3. Material: Better conductors → More uniform temperatures (gentler gradients)\n4. Ambient Temperature: Lower room temp → Steeper gradients',
+                quiz1OptionA: 'A) 4°C/cm',
+                quiz1OptionB: 'B) -4°C/cm',
+                quiz1OptionC: 'C) 8°C/cm',
+                quiz1OptionD: 'D) -8°C/cm',
+                quiz2OptionA: 'A) Slower heat transfer',
+                quiz2OptionB: 'B) Faster heat transfer',
+                quiz2OptionC: 'C) No heat transfer',
+                quiz2OptionD: 'D) Constant temperature',
+                checkAnswerBtn: 'Check Answer',
+                exp1: 'Exp 1: Set heater to 70°C, fan OFF. Record all T1-T8. Calculate gradient between each pair.',
+                exp2: 'Exp 2: Repeat Exp 1 with fan at 50%. Compare gradients - are they steeper?',
+                exp3: 'Exp 3: Find which sensor pair has the steepest gradient. Why is it steeper there?',
+                exp4: 'Exp 4: Plot temperature vs distance. Draw a line of best fit. What\'s its slope?',
+                exp5: 'Exp 5: Turn on cooler. Observe how gradients change near the cold end.'
+            },
+            fr: {
+                pageTitle: '📐 Laboratoire 2: Gradients de Température',
+                pageSubtitle: 'Comprendre Comment la Température Change avec la Distance',
+                section1Title: 'Qu\'est-ce qu\'un Gradient de Température?',
+                section1Para1: 'Un gradient de température est le taux auquel la température change sur une distance. Pensez-y comme à la pente d\'une colline - plus la colline est raide, plus l\'élévation change rapidement. De même, un gradient de température plus raide signifie que la température change plus rapidement avec la distance.',
+                section1Para2: 'Les gradients de température sont cruciaux dans le transfert thermique car ils entraînent l\'écoulement de la chaleur. La chaleur s\'écoule toujours de la température élevée vers la température basse, et plus le gradient est raide, plus le transfert thermique est rapide!',
+                section2Title: 'Comprendre les Profils de Température',
+                section2Sub1: 'Qu\'est-ce qu\'un Profil de Température?',
+                section2Para1: 'Un profil de température est un graphique montrant comment la température change le long d\'une distance. Dans votre appareil, lorsque vous tracez T1, T2, T3... T8 en fonction de leurs distances du chauffage, vous créez un profil de température.',
+                keyObservations: 'Observations Clés:',
+                obs1: 'Pente raide: Gradient de température élevé → Transfert thermique rapide',
+                obs2: 'Pente douce: Gradient de température faible → Transfert thermique lent',
+                obs3: 'Ligne plate: Gradient zéro → Pas de transfert thermique (équilibre thermique)',
+                obs4: 'Profil courbe: Le gradient change avec la distance (commun dans les systèmes réels)',
+                section2Sub2: 'Pourquoi les Gradients Sont Importants',
+                section2Para2: 'En ingénierie, comprendre les gradients de température nous aide à:',
+                section3Title: 'Calculateur de Gradient de Température',
+                calcTitle: 'Calculer le Gradient de Température Entre Deux Points',
+                calcDesc: 'Entrez les données de température et de position de deux capteurs:',
+                point1: 'Point 1',
+                point2: 'Point 2',
+                labelTemp1: 'Température (T₁) en °C:',
+                labelPos1: 'Position (x₁) en cm:',
+                labelTemp2: 'Température (T₂) en °C:',
+                labelPos2: 'Position (x₂) en cm:',
+                calcButton: '📐 Calculer le Gradient',
+                section4Title: 'Analyse de Température Multi-Points',
+                multiPointTitle: 'Analyser Vos Données de 8 Capteurs',
+                multiPointDesc: 'Entrez les données des 8 capteurs de température (T1-T8) de votre appareil:',
+                btnAnalyze: '📊 Analyser Tous les Gradients',
+                btnHottest: '🔥 Trouver la Région la Plus Chaude',
+                btnSteepest: '⚡ Trouver le Gradient le Plus Raide',
+                section5Title: 'Utiliser Votre Appareil pour Étudier les Gradients',
+                deviceShows: 'Ce Que Votre Appareil Montre:',
+                section5Sub1: 'Facteurs Expérimentaux Affectant les Gradients:',
+                quizTitle: 'Vérifiez Votre Compréhension!',
+                quiz1Question: 'Question 1: Si la température baisse de 80°C à 40°C sur 10 cm, quel est le gradient?',
+                quiz2Question: 'Question 2: Qu\'indique un gradient de température plus raide?',
+                experimentsTitle: 'Expériences Suggérées',
+                tryThese: 'Essayez Ceci:',
+                deviceItem1: 'Profil de Température: Le graphique Température vs Distance montre le gradient visuellement',
+                deviceItem2: 'Courbe plus raide près du chauffage: Taux de transfert thermique plus élevé près de la source de chaleur',
+                deviceItem3: 'Courbe plus plate loin du chauffage: Taux de transfert thermique plus faible loin de la source',
+                deviceItem4: 'Effet du ventilateur: La convection accrue rend les gradients plus raides',
+                deviceItem5: 'Effet du refroidisseur: Crée un gradient inverse à l\'extrémité froide',
+                section5Para1: '1. Puissance du Chauffage: Température plus élevée → Gradients plus raides\n2. Vitesse du Ventilateur: Plus de flux d\'air → Gradients plus raides (meilleure évacuation de la chaleur)\n3. Matériau: Meilleurs conducteurs → Températures plus uniformes (gradients plus doux)\n4. Température Ambiante: Température de la pièce plus basse → Gradients plus raides',
+                quiz1OptionA: 'A) 4°C/cm',
+                quiz1OptionB: 'B) -4°C/cm',
+                quiz1OptionC: 'C) 8°C/cm',
+                quiz1OptionD: 'D) -8°C/cm',
+                quiz2OptionA: 'A) Transfert de chaleur plus lent',
+                quiz2OptionB: 'B) Transfert de chaleur plus rapide',
+                quiz2OptionC: 'C) Pas de transfert de chaleur',
+                quiz2OptionD: 'D) Température constante',
+                checkAnswerBtn: 'Vérifier la Réponse',
+                exp1: 'Exp 1: Réglez le chauffage à 70°C, ventilateur ÉTEINT. Enregistrez tous les T1-T8. Calculez le gradient entre chaque paire.',
+                exp2: 'Exp 2: Répétez Exp 1 avec ventilateur à 50%. Comparez les gradients - sont-ils plus raides?',
+                exp3: 'Exp 3: Trouvez quelle paire de capteurs a le gradient le plus raide. Pourquoi est-il plus raide là?',
+                exp4: 'Exp 4: Tracez température vs distance. Tracez une ligne de meilleur ajustement. Quelle est sa pente?',
+                exp5: 'Exp 5: Allumez le refroidisseur. Observez comment les gradients changent près de l\'extrémité froide.'
+            },
+            de: {
+                pageTitle: '📐 Labor 2: Temperaturgradienten',
+                pageSubtitle: 'Verstehen, Wie Sich die Temperatur mit der Entfernung Ändert',
+                section1Title: 'Was ist ein Temperaturgradient?',
+                section1Para1: 'Ein Temperaturgradient ist die Rate, mit der sich die Temperatur über eine Entfernung ändert. Stellen Sie es sich wie die Steigung eines Hügels vor - je steiler der Hügel, desto schneller ändert sich die Höhe. Ähnlich bedeutet ein steilerer Temperaturgradient, dass sich die Temperatur schneller mit der Entfernung ändert.',
+                section1Para2: 'Temperaturgradienten sind entscheidend für die Wärmeübertragung, weil sie den Wärmefluss antreiben. Wärme fließt immer von hoher zu niedriger Temperatur, und je steiler der Gradient, desto schneller die Wärmeübertragung!',
+                section2Title: 'Temperaturprofile Verstehen',
+                section2Sub1: 'Was ist ein Temperaturprofil?',
+                section2Para1: 'Ein Temperaturprofil ist ein Diagramm, das zeigt, wie sich die Temperatur entlang einer Entfernung ändert. In Ihrem Gerät erstellen Sie ein Temperaturprofil, wenn Sie T1, T2, T3... T8 gegen ihre Entfernungen vom Heizelement auftragen.',
+                keyObservations: 'Wichtige Beobachtungen:',
+                obs1: 'Steile Steigung: Hoher Temperaturgradient → Schnelle Wärmeübertragung',
+                obs2: 'Sanfte Steigung: Niedriger Temperaturgradient → Langsame Wärmeübertragung',
+                obs3: 'Flache Linie: Nullgradient → Keine Wärmeübertragung (thermisches Gleichgewicht)',
+                obs4: 'Gekrümmtes Profil: Gradient ändert sich mit der Entfernung (häufig in realen Systemen)',
+                section2Sub2: 'Warum Gradienten Wichtig Sind',
+                section2Para2: 'In der Technik hilft uns das Verständnis von Temperaturgradienten:',
+                section3Title: 'Temperaturgradientenrechner',
+                calcTitle: 'Temperaturgradient Zwischen Zwei Punkten Berechnen',
+                calcDesc: 'Geben Sie Temperatur- und Positionsdaten von zwei Sensoren ein:',
+                point1: 'Punkt 1',
+                point2: 'Punkt 2',
+                labelTemp1: 'Temperatur (T₁) in °C:',
+                labelPos1: 'Position (x₁) in cm:',
+                labelTemp2: 'Temperatur (T₂) in °C:',
+                labelPos2: 'Position (x₂) in cm:',
+                calcButton: '📐 Gradient Berechnen',
+                section4Title: 'Mehrpunkt-Temperaturanalyse',
+                multiPointTitle: 'Analysieren Sie Ihre 8-Sensor-Daten',
+                multiPointDesc: 'Geben Sie Daten von allen 8 Temperatursensoren (T1-T8) von Ihrem Gerät ein:',
+                btnAnalyze: '📊 Alle Gradienten Analysieren',
+                btnHottest: '🔥 Heißeste Region Finden',
+                btnSteepest: '⚡ Steilsten Gradienten Finden',
+                section5Title: 'Verwenden Sie Ihr Gerät, um Gradienten zu Studieren',
+                deviceShows: 'Was Ihr Gerät Zeigt:',
+                section5Sub1: 'Experimentelle Faktoren, die Gradienten Beeinflussen:',
+                quizTitle: 'Überprüfen Sie Ihr Verständnis!',
+                quiz1Question: 'Frage 1: Wenn die Temperatur von 80°C auf 40°C über 10 cm fällt, wie groß ist der Gradient?',
+                quiz2Question: 'Frage 2: Was zeigt ein steilerer Temperaturgradient an?',
+                experimentsTitle: 'Vorgeschlagene Experimente',
+                tryThese: 'Versuchen Sie Dies:',
+                deviceItem1: 'Temperaturprofil: Das Temperatur vs. Abstand Diagramm zeigt den Gradienten visuell',
+                deviceItem2: 'Steilere Kurve nahe dem Heizer: Höhere Wärmeübertragungsrate nahe der Wärmequelle',
+                deviceItem3: 'Flachere Kurve weit vom Heizer: Niedrigere Wärmeübertragungsrate weit von der Quelle',
+                deviceItem4: 'Effekt des Ventilators: Erhöhte Konvektion macht Gradienten steiler',
+                deviceItem5: 'Effekt des Kühlers: Erzeugt einen umgekehrten Gradienten am kalten Ende',
+                section5Para1: '1. Heizerleistung: Höhere Temperatur → Steilere Gradienten\n2. Lüftergeschwindigkeit: Mehr Luftstrom → Steilere Gradienten (bessere Wärmeabfuhr)\n3. Material: Bessere Leiter → Gleichmäßigere Temperaturen (sanftere Gradienten)\n4. Umgebungstemperatur: Niedrigere Raumtemperatur → Steilere Gradienten',
+                quiz1OptionA: 'A) 4°C/cm',
+                quiz1OptionB: 'B) -4°C/cm',
+                quiz1OptionC: 'C) 8°C/cm',
+                quiz1OptionD: 'D) -8°C/cm',
+                quiz2OptionA: 'A) Langsamere Wärmeübertragung',
+                quiz2OptionB: 'B) Schnellere Wärmeübertragung',
+                quiz2OptionC: 'C) Keine Wärmeübertragung',
+                quiz2OptionD: 'D) Konstante Temperatur',
+                checkAnswerBtn: 'Antwort Überprüfen',
+                exp1: 'Exp 1: Stellen Sie den Heizer auf 70°C, Ventilator AUS. Zeichnen Sie alle T1-T8 auf. Berechnen Sie den Gradienten zwischen jedem Paar.',
+                exp2: 'Exp 2: Wiederholen Sie Exp 1 mit Ventilator bei 50%. Vergleichen Sie Gradienten - sind sie steiler?',
+                exp3: 'Exp 3: Finden Sie, welches Sensorpaar den steilsten Gradienten hat. Warum ist er dort steiler?',
+                exp4: 'Exp 4: Zeichnen Sie Temperatur vs. Abstand. Zeichnen Sie eine Best-Fit-Linie. Wie ist ihre Steigung?',
+                exp5: 'Exp 5: Schalten Sie den Kühler ein. Beobachten Sie, wie sich Gradienten am kalten Ende ändern.'
+            },
+            es: {
+                pageTitle: '📐 Laboratorio 2: Gradientes de Temperatura',
+                pageSubtitle: 'Comprender Cómo Cambia la Temperatura con la Distancia',
+                section1Title: '¿Qué es un Gradiente de Temperatura?',
+                section1Para1: 'Un gradiente de temperatura es la tasa a la que la temperatura cambia sobre una distancia. Piénselo como la pendiente de una colina: cuanto más empinada es la colina, más rápido cambia la elevación. De manera similar, un gradiente de temperatura más empinado significa que la temperatura cambia más rápidamente con la distancia.',
+                section1Para2: 'Los gradientes de temperatura son cruciales en la transferencia de calor porque impulsan el flujo de calor. El calor siempre fluye de temperatura alta a temperatura baja, y cuanto más empinado es el gradiente, más rápida es la transferencia de calor!',
+                section2Title: 'Comprender los Perfiles de Temperatura',
+                section2Sub1: '¿Qué es un Perfil de Temperatura?',
+                section2Para1: 'Un perfil de temperatura es un gráfico que muestra cómo cambia la temperatura a lo largo de una distancia. En su aparato, cuando traza T1, T2, T3... T8 contra sus distancias del calentador, crea un perfil de temperatura.',
+                keyObservations: 'Observaciones Clave:',
+                obs1: 'Pendiente empinada: Gradiente de temperatura alto → Transferencia de calor rápida',
+                obs2: 'Pendiente suave: Gradiente de temperatura bajo → Transferencia de calor lenta',
+                obs3: 'Línea plana: Gradiente cero → Sin transferencia de calor (equilibrio térmico)',
+                obs4: 'Perfil curvo: El gradiente cambia con la distancia (común en sistemas reales)',
+                section2Sub2: 'Por Qué Importan los Gradientes',
+                section2Para2: 'En ingeniería, comprender los gradientes de temperatura nos ayuda a:',
+                section3Title: 'Calculadora de Gradiente de Temperatura',
+                calcTitle: 'Calcular Gradiente de Temperatura Entre Dos Puntos',
+                calcDesc: 'Ingrese datos de temperatura y posición de dos sensores:',
+                point1: 'Punto 1',
+                point2: 'Punto 2',
+                labelTemp1: 'Temperatura (T₁) en °C:',
+                labelPos1: 'Posición (x₁) en cm:',
+                labelTemp2: 'Temperatura (T₂) en °C:',
+                labelPos2: 'Posición (x₂) en cm:',
+                calcButton: '📐 Calcular Gradiente',
+                section4Title: 'Análisis de Temperatura Multi-Punto',
+                multiPointTitle: 'Analice Sus Datos de 8 Sensores',
+                multiPointDesc: 'Ingrese datos de los 8 sensores de temperatura (T1-T8) de su aparato:',
+                btnAnalyze: '📊 Analizar Todos los Gradientes',
+                btnHottest: '🔥 Encontrar Región Más Caliente',
+                btnSteepest: '⚡ Encontrar Gradiente Más Empinado',
+                section5Title: 'Usar Su Aparato para Estudiar Gradientes',
+                deviceShows: 'Lo Que Muestra Su Dispositivo:',
+                section5Sub1: 'Factores Experimentales que Afectan los Gradientes:',
+                quizTitle: '¡Verifique Su Comprensión!',
+                quiz1Question: 'Pregunta 1: Si la temperatura cae de 80°C a 40°C sobre 10 cm, ¿cuál es el gradiente?',
+                quiz2Question: 'Pregunta 2: ¿Qué indica un gradiente de temperatura más empinado?',
+                experimentsTitle: 'Experimentes Sugeridos',
+                tryThese: 'Pruebe Esto:',
+                deviceItem1: 'Perfil de Temperatura: El gráfico Temperatura vs Distancia muestra el gradiente visualmente',
+                deviceItem2: 'Curva más empinada cerca del calentador: Mayor tasa de transferencia de calor cerca de la fuente de calor',
+                deviceItem3: 'Curva más plana lejos del calentador: Menor tasa de transferencia de calor lejos de la fuente',
+                deviceItem4: 'Efecto del ventilador: La convección aumentada hace los gradientes más empinados',
+                deviceItem5: 'Efecto del enfriador: Crea un gradiente inverso en el extremo frío',
+                section5Para1: '1. Potencia del Calentador: Mayor temperatura → Gradientes más empinados\n2. Velocidad del Ventilador: Más flujo de aire → Gradientes más empinados (mejor eliminación de calor)\n3. Material: Mejores conductores → Temperaturas más uniformes (gradientes más suaves)\n4. Temperatura Ambiente: Temperatura ambiente más baja → Gradientes más empinados',
+                quiz1OptionA: 'A) 4°C/cm',
+                quiz1OptionB: 'B) -4°C/cm',
+                quiz1OptionC: 'C) 8°C/cm',
+                quiz1OptionD: 'D) -8°C/cm',
+                quiz2OptionA: 'A) Transferencia de calor más lenta',
+                quiz2OptionB: 'B) Transferencia de calor más rápida',
+                quiz2OptionC: 'C) Sin transferencia de calor',
+                quiz2OptionD: 'D) Temperatura constante',
+                checkAnswerBtn: 'Verificar Respuesta',
+                exp1: 'Exp 1: Configure el calentador a 70°C, ventilador APAGADO. Registre todos los T1-T8. Calcule el gradiente entre cada par.',
+                exp2: 'Exp 2: Repita Exp 1 con ventilador al 50%. Compare gradientes - ¿son más empinados?',
+                exp3: 'Exp 3: Encuentre qué par de sensores tiene el gradiente más empinado. ¿Por qué es más empinado allí?',
+                exp4: 'Exp 4: Trace temperatura vs distancia. Trace una línea de mejor ajuste. ¿Cuál es su pendiente?',
+                exp5: 'Exp 5: Encienda el enfriador. Observe cómo cambian los gradientes cerca del extremo frío.'
+            },
+            nl: {
+                pageTitle: '📐 Lab 2: Temperatuurgradiënten',
+                pageSubtitle: 'Begrijpen Hoe Temperatuur Verandert met Afstand',
+                section1Title: 'Wat is een Temperatuurgradiënt?',
+                section1Para1: 'Een temperatuurgradiënt is de snelheid waarmee de temperatuur verandert over een afstand. Denk eraan als de helling van een heuvel - hoe steiler de heuvel, hoe sneller de hoogte verandert. Evenzo betekent een steilere temperatuurgradiënt dat de temperatuur sneller verandert met de afstand.',
+                section1Para2: 'Temperatuurgradiënten zijn cruciaal bij warmteoverdracht omdat ze de warmtestroom aandrijven. Warmte stroomt altijd van hoge naar lage temperatuur, en hoe steiler de gradiënt, hoe sneller de warmteoverdracht!',
+                section2Title: 'Temperatuurprofielen Begrijpen',
+                section2Sub1: 'Wat is een Temperatuurprofiel?',
+                section2Para1: 'Een temperatuurprofiel is een grafiek die laat zien hoe de temperatuur verandert langs een afstand. In uw apparaat, wanneer u T1, T2, T3... T8 uitzet tegen hun afstanden van de verwarming, creëert u een temperatuurprofiel.',
+                keyObservations: 'Belangrijke Waarnemingen:',
+                obs1: 'Steile helling: Hoge temperatuurgradiënt → Snelle warmteoverdracht',
+                obs2: 'Zachte helling: Lage temperatuurgradiënt → Langzame warmteoverdracht',
+                obs3: 'Vlakke lijn: Nul gradiënt → Geen warmteoverdracht (thermisch evenwicht)',
+                obs4: 'Gebogen profiel: Gradiënt verandert met afstand (gebruikelijk in echte systemen)',
+                section2Sub2: 'Waarom Gradiënten Belangrijk Zijn',
+                section2Para2: 'In de techniek helpt het begrijpen van temperatuurgradiënten ons:',
+                section3Title: 'Temperatuurgradiënt Calculator',
+                calcTitle: 'Bereken Temperatuurgradiënt Tussen Twee Punten',
+                calcDesc: 'Voer temperatuur- en positiegegevens van twee sensoren in:',
+                point1: 'Punt 1',
+                point2: 'Punt 2',
+                labelTemp1: 'Temperatuur (T₁) in °C:',
+                labelPos1: 'Positie (x₁) in cm:',
+                labelTemp2: 'Temperatuur (T₂) in °C:',
+                labelPos2: 'Positie (x₂) in cm:',
+                calcButton: '📐 Bereken Gradiënt',
+                section4Title: 'Meerpunt Temperatuuranalyse',
+                multiPointTitle: 'Analyseer Uw 8-Sensor Gegevens',
+                multiPointDesc: 'Voer gegevens in van alle 8 temperatuursensoren (T1-T8) van uw apparaat:',
+                btnAnalyze: '📊 Analyseer Alle Gradiënten',
+                btnHottest: '🔥 Vind Heetste Regio',
+                btnSteepest: '⚡ Vind Steilste Gradiënt',
+                section5Title: 'Uw Apparaat Gebruiken om Gradiënten te Bestuderen',
+                deviceShows: 'Wat Uw Apparaat Laat Zien:',
+                section5Sub1: 'Experimentele Factoren die Gradiënten Beïnvloeden:',
+                quizTitle: 'Controleer Uw Begrip!',
+                quiz1Question: 'Vraag 1: Als de temperatuur daalt van 80°C naar 40°C over 10 cm, wat is de gradiënt?',
+                quiz2Question: 'Vraag 2: Wat geeft een steilere temperatuurgradiënt aan?',
+                experimentsTitle: 'Voorgestelde Experimenten',
+                tryThese: 'Probeer Dit:',
+                deviceItem1: 'Temperatuurprofiel: De Temperatuur vs Afstand grafiek toont de gradiënt visueel',
+                deviceItem2: 'Steilere curve nabij verwarmer: Hogere warmteoverdrachtsnelheid dicht bij warmtebron',
+                deviceItem3: 'Vlakkere curve ver van verwarmer: Lagere warmteoverdrachtsnelheid ver van bron',
+                deviceItem4: 'Effect van ventilator: Verhoogde convectie maakt gradiënten steiler',
+                deviceItem5: 'Effect van koeler: Creëert een omgekeerde gradiënt aan het koude uiteinde',
+                section5Para1: '1. Verwarmervermogen: Hogere temperatuur → Steilere gradiënten\n2. Ventilatorsnelheid: Meer luchtstroom → Steilere gradiënten (betere warmteafvoer)\n3. Materiaal: Betere geleiders → Uniformere temperaturen (zachtere gradiënten)\n4. Omgevingstemperatuur: Lagere kamertemp → Steilere gradiënten',
+                quiz1OptionA: 'A) 4°C/cm',
+                quiz1OptionB: 'B) -4°C/cm',
+                quiz1OptionC: 'C) 8°C/cm',
+                quiz1OptionD: 'D) -8°C/cm',
+                quiz2OptionA: 'A) Langzamere warmteoverdracht',
+                quiz2OptionB: 'B) Snellere warmteoverdracht',
+                quiz2OptionC: 'C) Geen warmteoverdracht',
+                quiz2OptionD: 'D) Constante temperatuur',
+                checkAnswerBtn: 'Controleer Antwoord',
+                exp1: 'Exp 1: Stel verwarmer in op 70°C, ventilator UIT. Registreer alle T1-T8. Bereken gradiënt tussen elk paar.',
+                exp2: 'Exp 2: Herhaal Exp 1 met ventilator op 50%. Vergelijk gradiënten - zijn ze steiler?',
+                exp3: 'Exp 3: Vind welk sensorpaar de steilste gradiënt heeft. Waarom is het daar steiler?',
+                exp4: 'Exp 4: Teken temperatuur vs afstand. Teken een best-fit lijn. Wat is de helling?',
+                exp5: 'Exp 5: Zet koeler aan. Observeer hoe gradiënten veranderen nabij het koude uiteinde.'
+            },
+            ar: {
+                pageTitle: '📐 المعمل 2: تدرجات درجة الحرارة',
+                pageSubtitle: 'فهم كيف تتغير درجة الحرارة مع المسافة',
+                section1Title: 'ما هو تدرج درجة الحرارة؟',
+                section1Para1: 'تدرج درجة الحرارة هو المعدل الذي تتغير فيه درجة الحرارة على مسافة. فكر فيه مثل منحدر التل - كلما كان التل أكثر انحداراً، كلما تغير الارتفاع بشكل أسرع. وبالمثل، يعني تدرج درجة الحرارة الأكثر انحداراً أن درجة الحرارة تتغير بسرعة أكبر مع المسافة.',
+                section1Para2: 'تدرجات درجة الحرارة مهمة في انتقال الحرارة لأنها تدفع تدفق الحرارة. تتدفق الحرارة دائماً من درجة حرارة عالية إلى درجة حرارة منخفضة، وكلما كان التدرج أكثر انحداراً، كلما كان انتقال الحرارة أسرع!',
+                section2Title: 'فهم ملفات درجة الحرارة',
+                section2Sub1: 'ما هو ملف درجة الحرارة؟',
+                section2Para1: 'ملف درجة الحرارة هو رسم بياني يوضح كيف تتغير درجة الحرارة على طول مسافة. في جهازك، عندما ترسم T1، T2، T3... T8 مقابل مسافاتها من السخان، فإنك تنشئ ملف درجة حرارة.',
+                keyObservations: 'الملاحظات الرئيسية:',
+                obs1: 'منحدر حاد: تدرج درجة حرارة عالي → انتقال حرارة سريع',
+                obs2: 'منحدر لطيف: تدرج درجة حرارة منخفض → انتقال حرارة بطيء',
+                obs3: 'خط مسطح: تدرج صفري → لا يوجد انتقال حرارة (توازن حراري)',
+                obs4: 'ملف منحني: التدرج يتغير مع المسافة (شائع في الأنظمة الحقيقية)',
+                section2Sub2: 'لماذا التدرجات مهمة',
+                section2Para2: 'في الهندسة، فهم تدرجات درجة الحرارة يساعدنا على:',
+                section3Title: 'آلة حاسبة تدرج درجة الحرارة',
+                calcTitle: 'احسب تدرج درجة الحرارة بين نقطتين',
+                calcDesc: 'أدخل بيانات درجة الحرارة والموضع من مستشعرين:',
+                point1: 'النقطة 1',
+                point2: 'النقطة 2',
+                labelTemp1: 'درجة الحرارة (T₁) بوحدة °C:',
+                labelPos1: 'الموضع (x₁) بوحدة cm:',
+                labelTemp2: 'درجة الحرارة (T₂) بوحدة °C:',
+                labelPos2: 'الموضع (x₂) بوحدة cm:',
+                calcButton: '📐 احسب التدرج',
+                section4Title: 'تحليل درجة الحرارة متعدد النقاط',
+                multiPointTitle: 'حلل بيانات المستشعرات الثمانية',
+                multiPointDesc: 'أدخل البيانات من جميع مستشعرات درجة الحرارة الثمانية (T1-T8) من جهازك:',
+                btnAnalyze: '📊 حلل جميع التدرجات',
+                btnHottest: '🔥 ابحث عن المنطقة الأكثر سخونة',
+                btnSteepest: '⚡ ابحث عن التدرج الأكثر انحداراً',
+                section5Title: 'استخدام جهازك لدراسة التدرجات',
+                deviceShows: 'ما يظهره جهازك:',
+                section5Sub1: 'العوامل التجريبية التي تؤثر على التدرجات:',
+                quizTitle: 'تحقق من فهمك!',
+                quiz1Question: 'السؤال 1: إذا انخفضت درجة الحرارة من 80°C إلى 40°C على مدى 10 سم، ما هو التدرج؟',
+                quiz2Question: 'السؤال 2: ماذا يشير تدرج درجة الحرارة الأكثر انحداراً؟',
+                experimentsTitle: 'التجارب المقترحة',
+                tryThese: 'جرب هذا:',
+                deviceItem1: 'ملف درجة الحرارة: يوضح الرسم البياني لدرجة الحرارة مقابل المسافة التدرج بصرياً',
+                deviceItem2: 'منحنى أكثر انحداراً بالقرب من السخان: معدل انتقال حرارة أعلى بالقرب من مصدر الحرارة',
+                deviceItem3: 'منحنى أكثر استواءً بعيداً عن السخان: معدل انتقال حرارة أقل بعيداً عن المصدر',
+                deviceItem4: 'تأثير المروحة: الحمل المتزايد يجعل التدرجات أكثر انحداراً',
+                deviceItem5: 'تأثير المبرد: ينشئ تدرجاً عكسياً عند الطرف البارد',
+                section5Para1: '1. قوة السخان: درجة حرارة أعلى → تدرجات أكثر انحداراً\n2. سرعة المروحة: تدفق هواء أكثر → تدرجات أكثر انحداراً (إزالة حرارة أفضل)\n3. المادة: موصلات أفضل → درجات حرارة أكثر توحيداً (تدرجات أكثر لطفاً)\n4. درجة حرارة الغرفة: درجة حرارة غرفة أقل → تدرجات أكثر انحداراً',
+                quiz1OptionA: 'أ) 4°C/cm',
+                quiz1OptionB: 'ب) -4°C/cm',
+                quiz1OptionC: 'ج) 8°C/cm',
+                quiz1OptionD: 'د) -8°C/cm',
+                quiz2OptionA: 'أ) انتقال حرارة أبطأ',
+                quiz2OptionB: 'ب) انتقال حرارة أسرع',
+                quiz2OptionC: 'ج) لا يوجد انتقال حرارة',
+                quiz2OptionD: 'د) درجة حرارة ثابتة',
+                checkAnswerBtn: 'تحقق من الإجابة',
+                exp1: 'التجربة 1: اضبط السخان على 70°C، المروحة إيقاف. سجل جميع T1-T8. احسب التدرج بين كل زوج.',
+                exp2: 'التجربة 2: كرر التجربة 1 مع المروحة عند 50%. قارن التدرجات - هل هي أكثر انحداراً؟',
+                exp3: 'التجربة 3: ابحث عن أي زوج مستشعرات لديه التدرج الأكثر انحداراً. لماذا هو أكثر انحداراً هناك؟',
+                exp4: 'التجربة 4: ارسم درجة الحرارة مقابل المسافة. ارسم خط أفضل ملاءمة. ما هو منحدره؟',
+                exp5: 'التجربة 5: شغّل المبرد. راقب كيف تتغير التدرجات بالقرب من الطرف البارد.'
+            }
+        };
+
+        // Function to change the language of the page
+        function changeLanguage(languageCode) {
+            var languageTranslations = translations[languageCode];
+            var elementsToTranslate = document.querySelectorAll('[data-translate]');
+            
+            for (var i = 0; i < elementsToTranslate.length; i++) {
+                var element = elementsToTranslate[i];
+                var translationKey = element.getAttribute('data-translate');
+                var translatedText = languageTranslations[translationKey];
+                
+                if (translatedText) {
+                    element.textContent = translatedText;
+                }
+            }
+            
+            // Add or remove RTL class for Arabic
+            if (languageCode === 'ar') {
+                document.body.classList.add('rtl');
+                document.documentElement.setAttribute('dir', 'rtl');
+                document.documentElement.setAttribute('lang', 'ar');
+            } else {
+                document.body.classList.remove('rtl');
+                document.documentElement.setAttribute('dir', 'ltr');
+                document.documentElement.setAttribute('lang', languageCode);
+            }
+            
+            localStorage.setItem('selectedLanguage', languageCode);
+        }
+
+        // Function to load the saved language when page loads
+        function loadSavedLanguage() {
+            // Get the saved language from localStorage (set from Curriculum page)
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            if (savedLanguage) {
+                changeLanguage(savedLanguage);
+            }
+        }
+
+        // When the page loads, load the saved language
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSavedLanguage();
+        });
     </script>
     
     <!-- Load Responsive Scaling Script -->
-    <script src="responsive-scaling.js"></script>
 </body>
 </html>

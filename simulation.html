@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self';">
     <title>Simulation Status</title>
     
     <!-- Favicon -->
@@ -14,7 +15,6 @@
     <link rel="manifest" href="assets/site.webmanifest">
     
     <style>
-        /* Base font size will be controlled by responsive-scaling.js */
         html {
             font-size: 16px; /* Base size - will be scaled automatically */
         }
@@ -38,17 +38,6 @@
             --border: #444444;
             --accent: #2ed573;
             --chart-bg: #1a1a1a;
-            --chart-border: #444444;
-            --chart-grid: #444444;
-            --chart-text: #eeeeee;
-        }
-        body.theme-light {
-            --bg: #ffffff;
-            --text: #ffffff;
-            --panel: #6c6b6d;
-            --border: #444444;
-            --accent: #2ed573;
-            --chart-bg: #6c6b6d;
             --chart-border: #444444;
             --chart-grid: #444444;
             --chart-text: #eeeeee;
@@ -176,8 +165,13 @@
             The main window is generating test data for 30 seconds.<br>
             A 3D preview is shown below. <strong id="currentModel">Sample.step</strong>
         </div>
-        <button id="toggleVisualization">Switch to Tunnel View</button>
-        <button id="closeSimWindow">Close Window</button>
+        <div style="margin-top: 1rem;">
+            <label for="modelSelect" style="color: var(--text, #ffffff); margin-right: 0.625rem; font-weight: bold;">Select 3D Model:</label>
+            <select id="modelSelect" style="padding: 0.5rem 1rem; background: var(--panel, #333); color: var(--text, #ffffff); border: 0.0625rem solid var(--border, #444); border-radius: 0.375rem; font-size: 0.875rem; cursor: pointer;">
+                <option value="Sample.step">Sample.step</option>
+                <option value="Tunnel.glb">Tunnel.glb</option>
+            </select>
+        </div>
     </div>
 
     <div class="viewer-container">
@@ -192,19 +186,12 @@
     <script src="assets/libs/GLTFLoader.js"></script>
     <script>
         (function () {
-            var closeBtn = document.getElementById('closeSimWindow');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', function () {
-                    window.close();
-                });
-            }
-
             var viewer = document.getElementById('viewer');
             var viewerStatus = document.getElementById('viewerStatus');
             var tempLegend = document.getElementById('tempLegend');
             var lastAppliedTemps = null;
             var currentModelType = 'step'; // 'step' or 'glb'
-            var toggleButton = document.getElementById('toggleVisualization');
+            var modelSelect = document.getElementById('modelSelect');
             var currentModelLabel = document.getElementById('currentModel');
 
             if (!viewer) {
@@ -281,7 +268,53 @@
                 }
                 var boundingBox = new THREE.Box3().setFromObject(group);
                 var minY = boundingBox.min.y;
-                var height = Math.max(0.000001, boundingBox.max.y - boundingBox.min.y);
+                var maxY = boundingBox.max.y;
+                var height = Math.max(0.000001, maxY - minY);
+                
+                // For the circular face coloring, check both X and Z axes to find the right one
+                var minX = boundingBox.min.x;
+                var maxX = boundingBox.max.x;
+                var minZ = boundingBox.min.z;
+                var maxZ = boundingBox.max.z;
+                var lengthX = maxX - minX;
+                var lengthZ = maxZ - minZ;
+                
+                // Use the axis with larger length (the cylinder's length direction)
+                var useXAxis = lengthX > lengthZ;
+                
+                // Check where the sample is positioned
+                var centerX = (minX + maxX) / 2;
+                var centerZ = (minZ + maxZ) / 2;
+                var centerY = (minY + maxY) / 2;
+                
+                console.log('=== Sample Position Analysis ===');
+                console.log('Bounding box - X (Red):', minX.toFixed(2), 'to', maxX.toFixed(2), 'length:', lengthX.toFixed(2));
+                console.log('Bounding box - Y (Green):', minY.toFixed(2), 'to', maxY.toFixed(2), 'length:', height.toFixed(2));
+                console.log('Bounding box - Z (Blue):', minZ.toFixed(2), 'to', maxZ.toFixed(2), 'length:', lengthZ.toFixed(2));
+                console.log('Center position - X:', centerX.toFixed(2), 'Y:', centerY.toFixed(2), 'Z:', centerZ.toFixed(2));
+                console.log('Using', useXAxis ? 'X-axis (Red)' : 'Z-axis (Blue)', 'for circular face coloring');
+                
+                // Determine which end should be yellow based on position
+                // If sample extends more on negative axis, color the negative end
+                var colorNegativeEnd = false;
+                if (useXAxis) {
+                    if (Math.abs(minX) > Math.abs(maxX)) {
+                        console.log('Sample extends more on negative X-axis - coloring negative X end (minX)');
+                        colorNegativeEnd = true;
+                    } else {
+                        console.log('Sample extends more on positive X-axis - coloring positive X end (maxX)');
+                        colorNegativeEnd = false;
+                    }
+                } else {
+                    if (Math.abs(minZ) > Math.abs(maxZ)) {
+                        console.log('Sample extends more on negative Z-axis - coloring negative Z end (minZ)');
+                        colorNegativeEnd = true;
+                    } else {
+                        console.log('Sample extends more on positive Z-axis - coloring positive Z end (maxZ)');
+                        colorNegativeEnd = false;
+                    }
+                }
+                
                 group.traverse(function (child) {
                     if (!child.isMesh || !child.geometry) {
                         return;
@@ -298,32 +331,96 @@
                     var count = positionAttr.count;
                     var positions = positionAttr.array;
                     var colors = new Float32Array(count * 3);
+                    var blueCount = 0;
+                    var yellowCount = 0;
+                    var greenCount = 0;
+                    var sampleDistances = [];
+                    
+                    // Calculate blue Z range once before the loop
+                    // Blue for Z-axis from 0 to 1
+                    var blueZMin = 0;
+                    var blueZMax = 1;
+                    
                     for (var i = 0; i < count; i++) {
                         var y = positions[i * 3 + 1];
+                        var x = positions[i * 3];
+                        var z = positions[i * 3 + 2];
                         var normalized = (y - minY) / height;
                         // Clamp normalized value between 0 and 1
                         normalized = Math.max(0, Math.min(1, normalized));
                         
-                        // Divide the 24mm height into 8 equal blocks of 3mm each
-                        // Block 0: 0-3mm (T1, bottom)
-                        // Block 1: 3-6mm (T2)
-                        // Block 2: 6-9mm (T3)
-                        // Block 3: 9-12mm (T4)
-                        // Block 4: 12-15mm (T5)
-                        // Block 5: 15-18mm (T6)
-                        // Block 6: 18-21mm (T7)
-                        // Block 7: 21-24mm (T8, top)
-                        var blockIndex = Math.floor(normalized * 8);
-                        // Clamp block index to valid range (0-7)
-                        blockIndex = Math.min(7, Math.max(0, blockIndex));
+                        // Check position for color assignment
+                        // Green for X-axis: -1 to 1, Yellow for Y-axis: -1 to 1, Blue for Z-axis: 0 to 1
+                        var useSpecialColor = false;
+                        var specialColor = null;
+                        var colorName = 'gray';
                         
-                        // Get temperature from the corresponding sensor
-                        var tempValue = typeof temps[blockIndex] === 'number' && isFinite(temps[blockIndex]) ? temps[blockIndex] : 0;
+                        // Check each axis independently - check Z-axis first for blue
+                        if (z >= blueZMin && z <= blueZMax) {
+                            // Blue for Z-axis in calculated range (check first)
+                            useSpecialColor = true;
+                            specialColor = new THREE.Color(0.0, 0.0, 1.0); // Pure blue
+                            colorName = 'blue (Z-axis)';
+                            blueCount++;
+                        } else if (x >= -1 && x <= 1) {
+                            // Green for X-axis between -1 and 1
+                            useSpecialColor = true;
+                            specialColor = new THREE.Color(0.0, 1.0, 0.0); // Pure green
+                            colorName = 'green (X-axis)';
+                            greenCount++;
+                        } else if (y >= -1 && y <= 1) {
+                            // Yellow for Y-axis between -1 and 1
+                            useSpecialColor = true;
+                            specialColor = new THREE.Color(1.0, 1.0, 0.0); // Pure yellow
+                            colorName = 'yellow (Y-axis)';
+                            yellowCount++;
+                        }
                         
-                        var color = temperatureToColor(tempValue);
+                        // Sample some positions for debugging
+                        if (i < 10 || (useSpecialColor && i < 100)) {
+                            sampleDistances.push({
+                                x: x.toFixed(2),
+                                y: y.toFixed(2),
+                                z: z.toFixed(2),
+                                useSpecialColor: useSpecialColor,
+                                color: colorName
+                            });
+                        }
+                        
+                        var color;
+                        if (useSpecialColor) {
+                            // Use yellow (Z: 0-1) or green (Z: 5-10) based on Z-axis
+                            color = specialColor;
+                        } else {
+                            // For vertices outside yellow/green ranges, use neutral gray color
+                            // Don't show T1-T8 temperature colors
+                            color = new THREE.Color(0.5, 0.5, 0.5); // Neutral gray
+                        }
+                        
                         colors[i * 3] = color.r;
                         colors[i * 3 + 1] = color.g;
                         colors[i * 3 + 2] = color.b;
+                    }
+                    console.log('=== Color Application Results ===');
+                    console.log('Total vertices:', count);
+                    console.log('Green vertices (X-axis: -1 to 1):', greenCount);
+                    console.log('Yellow vertices (Y-axis: -1 to 1):', yellowCount);
+                    console.log('Blue vertices (Z-axis: ' + blueZMin.toFixed(2) + ' to ' + blueZMax.toFixed(2) + '):', blueCount);
+                    console.log('X-axis range - Min:', minX.toFixed(2), 'Max:', maxX.toFixed(2));
+                    console.log('Y-axis range - Min:', minY.toFixed(2), 'Max:', maxY.toFixed(2));
+                    console.log('Z-axis range - Min:', minZ.toFixed(2), 'Max:', maxZ.toFixed(2));
+                    console.log('Sample positions:', sampleDistances.slice(0, 20));
+                    
+                    // Check if Z-axis range matches blue condition
+                    if (blueCount === 0) {
+                        console.warn('No blue vertices found! Z-axis range is:', minZ.toFixed(2), 'to', maxZ.toFixed(2));
+                        console.warn('Looking for Z values between', blueZMin.toFixed(2), 'and', blueZMax.toFixed(2), 'but no vertices match.');
+                        console.log('If you want blue to show, adjust the Z-axis range to match your model.');
+                    }
+                    
+                    if (blueCount === 0 && yellowCount === 0 && greenCount === 0) {
+                        console.warn('No special colors applied! Model may not be in the expected ranges.');
+                        console.log('Check if model positions match: Green (X: -1 to 1), Yellow (Y: -1 to 1), Blue (Z: -10 to -1)');
                     }
                     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
                     geometry.attributes.color.needsUpdate = true;
@@ -343,7 +440,7 @@
 
             // Basic Three.js setup
             var scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x000000); // Black background to match app theme
+            scene.background = new THREE.Color(0xffffff); // White background to see dark models
 
             var width = viewer.clientWidth;
             var height = viewer.clientHeight;
@@ -357,15 +454,32 @@
             renderer.setPixelRatio(window.devicePixelRatio || 1);
             viewer.appendChild(renderer.domElement);
 
-            var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            var ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Increased brightness
+            var directionalLight = new THREE.DirectionalLight(0xffffff, 2.5); // Increased brightness
             // Position light from front-top-right for good visibility
             directionalLight.position.set(100, 100, 200);
             scene.add(ambientLight);
             scene.add(directionalLight);
+            
+            // Add additional lights for better visibility
+            var directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.3);
+            directionalLight2.position.set(-100, 50, -100);
+            scene.add(directionalLight2);
+            
+            var directionalLight3 = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight3.position.set(0, -100, 0);
+            scene.add(directionalLight3);
 
             var modelGroup = new THREE.Group();
             scene.add(modelGroup);
+            
+            // Add a grid helper to help see the scene
+            var gridHelper = new THREE.GridHelper(100, 10, 0x444444, 0x222222);
+            scene.add(gridHelper);
+            
+            // Add axes helper to see orientation
+            var axesHelper = new THREE.AxesHelper(50);
+            scene.add(axesHelper);
 
             var controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -375,13 +489,30 @@
             controls.panSpeed = 0.5;
 
             function buildMesh(geometryMesh) {
+                // Check if we have valid position data
+                if (!geometryMesh.attributes || !geometryMesh.attributes.position || !geometryMesh.attributes.position.array) {
+                    console.warn('Mesh has no position data, skipping');
+                    return null;
+                }
+                
+                if (!geometryMesh.index || !geometryMesh.index.array) {
+                    console.warn('Mesh has no index data, skipping');
+                    return null;
+                }
+                
+                var positionArray = geometryMesh.attributes.position.array;
+                if (positionArray.length === 0) {
+                    console.warn('Mesh has empty position array, skipping');
+                    return null;
+                }
+                
                 var geometry = new THREE.BufferGeometry();
                 geometry.setAttribute(
                     'position',
-                    new THREE.Float32BufferAttribute(geometryMesh.attributes.position.array, 3)
+                    new THREE.Float32BufferAttribute(positionArray, 3)
                 );
 
-                if (geometryMesh.attributes.normal) {
+                if (geometryMesh.attributes.normal && geometryMesh.attributes.normal.array) {
                     geometry.setAttribute(
                         'normal',
                         new THREE.Float32BufferAttribute(geometryMesh.attributes.normal.array, 3)
@@ -389,6 +520,10 @@
                 }
 
                 var index = Uint32Array.from(geometryMesh.index.array);
+                if (index.length === 0) {
+                    console.warn('Mesh has empty index array, skipping');
+                    return null;
+                }
                 geometry.setIndex(new THREE.BufferAttribute(index, 1));
 
                 var baseColor = geometryMesh.color
@@ -445,6 +580,10 @@
                     }
                 }
 
+                // Compute bounding box for the geometry
+                geometry.computeBoundingBox();
+                geometry.computeBoundingSphere();
+                
                 var mesh = new THREE.Mesh(geometry, materials.length > 1 ? materials : materials[0]);
                 if (Array.isArray(mesh.material)) {
                     mesh.material.forEach(function (mat) {
@@ -455,6 +594,11 @@
                 } else if (mesh.material) {
                     mesh.material.vertexColors = true;
                 }
+                
+                // Update the matrix to ensure the mesh is properly positioned
+                mesh.updateMatrix();
+                mesh.updateMatrixWorld(true);
+                
                 return mesh;
             }
 
@@ -463,17 +607,47 @@
                 var size = box.getSize(new THREE.Vector3());
                 var center = box.getCenter(new THREE.Vector3());
 
+                console.log('Fitting camera - Model size:', size.x, size.y, size.z);
+                console.log('Fitting camera - Model center:', center.x, center.y, center.z);
+
+                // Check if model has valid size
+                if (size.x === 0 && size.y === 0 && size.z === 0) {
+                    console.warn('Model has zero size, using default camera position');
+                    camera.position.set(0, 0, 100);
+                    camera.lookAt(0, 0, 0);
+                    controls.target.set(0, 0, 0);
+                    controls.update();
+                    return;
+                }
+
                 // For front view, position camera directly in front along Z-axis
-                // Use the larger of width or height to ensure model fits
-                var maxDim = Math.max(size.x, size.y);
+                // Use the larger of width, height, or depth to ensure model fits
+                var maxDim = Math.max(size.x, size.y, size.z);
+                
+                // If maxDim is very small, use a minimum distance
+                if (maxDim < 0.1) {
+                    maxDim = 100;
+                }
+                
                 var fov = camera.fov * (Math.PI / 180);
                 var cameraDistance = Math.abs(maxDim / (2 * Math.tan(fov / 2)));
                 cameraDistance *= 1.5;
+                
+                // Ensure minimum distance
+                if (cameraDistance < 10) {
+                    cameraDistance = 100;
+                }
+
+                console.log('Calculated camera distance:', cameraDistance);
 
                 // Position camera at center X and Y, but far back on Z-axis for front view
                 camera.position.set(center.x, center.y, center.z + cameraDistance);
                 camera.lookAt(center);
+                controls.target.copy(center);
                 controls.update();
+                
+                console.log('Camera positioned at:', camera.position.x, camera.position.y, camera.position.z);
+                console.log('Camera target:', controls.target.x, controls.target.y, controls.target.z);
             }
 
             function animate() {
@@ -488,6 +662,11 @@
                 viewerStatus.textContent = 'Loading Sample.step ...';
                 var initialTemps = getTemperaturesFromParent();
                 updateLegend(initialTemps);
+                
+                // Clear existing model first
+                while (modelGroup.children.length > 0) {
+                    modelGroup.remove(modelGroup.children[0]);
+                }
 
                 occtimportjs().then(function (occt) {
                     return fetch('assets/Sample.step').then(function (response) {
@@ -504,10 +683,40 @@
                             modelGroup.add(mesh);
                         });
 
+                        // Rotate the model to sit flat on the grid
+                        // Rotate 90 degrees around X-axis to lay it flat
+                        modelGroup.rotation.x = Math.PI / 2; // 90 degrees in radians
+                        modelGroup.updateMatrixWorld(true);
+                        
+                        // Wait a moment for geometry to update, then calculate dimensions
+                        setTimeout(function() {
+                            // Recalculate bounding box after rotation
+                            var box = new THREE.Box3().setFromObject(modelGroup);
+                            var size = box.getSize(new THREE.Vector3());
+                            
+                            // After rotation, the model is flat, so:
+                            // - Height is now the Y dimension (was Z before rotation)
+                            // - Diameter is the larger of X or Z dimensions
+                            var height = size.y;
+                            var diameter = Math.max(size.x, size.z);
+                            
+                            console.log('Sample.step dimensions (recalculated):');
+                            console.log('  Height:', height.toFixed(2), 'mm');
+                            console.log('  Diameter:', diameter.toFixed(2), 'mm');
+                            console.log('  Size X:', size.x.toFixed(2), 'mm');
+                            console.log('  Size Y:', size.y.toFixed(2), 'mm');
+                            console.log('  Size Z:', size.z.toFixed(2), 'mm');
+                            
+                            // Display dimensions in status
+                            viewerStatus.textContent = 'Sample.step loaded. Height: ' + height.toFixed(2) + 'mm, Diameter: ' + diameter.toFixed(2) + 'mm';
+                        }, 100);
+
                         applyTemperatureColorsToGroup(modelGroup, initialTemps);
                         lastAppliedTemps = initialTemps.slice();
                         fitCameraToObject(modelGroup);
-                        viewerStatus.textContent = 'Sample.step loaded. Colors show T1 (bottom) to T8 (top).';
+                        if (currentModelLabel) {
+                            currentModelLabel.textContent = 'Sample.step';
+                        }
                     });
                 }).catch(function (error) {
                     console.error(error);
@@ -516,7 +725,6 @@
             }
 
             function loadGLBModel() {
-                console.log('Starting to load Tunnel.glb...');
                 viewerStatus.textContent = 'Loading Tunnel.glb ...';
                 
                 // Clear existing model
@@ -524,96 +732,784 @@
                     modelGroup.remove(modelGroup.children[0]);
                 }
                 
-                // Check if GLTFLoader is available
-                if (!THREE.GLTFLoader) {
-                    console.error('GLTFLoader is not available!');
-                    viewerStatus.textContent = 'Error: GLTFLoader not found';
-                    return;
-                }
+                var initialTemps = getTemperaturesFromParent();
+                updateLegend(initialTemps);
+
+                var filePath = 'assets/Tunnel.glb';
                 
-                var loader = new THREE.GLTFLoader();
-                console.log('GLTFLoader created, loading file...');
+                // Suppress texture loading errors BEFORE creating loader
+                var originalError = console.error;
+                var originalWarn = console.warn;
+                var errorFilter = function() {
+                    var message = arguments[0];
+                    if (message && typeof message === 'string' && 
+                        (message.includes('texture blob') || 
+                         message.includes('GLTFLoader') || 
+                         message.includes('Couldn\'t load texture') ||
+                         message.indexOf('file:///') !== -1)) {
+                        return; // Ignore texture blob errors
+                    }
+                    originalError.apply(console, arguments);
+                };
+                var warnFilter = function() {
+                    var message = arguments[0];
+                    if (message && typeof message === 'string' && 
+                        (message.includes('texture blob') || 
+                         message.includes('GLTFLoader') || 
+                         message.includes('Couldn\'t load texture') ||
+                         message.indexOf('file:///') !== -1)) {
+                        return; // Ignore texture blob warnings
+                    }
+                    originalWarn.apply(console, arguments);
+                };
                 
+                console.error = errorFilter;
+                console.warn = warnFilter;
+                
+                // Create loader with manager for better error handling
+                var manager = new THREE.LoadingManager();
+                manager.onError = function(url) {
+                    console.log('Loading error for:', url);
+                };
+                
+                var loader = new THREE.GLTFLoader(manager);
+                
+                // Try loading with different options
                 loader.load(
-                    'assets/Tunnel.glb',
-                    function (gltf) {
-                        // Successfully loaded
-                        console.log('Tunnel.glb loaded successfully!', gltf);
-                        console.log('Scene:', gltf.scene);
+                    filePath,
+                    function(gltf) {
+                        // Restore console functions
+                        console.error = originalError;
+                        console.warn = originalWarn;
                         
-                        if (gltf.scene) {
-                            // Count meshes
-                            var meshCount = 0;
-                            gltf.scene.traverse(function(child) {
-                                if (child.isMesh) {
-                                    meshCount++;
-                                    console.log('Found mesh:', child.name || 'unnamed', 'geometry:', child.geometry, 'material:', child.material);
+                        console.log('GLTF loaded:', gltf);
+                        console.log('GLTF scene:', gltf.scene);
+                        console.log('GLTF scenes available:', gltf.scenes);
+                        
+                        // Use the scene directly - don't clone as it may break references
+                        var model = gltf.scene;
+                        
+                        if (!model) {
+                            console.error('No scene found in GLTF file!');
+                            viewerStatus.textContent = 'Error: GLB file has no scene data';
+                            return;
+                        }
+                        
+                        // Ensure scene is properly set up
+                        model.updateMatrixWorld(true);
+                        
+                        // Force update all children
+                        model.traverse(function(obj) {
+                            if (obj.updateMatrix) obj.updateMatrix();
+                            if (obj.updateMatrixWorld) obj.updateMatrixWorld(true);
+                        });
+                        
+                        // Count what we actually have
+                        var objectCount = 0;
+                        var meshCount = 0;
+                        var objectTypes = {};
+                        model.traverse(function(child) {
+                            objectCount++;
+                            var type = child.type || 'Unknown';
+                            objectTypes[type] = (objectTypes[type] || 0) + 1;
+                            if (child.isMesh || child.type === 'Mesh' || child.isSkinnedMesh || child.isInstancedMesh) {
+                                meshCount++;
+                            }
+                        });
+                        
+                        console.log('GLB Model contains:', objectCount, 'objects,', meshCount, 'meshes');
+                        console.log('Object types found:', objectTypes);
+                        
+                        // Check GLTF JSON data and try to manually create meshes if needed
+                        if (gltf.parser && gltf.parser.json) {
+                            var json = gltf.parser.json;
+                            console.log('GLTF JSON - Meshes:', json.meshes ? json.meshes.length : 0);
+                            console.log('GLTF JSON - Nodes:', json.nodes ? json.nodes.length : 0);
+                            
+                            // If JSON has meshes but no Mesh objects were created, try to manually create them
+                            if (json.meshes && json.meshes.length > 0 && meshCount === 0) {
+                                console.log('GLTF has mesh data in JSON but no Mesh objects created!');
+                                console.log('Attempting to manually create meshes from parser data...');
+                                
+                                // Try to manually create meshes from GLTF JSON data and accessors
+                                console.log('Attempting to manually build meshes from GLTF data...');
+                                
+                                // Get the mesh definition from JSON
+                                var meshDef = json.meshes[0];
+                                console.log('Mesh definition:', meshDef);
+                                
+                                // Get material definitions from JSON to preserve colors
+                                var materialDefs = json.materials || [];
+                                console.log('Material definitions in JSON:', materialDefs.length);
+                                materialDefs.forEach(function(matDef, idx) {
+                                    console.log('Material', idx, ':', matDef);
+                                });
+                                
+                                // Check for multiple textures
+                                var textures = json.textures || [];
+                                console.log('Textures in JSON:', textures.length);
+                                textures.forEach(function(texDef, idx) {
+                                    console.log('Texture', idx, ':', texDef);
+                                });
+                                
+                                // Check for multiple images
+                                var images = json.images || [];
+                                console.log('Images in JSON:', images.length);
+                                images.forEach(function(imgDef, idx) {
+                                    console.log('Image', idx, ':', imgDef);
+                                });
+                                
+                                if (meshDef && meshDef.primitives && meshDef.primitives.length > 0) {
+                                    console.log('Processing', meshDef.primitives.length, 'primitives');
+                                    meshDef.primitives.forEach(function(primitive, primIdx) {
+                                        console.log('Processing primitive', primIdx, ':', primitive);
+                                        
+                                        // Get position accessor
+                                        if (primitive.attributes && primitive.attributes.POSITION !== undefined) {
+                                            var posAccessorIndex = primitive.attributes.POSITION;
+                                            var indexAccessorIndex = primitive.indices;
+                                            var materialIndex = primitive.material;
+                                            
+                                            console.log('Position accessor index:', posAccessorIndex);
+                                            console.log('Index accessor index:', indexAccessorIndex);
+                                            console.log('Material index:', materialIndex);
+                                            
+                                            // Get material definition from JSON if available
+                                            var materialDef = null;
+                                            if (materialIndex !== undefined && materialDefs[materialIndex]) {
+                                                materialDef = materialDefs[materialIndex];
+                                                console.log('Material definition from JSON:', materialDef);
+                                            }
+                                            
+                                            // Get accessors from parser
+                                            Promise.all([
+                                                gltf.parser.getDependency('accessor', posAccessorIndex),
+                                                indexAccessorIndex !== undefined ? gltf.parser.getDependency('accessor', indexAccessorIndex) : Promise.resolve(null),
+                                                materialIndex !== undefined ? gltf.parser.getDependency('material', materialIndex) : Promise.resolve(null)
+                                            ]).then(function(results) {
+                                                var positionAccessor = results[0];
+                                                var indexAccessor = results[1];
+                                                var material = results[2];
+                                                
+                                                console.log('Got accessors - Position:', positionAccessor, 'Index:', indexAccessor, 'Material:', material);
+                                                
+                                                // Create or fix material with colors from JSON
+                                                if (!material) {
+                                                    // Create new material
+                                                    material = new THREE.MeshStandardMaterial();
+                            } else {
+                                                    // Clone to avoid modifying original
+                                                    if (material.clone) {
+                                                        material = material.clone();
+                                                    }
+                                                }
+                                                
+                                                // Apply colors from JSON material definition if available
+                                                if (materialDef) {
+                                                    console.log('Full material definition:', JSON.stringify(materialDef, null, 2));
+                                                    
+                                                    // Get base color from material definition
+                                                    if (materialDef.pbrMetallicRoughness) {
+                                                        var baseColor = materialDef.pbrMetallicRoughness.baseColorFactor;
+                                                        console.log('Base color factor:', baseColor);
+                                                        if (baseColor && baseColor.length >= 3) {
+                                                            // Convert from [r, g, b, a] array to hex
+                                                            var r = Math.floor(baseColor[0] * 255);
+                                                            var g = Math.floor(baseColor[1] * 255);
+                                                            var b = Math.floor(baseColor[2] * 255);
+                                                            var colorHex = (r << 16) | (g << 8) | b;
+                                                            material.color.setHex(colorHex);
+                                                            console.log('Applied color from JSON:', 'RGB(' + r + ',' + g + ',' + b + ')', 'Hex: #' + colorHex.toString(16));
+                                            } else {
+                                                            console.log('No baseColorFactor found, checking for other color properties...');
+                                                            // Try other color properties
+                                                            if (materialDef.emissiveFactor) {
+                                                                var emissive = materialDef.emissiveFactor;
+                                                                var r = Math.floor(emissive[0] * 255);
+                                                                var g = Math.floor(emissive[1] * 255);
+                                                                var b = Math.floor(emissive[2] * 255);
+                                                                var colorHex = (r << 16) | (g << 8) | b;
+                                                                material.color.setHex(colorHex);
+                                                                material.emissive.setHex(colorHex);
+                                                                console.log('Applied emissive color:', 'RGB(' + r + ',' + g + ',' + b + ')');
+                                                            }
+                                                        }
+                                    } else {
+                                                        console.log('No pbrMetallicRoughness found in material definition');
+                                                        // Try to find any color property
+                                                        for (var key in materialDef) {
+                                                            if (key.toLowerCase().includes('color') || key.toLowerCase().includes('factor')) {
+                                                                console.log('Found color-related property:', key, materialDef[key]);
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    // Check for base color texture
+                                                    if (materialDef.pbrMetallicRoughness && materialDef.pbrMetallicRoughness.baseColorTexture) {
+                                                        var textureIndex = materialDef.pbrMetallicRoughness.baseColorTexture.index;
+                                                        console.log('Material has base color texture at index:', textureIndex);
+                                                        
+                                                        // Try multiple methods to get the texture
+                                                        // Method 1: Get from parser
+                                                        gltf.parser.getDependency('texture', textureIndex).then(function(texture) {
+                                                            console.log('Texture object:', texture);
+                                                            console.log('Texture type:', texture ? texture.constructor.name : 'null');
+                                                            console.log('Texture properties:', texture ? Object.keys(texture) : 'null');
+                                                            
+                                                            if (texture && texture.image) {
+                                                                console.log('Got texture from parser, image:', texture.image);
+                                                                console.log('Image type:', texture.image.constructor.name);
+                                                                console.log('Image src:', texture.image.src);
+                                                                console.log('Image complete:', texture.image.complete);
+                                                                console.log('Image width:', texture.image.width);
+                                                                console.log('Image height:', texture.image.height);
+                                                                
+                                                                material.map = texture;
+                                                                material.map.needsUpdate = true;
+                                                                material.needsUpdate = true;
+                                                                
+                                                                // Force texture update
+                                                                if (texture.image.complete && texture.image.width > 0) {
+                                                                    texture.needsUpdate = true;
+                                                                    material.needsUpdate = true;
+                                                                    setTimeout(function() {
+                                                                        renderer.render(scene, camera);
+                                                                    }, 100);
+                                                                    console.log('Texture image is complete, forcing update');
+                                                                } else {
+                                                                    console.log('Waiting for texture image to load...');
+                                                                    texture.image.onload = function() {
+                                                                        console.log('Texture image onload fired!');
+                                                                        texture.needsUpdate = true;
+                                                                        material.needsUpdate = true;
+                                                                        renderer.render(scene, camera);
+                                                                        console.log('Texture image loaded successfully!');
+                                                                    };
+                                                                    texture.image.onerror = function(err) {
+                                                                        console.error('Texture image onerror fired:', err);
+                                                                    };
+                                                                }
+                                                                
+                                                                console.log('Applied texture to material');
+                                                            } else {
+                                                                console.log('Texture from parser is invalid:', texture);
+                                                                // Try to get image directly from texture JSON
+                                                                if (json.textures && json.textures[textureIndex]) {
+                                                                    var textureDef = json.textures[textureIndex];
+                                                                    console.log('Texture definition:', textureDef);
+                                                                    
+                                                                    if (textureDef.source !== undefined && json.images && json.images[textureDef.source]) {
+                                                                        var imageDef = json.images[textureDef.source];
+                                                                        console.log('Image definition:', imageDef);
+                                                                        
+                                                                        // Try to get the image buffer directly from the GLB
+                                                                        // Images in GLB are stored in bufferViews
+                                                                        if (imageDef.bufferView !== undefined) {
+                                                                            console.log('Image uses bufferView:', imageDef.bufferView);
+                                                                            var bufferViewDef = json.bufferViews[imageDef.bufferView];
+                                                                            console.log('BufferView definition:', bufferViewDef);
+                                                                            
+                                                                            // Try to get buffer data
+                                                                            if (bufferViewDef.buffer !== undefined) {
+                                                                                gltf.parser.getDependency('buffer', bufferViewDef.buffer).then(function(buffer) {
+                                                                                    console.log('Got buffer:', buffer);
+                                                                                    if (buffer) {
+                                                                                        // Extract image data from buffer
+                                                                                        var start = bufferViewDef.byteOffset || 0;
+                                                                                        var length = bufferViewDef.byteLength;
+                                                                                        var imageData = buffer.slice(start, start + length);
+                                                                                        
+                                                                                        // Create blob URL (this might still fail in Electron, but let's try)
+                                                                                        var blob = new Blob([imageData], { type: imageDef.mimeType || 'image/png' });
+                                                                                        var url = URL.createObjectURL(blob);
+                                                                                        
+                                                                                        var img = new Image();
+                                                                                        img.crossOrigin = 'anonymous';
+                                                                                        img.onload = function() {
+                                                                                            console.log('Image loaded from buffer! Width:', img.width, 'Height:', img.height);
+                                                                                            var texture = new THREE.Texture(img);
+                                                                                            texture.flipY = false; // GLB textures might not need flipping
+                                                                                            texture.needsUpdate = true;
+                                                                                            material.map = texture;
+                                                                                            material.needsUpdate = true;
+                                                                                            
+                                                                                            // Ensure material uses the texture properly
+                                                                                            material.map.wrapS = THREE.RepeatWrapping;
+                                                                                            material.map.wrapT = THREE.RepeatWrapping;
+                                                                                            
+                                                                                            // Force render after texture loads
+                                                                                            setTimeout(function() {
+                                                                                                renderer.render(scene, camera);
+                                                                                                console.log('Texture applied and rendered');
+                                                                                            }, 100);
+                                                                                            
+                                                                                            URL.revokeObjectURL(url);
+                                                                                        };
+                                                                                        img.onerror = function(err) {
+                                                                                            console.error('Failed to load image from buffer:', err);
+                                                                                            URL.revokeObjectURL(url);
+                                                                                        };
+                                                                                        img.src = url;
+                                                                                    }
+                                                                                }).catch(function(err) {
+                                                                                    console.log('Could not get buffer:', err);
+                                                                                });
+                                                                            }
+                                                                        }
+                                                                        
+                                                                        // Also try the standard image dependency (might work in some cases)
+                                                                        try {
+                                                                            gltf.parser.getDependency('texture', textureIndex).then(function(tex) {
+                                                                                if (tex && tex.image) {
+                                                                                    console.log('Got texture on retry:', tex);
+                                                                                    material.map = tex;
+                                                                                    material.map.needsUpdate = true;
+                                                                                    material.needsUpdate = true;
+                                                                                    renderer.render(scene, camera);
+                                                                                }
+                                                                            });
+                                                                        } catch (e) {
+                                                                            console.log('Retry also failed:', e);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }).catch(function(err) {
+                                                            console.log('Could not load texture from parser:', err);
+                                                            console.log('Texture loading failed - applying fallback color');
+                                                            
+                                                            // Fallback: Apply a visible color so model isn't gray
+                                                            // Use a light blue-gray color that's visible but neutral
+                                                            material.color.setHex(0xcccccc); // Light gray
+                                                            material.emissive.setHex(0x333333); // Slight glow
+                                                            material.emissiveIntensity = 0.2;
+                                                            material.needsUpdate = true;
+                                                            console.log('Applied fallback color - model will be visible but not original colors');
+                                                        });
+                                                    }
+                                        } else {
+                                                    console.log('No material definition found in JSON for material index:', materialIndex);
+                                                }
+                                                
+                                                // Also check for vertex colors in the geometry
+                                                if (primitive.attributes && primitive.attributes.COLOR_0 !== undefined) {
+                                                    var colorAccessorIndex = primitive.attributes.COLOR_0;
+                                                    console.log('Found vertex colors at accessor index:', colorAccessorIndex);
+                                                    gltf.parser.getDependency('accessor', colorAccessorIndex).then(function(colorAccessor) {
+                                                        if (colorAccessor && colorAccessor.array) {
+                                                            console.log('Got vertex colors, applying to geometry...');
+                                                            // Vertex colors will be applied when we create the geometry
+                                                        }
+                                                    });
+                                                }
+                                                
+                                                // Ensure material is visible
+                                                material.visible = true;
+                                                material.needsUpdate = true;
+                                                
+                                                console.log('Final material color:', material.color ? material.color.getHexString() : 'none');
+                                                
+                                                if (positionAccessor && positionAccessor.array) {
+                                                    // Create geometry
+                                                    var geometry = new THREE.BufferGeometry();
+                                                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positionAccessor.array, 3));
+                                                    
+                                                    if (indexAccessor && indexAccessor.array) {
+                                                        geometry.setIndex(new THREE.BufferAttribute(indexAccessor.array, 1));
+                                                    }
+                                                    
+                                                    // Check for texture coordinates - CRITICAL for textures to work!
+                                                    if (primitive.attributes && primitive.attributes.TEXCOORD_0 !== undefined) {
+                                                        var texCoordAccessorIndex = primitive.attributes.TEXCOORD_0;
+                                                        console.log('Found texture coordinates at accessor index:', texCoordAccessorIndex);
+                                                        gltf.parser.getDependency('accessor', texCoordAccessorIndex).then(function(texCoordAccessor) {
+                                                            if (texCoordAccessor && texCoordAccessor.array) {
+                                                                console.log('Applying texture coordinates to geometry...');
+                                                                geometry.setAttribute('uv', new THREE.Float32BufferAttribute(texCoordAccessor.array, texCoordAccessor.itemSize || 2));
+                                                                console.log('Texture coordinates applied! Count:', texCoordAccessor.array.length / 2);
+                                                            }
+                                                        }).catch(function(err) {
+                                                            console.log('Could not get texture coordinates:', err);
+                                                        });
+                                        } else {
+                                                        console.warn('No texture coordinates found! Texture may not display correctly.');
+                                                    }
+                                                    
+                                                    // Check for vertex colors
+                                                    if (primitive.attributes && primitive.attributes.COLOR_0 !== undefined) {
+                                                        var colorAccessorIndex = primitive.attributes.COLOR_0;
+                                                        gltf.parser.getDependency('accessor', colorAccessorIndex).then(function(colorAccessor) {
+                                                            if (colorAccessor && colorAccessor.array) {
+                                                                console.log('Applying vertex colors to geometry...');
+                                                                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorAccessor.array, colorAccessor.itemSize || 3));
+                                                                material.vertexColors = true;
+                                                                material.needsUpdate = true;
+                                                                console.log('Vertex colors applied!');
+                                                            }
+                                                        }).catch(function(err) {
+                                                            console.log('Could not get vertex colors:', err);
+                                                        });
+                                                    }
+                                                    
+                                                    // Compute normals if not present
+                                                    if (!geometry.attributes.normal) {
+                                                        geometry.computeVertexNormals();
+                                                    }
+                                                    
+                                                    // Create mesh
+                                                    var mesh = new THREE.Mesh(geometry, material);
+                                                    mesh.name = 'ManuallyCreatedMesh_' + primIdx;
+                                                    mesh.visible = true;
+                                                    
+                                                    console.log('Created mesh with', positionAccessor.array.length / 3, 'vertices');
+                                                    
+                                                    // Compute bounding box to check size
+                                                    geometry.computeBoundingBox();
+                                                    var meshBox = geometry.boundingBox;
+                                                    var meshSize = new THREE.Vector3();
+                                                    meshSize.subVectors(meshBox.max, meshBox.min);
+                                                    console.log('Mesh bounding box size:', meshSize.x, meshSize.y, meshSize.z);
+                                                    
+                                                    // The original model was 79.97 x 79.98 x 24, so scale if needed
+                                                    // But first check if this is the right scale - maybe it's in meters vs mm
+                                                    // For now, add it and let the camera fit handle it
+                                                    
+                                                    modelGroup.add(mesh);
+                                                    modelGroup.updateMatrixWorld(true);
+                                                    
+                                                    // Check final bounding box
+                                                    var finalBox = new THREE.Box3().setFromObject(modelGroup);
+                                                    var finalSize = finalBox.getSize(new THREE.Vector3());
+                                                    var finalCenter = finalBox.getCenter(new THREE.Vector3());
+                                                    console.log('Final model group size:', finalSize.x, finalSize.y, finalSize.z);
+                                                    console.log('Final model group center:', finalCenter.x, finalCenter.y, finalCenter.z);
+                                                    
+                                                    // Fit camera and render with zoom - focus ONLY on the mesh, not grid/axes
+                                                    setTimeout(function() {
+                                                        // Calculate bounding box ONLY from the mesh we just created, not the whole scene
+                                                        var meshBox = new THREE.Box3().setFromObject(mesh);
+                                                        var meshSize = meshBox.getSize(new THREE.Vector3());
+                                                        var meshCenter = meshBox.getCenter(new THREE.Vector3());
+                                                        var maxDim = Math.max(meshSize.x, meshSize.y, meshSize.z);
+                                                        
+                                                        console.log('Mesh-only bounding box - Size:', meshSize.x, meshSize.y, meshSize.z);
+                                                        console.log('Mesh-only bounding box - Center:', meshCenter.x, meshCenter.y, meshCenter.z);
+                                                        
+                                                        if (maxDim > 0) {
+                                                            var fov = camera.fov * (Math.PI / 180);
+                                                            // Zoom in close - use 0.6 multiplier for good view
+                                                            var cameraDistance = Math.abs(maxDim / (2 * Math.tan(fov / 2))) * 0.6;
+                                                            
+                                                            // Ensure reasonable distance
+                                                            if (cameraDistance < maxDim) {
+                                                                cameraDistance = maxDim * 1.2;
+                                                            }
+                                                            
+                                                            // Position camera to look at the mesh center
+                                                            camera.position.set(
+                                                                meshCenter.x, 
+                                                                meshCenter.y, 
+                                                                meshCenter.z + cameraDistance
+                                                            );
+                                                            camera.lookAt(meshCenter);
+                                                            controls.target.copy(meshCenter);
+                                                            controls.update();
+                                                            
+                                                            console.log('Camera positioned at:', camera.position.x, camera.position.y, camera.position.z);
+                                                            console.log('Camera looking at mesh center:', meshCenter.x, meshCenter.y, meshCenter.z);
+                                        } else {
+                                                            // Fallback: use fitCameraToObject
+                                                            fitCameraToObject(mesh);
+                                                        }
+                                                        
+                                                        renderer.render(scene, camera);
+                                                        viewerStatus.textContent = 'Tunnel.glb loaded successfully!';
+                                                        if (currentModelLabel) {
+                                                            currentModelLabel.textContent = 'Tunnel.glb';
+                                                        }
+                                                    }, 100);
+                                                }
+                                            }).catch(function(err) {
+                                                console.error('Error creating mesh from accessors:', err);
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        
+                        // Log the actual scene structure in detail
+                        console.log('=== SCENE STRUCTURE ===');
+                        console.log('Model children count:', model.children.length);
+                        console.log('Model type:', model.type);
+                        console.log('Model position:', model.position.x, model.position.y, model.position.z);
+                        console.log('Model scale:', model.scale.x, model.scale.y, model.scale.z);
+                        
+                        function logSceneStructure(obj, depth) {
+                            depth = depth || 0;
+                            var indent = '  '.repeat(depth);
+                            console.log(indent + 'Type:', obj.type, 'Name:', obj.name || '(unnamed)');
+                            console.log(indent + '  Position:', obj.position.x, obj.position.y, obj.position.z);
+                            console.log(indent + '  Scale:', obj.scale.x, obj.scale.y, obj.scale.z);
+                            console.log(indent + '  Visible:', obj.visible);
+                            console.log(indent + '  Children:', obj.children ? obj.children.length : 0);
+                            
+                            if (obj.geometry) {
+                                console.log(indent + '  HAS GEOMETRY!');
+                                if (obj.geometry.attributes && obj.geometry.attributes.position) {
+                                    console.log(indent + '    Vertices:', obj.geometry.attributes.position.count);
+                                }
+                            }
+                            
+                            if (obj.children && obj.children.length > 0) {
+                                for (var i = 0; i < obj.children.length; i++) {
+                                    logSceneStructure(obj.children[i], depth + 1);
+                                }
+                            }
+                        }
+                        
+                        logSceneStructure(model, 0);
+                        console.log('=== END SCENE STRUCTURE ===');
+                        
+                        // Add the model regardless of mesh count - sometimes geometry exists but isn't detected
+                        // The model will be added below, so we don't need a test cube
+                        
+                        // Make all objects visible and ensure materials are visible
+                        // Don't override colors - let the model use its original materials
+                        // BUT: Skip this for manually created meshes - they handle their own materials
+                        var hasManualMesh = false;
+                        modelGroup.traverse(function(child) {
+                            if (child.name && child.name.startsWith('ManuallyCreatedMesh_')) {
+                                hasManualMesh = true;
+                            }
+                        });
+                        
+                        if (!hasManualMesh) {
+                            // Only process original model materials if we didn't manually create meshes
+                            model.traverse(function(child) {
+                                child.visible = true;
+                                if (child.material) {
+                                    if (Array.isArray(child.material)) {
+                                        child.material.forEach(function(mat) {
+                                            if (mat) {
+                                                mat.visible = true;
+                                                // Don't force opacity - let materials be as they are
+                                            }
+                                        });
+                                    } else {
+                                        child.material.visible = true;
+                                    }
+                                }
+                                child.updateMatrix();
+                                child.updateMatrixWorld(true);
+                            });
+                        }
+                        
+                        // Increase lighting to make dark models more visible
+                        ambientLight.intensity = 1.8; // Increased brightness
+                        directionalLight.intensity = 3.0; // Increased brightness
+                        
+                        // Update additional lights if they exist
+                        scene.traverse(function(obj) {
+                            if (obj.isDirectionalLight && obj !== directionalLight) {
+                                obj.intensity = Math.max(obj.intensity, 1.3);
+                            }
+                        });
+                        
+                        modelGroup.add(model);
+                        modelGroup.updateMatrixWorld(true);
+                        
+                        // Check bounding box BEFORE rendering - if it has size, geometry exists!
+                        var preRenderBox = new THREE.Box3().setFromObject(modelGroup);
+                        var preRenderSize = preRenderBox.getSize(new THREE.Vector3());
+                        var preRenderCenter = preRenderBox.getCenter(new THREE.Vector3());
+                        console.log('Bounding box BEFORE render - Size:', preRenderSize.x, preRenderSize.y, preRenderSize.z);
+                        console.log('Bounding box BEFORE render - Center:', preRenderCenter.x, preRenderCenter.y, preRenderCenter.z);
+                        
+                        // If we have a bounding box but no detected meshes, geometry exists but isn't being detected
+                        // Force all objects to be visible and renderable
+                        if (preRenderSize.x > 0 || preRenderSize.y > 0 || preRenderSize.z > 0) {
+                            console.log('Geometry EXISTS (bounding box found)! Forcing visibility...');
+                            modelGroup.traverse(function(obj) {
+                                obj.visible = true;
+                                obj.renderOrder = 0;
+                                if (obj.material) {
+                                    if (Array.isArray(obj.material)) {
+                                        obj.material.forEach(function(mat) {
+                                            if (mat) {
+                                                mat.visible = true;
+                                                mat.transparent = false;
+                                            }
+                                        });
+                                    } else {
+                                        obj.material.visible = true;
+                                        obj.material.transparent = false;
+                                    }
                                 }
                             });
-                            console.log('Total meshes found:', meshCount);
-                            
-                            modelGroup.add(gltf.scene);
-                            console.log('Added to scene, fitting camera...');
-                            
-                            // Calculate bounding box
-                            var bbox = new THREE.Box3().setFromObject(modelGroup);
-                            console.log('Model bounding box:', {
-                                min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
-                                max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z }
-                            });
-                            
-                            var size = bbox.getSize(new THREE.Vector3());
-                            console.log('Model size:', { x: size.x, y: size.y, z: size.z });
-                            
-                            fitCameraToObject(modelGroup);
-                            
-                            console.log('Camera position after fit:', { 
-                                x: camera.position.x, 
-                                y: camera.position.y, 
-                                z: camera.position.z 
-                            });
-                            
-                            viewerStatus.textContent = 'Tunnel.glb loaded successfully. Meshes: ' + meshCount;
-                            currentModelLabel.textContent = 'Tunnel.glb';
-                        } else {
-                            console.error('No scene in GLTF object');
-                            viewerStatus.textContent = 'Error: No scene in GLB file';
                         }
+                        
+                        // Force render first to initialize geometry
+                        renderer.render(scene, camera);
+                        
+                        // Wait a moment for geometry to initialize, then try to fit camera
+                        // BUT: Skip this if we manually created meshes (they handle their own camera positioning)
+                        setTimeout(function() {
+                            // Check if we manually created meshes - if so, skip automatic camera positioning
+                            var hasManualMesh = false;
+                            modelGroup.traverse(function(child) {
+                                if (child.name && child.name.startsWith('ManuallyCreatedMesh_')) {
+                                    hasManualMesh = true;
+                                }
+                            });
+                            
+                            if (hasManualMesh) {
+                                console.log('Skipping automatic camera positioning - manual mesh handles it');
+                                return; // Don't override manual camera positioning
+                            }
+                            
+                            // Try multiple methods to find model bounds
+                            var box = new THREE.Box3().setFromObject(modelGroup);
+                            var size = box.getSize(new THREE.Vector3());
+                            var center = box.getCenter(new THREE.Vector3());
+                            
+                            // If bounding box is zero, try computing from all children
+                            if (size.x === 0 && size.y === 0 && size.z === 0) {
+                                var min = new THREE.Vector3(Infinity, Infinity, Infinity);
+                                var max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+                                var foundAny = false;
+                                
+                                modelGroup.traverse(function(child) {
+                                    // Check for any object with position data
+                                    if (child.position) {
+                                        var worldPos = new THREE.Vector3();
+                                        child.getWorldPosition(worldPos);
+                                        min.x = Math.min(min.x, worldPos.x - 50);
+                                        min.y = Math.min(min.y, worldPos.y - 50);
+                                        min.z = Math.min(min.z, worldPos.z - 50);
+                                        max.x = Math.max(max.x, worldPos.x + 50);
+                                        max.y = Math.max(max.y, worldPos.y + 50);
+                                        max.z = Math.max(max.z, worldPos.z + 50);
+                                        foundAny = true;
+                                    }
+                                    
+                                    // Also check geometry if it exists
+                                    if (child.geometry && child.geometry.attributes && child.geometry.attributes.position) {
+                                            var positions = child.geometry.attributes.position.array;
+                                        var worldMatrix = new THREE.Matrix4();
+                                        child.updateMatrixWorld(true);
+                                        worldMatrix.copy(child.matrixWorld);
+                                        
+                                            for (var i = 0; i < positions.length; i += 3) {
+                                            var localPos = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+                                            var worldPos = localPos.applyMatrix4(worldMatrix);
+                                            min.x = Math.min(min.x, worldPos.x);
+                                            min.y = Math.min(min.y, worldPos.y);
+                                            min.z = Math.min(min.z, worldPos.z);
+                                            max.x = Math.max(max.x, worldPos.x);
+                                            max.y = Math.max(max.y, worldPos.y);
+                                            max.z = Math.max(max.z, worldPos.z);
+                                            foundAny = true;
+                                        }
+                                    }
+                                });
+                                
+                                if (foundAny) {
+                                    size = new THREE.Vector3();
+                                    size.subVectors(max, min);
+                                    center = new THREE.Vector3();
+                                    center.addVectors(min, max).multiplyScalar(0.5);
+                                    box.setFromPoints([min, max]);
+                                }
+                            }
+                            
+                            // Position camera
+                            if (size.x > 0 || size.y > 0 || size.z > 0) {
+                                var maxDim = Math.max(size.x, size.y, size.z);
+                                var fov = camera.fov * (Math.PI / 180);
+                                var cameraDistance = Math.abs(maxDim / (2 * Math.tan(fov / 2))) * 1.5;
+                                
+                                // Ensure minimum distance
+                                if (cameraDistance < 50) {
+                                    cameraDistance = Math.max(maxDim * 2, 100);
+                                }
+                                
+                                camera.position.set(center.x, center.y, center.z + cameraDistance);
+                                camera.lookAt(center);
+                                controls.target.copy(center);
+                                controls.update();
+                            } else {
+                                // Fallback: try multiple positions to find the model
+                                var positions = [
+                                    [0, 0, 200],
+                                    [100, 100, 200],
+                                    [-100, 100, 200],
+                                    [0, 100, 200],
+                                    [0, 0, 500]
+                                ];
+                                
+                                var currentPos = 0;
+                                var tryNextPosition = function() {
+                                    if (currentPos < positions.length) {
+                                        var pos = positions[currentPos];
+                                        camera.position.set(pos[0], pos[1], pos[2]);
+                                        camera.lookAt(0, 0, 0);
+                                        controls.target.set(0, 0, 0);
+                            controls.update();
+                            renderer.render(scene, camera);
+                                        currentPos++;
+                                        setTimeout(tryNextPosition, 300);
+                                    }
+                                };
+                                
+                                // Start with first position
+                                camera.position.set(0, 0, 200);
+                                camera.lookAt(0, 0, 0);
+                                controls.target.set(0, 0, 0);
+                                controls.update();
+                            }
+                            
+                            // Final render
+                            renderer.render(scene, camera);
+                            viewerStatus.textContent = 'Tunnel.glb loaded! Use mouse to rotate/zoom if not visible.';
+                            if (currentModelLabel) {
+                                currentModelLabel.textContent = 'Tunnel.glb';
+                            }
+                        }, 200);
+                        
+                        lastAppliedTemps = initialTemps.slice();
                     },
-                    function (progress) {
-                        // Loading progress
+                    function(progress) {
                         if (progress.total > 0) {
-                            var percent = (progress.loaded / progress.total) * 100;
-                            console.log('Loading progress: ' + percent + '%');
-                            viewerStatus.textContent = 'Loading Tunnel.glb ... ' + Math.round(percent) + '%';
+                            var percent = (progress.loaded / progress.total * 100).toFixed(0);
+                            viewerStatus.textContent = 'Loading Tunnel.glb ... ' + percent + '%';
                         }
                     },
-                    function (error) {
-                        // Error loading
+                    function(error) {
+                        // Restore console functions
+                        console.error = originalError;
+                        console.warn = originalWarn;
                         console.error('Error loading Tunnel.glb:', error);
-                        console.error('Error details:', error.message || error);
                         viewerStatus.textContent = 'Failed to load Tunnel.glb: ' + (error.message || 'Unknown error');
                     }
                 );
             }
-            
-            function toggleVisualization() {
-                if (currentModelType === 'step') {
-                    // Switch to GLB
-                    currentModelType = 'glb';
-                    loadGLBModel();
-                    toggleButton.textContent = 'Switch to Sample View';
-                } else {
-                    // Switch to STEP
+
+            function loadModel() {
+                var selectedFile = modelSelect.value;
+                
+                if (selectedFile === 'Sample.step') {
                     currentModelType = 'step';
                     loadStepModel();
-                    toggleButton.textContent = 'Switch to Tunnel View';
+                } else if (selectedFile === 'Tunnel.glb') {
+                    currentModelType = 'glb';
+                    loadGLBModel();
                 }
             }
             
-            // Add toggle button click handler
-            if (toggleButton) {
-                toggleButton.addEventListener('click', toggleVisualization);
+            // Add model select change handler
+            if (modelSelect) {
+                modelSelect.addEventListener('change', loadModel);
             }
 
             loadStepModel();
@@ -621,14 +1517,19 @@
                 if (modelGroup.children.length === 0) {
                     return;
                 }
-                // Only apply temperature colors to STEP model, not GLB
+                // Only apply temperature colors to STEP models, not GLB files
+                // GLB files have their own materials and textures
                 if (currentModelType === 'step') {
-                    var latestTemps = getTemperaturesFromParent();
-                    if (!lastAppliedTemps || tempsChanged(lastAppliedTemps, latestTemps)) {
-                        updateLegend(latestTemps);
-                        applyTemperatureColorsToGroup(modelGroup, latestTemps);
-                        lastAppliedTemps = latestTemps.slice();
+                var latestTemps = getTemperaturesFromParent();
+                if (!lastAppliedTemps || tempsChanged(lastAppliedTemps, latestTemps)) {
+                    updateLegend(latestTemps);
+                    applyTemperatureColorsToGroup(modelGroup, latestTemps);
+                    lastAppliedTemps = latestTemps.slice();
                     }
+                } else {
+                    // For GLB files, just update the legend
+                    var latestTemps = getTemperaturesFromParent();
+                    updateLegend(latestTemps);
                 }
             }, 2000);
 
@@ -644,7 +1545,6 @@
     </script>
     
     <!-- Load Responsive Scaling Script -->
-    <script src="responsive-scaling.js"></script>
 </body>
 </html>
 

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab 1 - Introduction to Heat Transfer</title>
     
@@ -15,7 +16,6 @@
     <link rel="manifest" href="assets/site.webmanifest">
     
     <style>
-        /* Base font size will be controlled by responsive-scaling.js */
         html {
             font-size: 16px; /* Base size - will be scaled automatically */
         }
@@ -43,17 +43,6 @@
             --chart-grid: #444444;
             --chart-text: #eeeeee;
         }
-        body.theme-light {
-            --bg: #ffffff;
-            --text: #ffffff;
-            --panel: #6c6b6d;
-            --border: #444444;
-            --accent: #2ed573;
-            --chart-bg: #6c6b6d;
-            --chart-border: #444444;
-            --chart-grid: #444444;
-            --chart-text: #eeeeee;
-        }
         
         * {
             margin: 0;
@@ -69,6 +58,67 @@
             min-height: 100vh;
             overflow-x: hidden;
             font-size: 1rem; /* Use rem units */
+        }
+        
+        /* RTL (Right-to-Left) support for Arabic */
+        body.rtl,
+        body.rtl .container,
+        body.rtl .header,
+        body.rtl .content,
+        body.rtl .section,
+        body.rtl .section p,
+        body.rtl .section h2,
+        body.rtl .section h3,
+        body.rtl .section h4,
+        body.rtl .interactive-box,
+        body.rtl .key-points,
+        body.rtl .key-points ul,
+        body.rtl .key-points li,
+        body.rtl .quiz-section,
+        body.rtl .quiz-question,
+        body.rtl .quiz-question h4,
+        body.rtl .quiz-options,
+        body.rtl .quiz-options label,
+        body.rtl .formula,
+        body.rtl ul,
+        body.rtl ol,
+        body.rtl li,
+        body.rtl p,
+        body.rtl .input-group,
+        body.rtl .input-group label {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        body.rtl .header {
+            text-align: center;
+        }
+        
+        body.rtl .section {
+            border-left: none;
+            border-right: 0.3125rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .key-points {
+            border-left: none;
+            border-right: 0.3125rem solid #ffc107;
+        }
+        
+        body.rtl .formula {
+            border-left: none;
+            border-right: 0.25rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .quiz-options label:hover {
+            transform: translateX(-0.3125rem);
+        }
+        
+        body.rtl table,
+        body.rtl .data-table,
+        body.rtl .data-table th,
+        body.rtl .data-table td {
+            direction: rtl;
+            text-align: right;
         }
 
         .container {
@@ -94,44 +144,6 @@
             border-bottom: 0.125rem solid var(--border, #444); /* Changed from 2px to rem */
         }
 
-        .language-selector {
-            position: absolute;
-            top: 1.25rem; /* Changed from 20px to rem */
-            right: 1.25rem; /* Changed from 20px to rem */
-            z-index: 100;
-        }
-
-        @media (max-width: 600px) {
-            .language-selector {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin-bottom: 15px;
-                text-align: center;
-            }
-        }
-
-        .language-selector select {
-            padding: 0.625rem 0.9375rem; /* Changed from 10px 15px to rem */
-            font-size: 1em;
-            border-radius: 0.5rem; /* Changed from 8px to rem */
-            border: 0.125rem solid var(--accent, #2ed573); /* Changed from 2px to rem */
-            background: var(--chart-bg, #1a1a1a);
-            color: var(--text, #ffffff);
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .language-selector select:hover {
-            background: var(--panel, #333);
-            border-color: var(--accent, #2ed573);
-        }
-
-        .language-selector select option {
-            background: var(--panel, #333);
-            color: var(--text, #ffffff);
-        }
 
         .header h1 {
             font-size: 2.5em;
@@ -478,16 +490,6 @@
 <body class="theme-dark">
     <div class="container">
         <div class="header">
-            <!-- Language Selector -->
-            <div class="language-selector">
-                <select id="languageSelector">
-                    <option value="en">🇬🇧 English</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="es">🇪🇸 Español</option>
-                </select>
-            </div>
-
             <h1 data-translate="pageTitle">🔥 Lab 1: Introduction to Heat Transfer</h1>
             <p data-translate="pageSubtitle">Understanding the Fundamentals of Thermal Energy Transfer</p>
         </div>
@@ -616,23 +618,23 @@
             <!-- Connection to Your Device -->
             <div class="section">
                 <h2><span class="icon">🔬</span> <span data-translate="section4Title">How This Relates to Your Heat Transfer Apparatus</span></h2>
-                <p>
+                <p data-translate="section4Para1">
                     Your heat transfer apparatus uses all three types of heat transfer:
                 </p>
                 
                 <div class="key-points">
-                    <h4>🔥 Your Device in Action:</h4>
+                    <h4 data-translate="deviceActionTitle">🔥 Your Device in Action:</h4>
                     <ul>
-                        <li><strong>Radial/Linear Heater:</strong> Creates a hot surface (heat source)</li>
-                        <li><strong>Temperature Sensors (T1-T8):</strong> Measure temperature at different distances from the heater</li>
-                        <li><strong>Conduction:</strong> Heat travels through the metal bar from the heater to the sensors</li>
-                        <li><strong>Convection:</strong> The fan creates air flow over the bar, cooling it by forced convection</li>
-                        <li><strong>Radiation:</strong> Some heat is lost to the environment through thermal radiation</li>
-                        <li><strong>Cooler:</strong> Actively removes heat to speed up cooling and reset experiments</li>
+                        <li data-translate="deviceItem1"><strong>Radial/Linear Heater:</strong> Creates a hot surface (heat source)</li>
+                        <li data-translate="deviceItem2"><strong>Temperature Sensors (T1-T8):</strong> Measure temperature at different distances from the heater</li>
+                        <li data-translate="deviceItem3"><strong>Conduction:</strong> Heat travels through the metal bar from the heater to the sensors</li>
+                        <li data-translate="deviceItem4"><strong>Convection:</strong> The fan creates air flow over the bar, cooling it by forced convection</li>
+                        <li data-translate="deviceItem5"><strong>Radiation:</strong> Some heat is lost to the environment through thermal radiation</li>
+                        <li data-translate="deviceItem6"><strong>Cooler:</strong> Actively removes heat to speed up cooling and reset experiments</li>
                     </ul>
                 </div>
 
-                <p>
+                <p data-translate="section4Para2">
                     By changing the heater temperature, fan speed, and using the cooler, you can explore how 
                     heat transfer rates change under different conditions. The temperature vs distance graph 
                     shows you the temperature profile along the bar - steeper slopes mean faster heat transfer!
@@ -648,70 +650,70 @@
                     <div class="quiz-options">
                         <label>
                             <input type="radio" name="q1" value="a">
-                            A) Convection
+                            <span data-translate="quiz1OptionA">A) Convection</span>
                         </label>
                         <label>
                             <input type="radio" name="q1" value="b">
-                            B) Conduction
+                            <span data-translate="quiz1OptionB">B) Conduction</span>
                         </label>
                         <label>
                             <input type="radio" name="q1" value="c">
-                            C) Radiation
+                            <span data-translate="quiz1OptionC">C) Radiation</span>
                         </label>
                         <label>
                             <input type="radio" name="q1" value="d">
-                            D) None of the above
+                            <span data-translate="quiz1OptionD">D) None of the above</span>
                         </label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'feedback1')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'feedback1')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="feedback1"></div>
                 </div>
 
                 <div class="quiz-question">
-                    <h4>Question 2: What happens when you increase the fan speed on your apparatus?</h4>
+                    <h4 data-translate="quiz2Question">Question 2: What happens when you increase the fan speed on your apparatus?</h4>
                     <div class="quiz-options">
                         <label>
                             <input type="radio" name="q2" value="a">
-                            A) Convection heat transfer increases, cooling the bar faster
+                            <span data-translate="quiz2OptionA">A) Convection heat transfer increases, cooling the bar faster</span>
                         </label>
                         <label>
                             <input type="radio" name="q2" value="b">
-                            B) Conduction stops completely
+                            <span data-translate="quiz2OptionB">B) Conduction stops completely</span>
                         </label>
                         <label>
                             <input type="radio" name="q2" value="c">
-                            C) Radiation increases significantly
+                            <span data-translate="quiz2OptionC">C) Radiation increases significantly</span>
                         </label>
                         <label>
                             <input type="radio" name="q2" value="d">
-                            D) Nothing changes
+                            <span data-translate="quiz2OptionD">D) Nothing changes</span>
                         </label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'a', 'feedback2')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'a', 'feedback2')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="feedback2"></div>
                 </div>
 
                 <div class="quiz-question">
-                    <h4>Question 3: Which material has the highest thermal conductivity?</h4>
+                    <h4 data-translate="quiz3Question">Question 3: Which material has the highest thermal conductivity?</h4>
                     <div class="quiz-options">
                         <label>
                             <input type="radio" name="q3" value="a">
-                            A) Wood
+                            <span data-translate="quiz3OptionA">A) Wood</span>
                         </label>
                         <label>
                             <input type="radio" name="q3" value="b">
-                            B) Air
+                            <span data-translate="quiz3OptionB">B) Air</span>
                         </label>
                         <label>
                             <input type="radio" name="q3" value="c">
-                            C) Copper
+                            <span data-translate="quiz3OptionC">C) Copper</span>
                         </label>
                         <label>
                             <input type="radio" name="q3" value="d">
-                            D) Glass
+                            <span data-translate="quiz3OptionD">D) Glass</span>
                         </label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'c', 'feedback3')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'c', 'feedback3')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="feedback3"></div>
                 </div>
             </div>
@@ -721,13 +723,13 @@
                 <h2><span class="icon">🧪</span> <span data-translate="experimentsTitle">Try These Experiments!</span></h2>
                 
                 <div class="key-points">
-                    <h4>Suggested Experiments with Your Apparatus:</h4>
+                    <h4 data-translate="experimentsSubtitle">Suggested Experiments with Your Apparatus:</h4>
                     <ul>
-                        <li><strong>Experiment 1:</strong> Set heater to 50°C, fan to 0%. Observe temperature distribution along the bar.</li>
-                        <li><strong>Experiment 2:</strong> Keep heater at 50°C, increase fan to 50%. Notice how convection affects temperatures.</li>
-                        <li><strong>Experiment 3:</strong> Compare temperature profiles with radial vs linear heater at the same power.</li>
-                        <li><strong>Experiment 4:</strong> Use the cooler to rapidly decrease temperatures and observe the cooling rate.</li>
-                        <li><strong>Experiment 5:</strong> Create a Temperature vs Distance graph and calculate the temperature gradient.</li>
+                        <li data-translate="exp1"><strong>Experiment 1:</strong> Set heater to 50°C, fan to 0%. Observe temperature distribution along the bar.</li>
+                        <li data-translate="exp2"><strong>Experiment 2:</strong> Keep heater at 50°C, increase fan to 50%. Notice how convection affects temperatures.</li>
+                        <li data-translate="exp3"><strong>Experiment 3:</strong> Compare temperature profiles with radial vs linear heater at the same power.</li>
+                        <li data-translate="exp4"><strong>Experiment 4:</strong> Use the cooler to rapidly decrease temperatures and observe the cooling rate.</li>
+                        <li data-translate="exp5"><strong>Experiment 5:</strong> Create a Temperature vs Distance graph and calculate the temperature gradient.</li>
                     </ul>
                 </div>
             </div>
@@ -735,7 +737,7 @@
     </div>
 
     <script>
-        // Translation data for all 4 languages
+        // Translation data for all languages
         var translations = {
             en: {
                 pageTitle: '🔥 Lab 1: Introduction to Heat Transfer',
@@ -760,9 +762,39 @@
                 labelThickness: 'Thickness (d) in meters:',
                 calcButton: '🔥 Calculate Heat Transfer',
                 section4Title: 'How This Relates to Your Heat Transfer Apparatus',
+                section4Para1: 'Your heat transfer apparatus uses all three types of heat transfer:',
+                deviceActionTitle: '🔥 Your Device in Action:',
+                deviceItem1: 'Radial/Linear Heater: Creates a hot surface (heat source)',
+                deviceItem2: 'Temperature Sensors (T1-T8): Measure temperature at different distances from the heater',
+                deviceItem3: 'Conduction: Heat travels through the metal bar from the heater to the sensors',
+                deviceItem4: 'Convection: The fan creates air flow over the bar, cooling it by forced convection',
+                deviceItem5: 'Radiation: Some heat is lost to the environment through thermal radiation',
+                deviceItem6: 'Cooler: Actively removes heat to speed up cooling and reset experiments',
+                section4Para2: 'By changing the heater temperature, fan speed, and using the cooler, you can explore how heat transfer rates change under different conditions. The temperature vs distance graph shows you the temperature profile along the bar - steeper slopes mean faster heat transfer!',
                 quizTitle: 'Test Your Knowledge!',
                 quiz1Question: 'Question 1: Which type of heat transfer requires direct physical contact?',
-                experimentsTitle: 'Try These Experiments!'
+                quiz1OptionA: 'A) Convection',
+                quiz1OptionB: 'B) Conduction',
+                quiz1OptionC: 'C) Radiation',
+                quiz1OptionD: 'D) None of the above',
+                quiz2Question: 'Question 2: What happens when you increase the fan speed on your apparatus?',
+                quiz2OptionA: 'A) Convection heat transfer increases, cooling the bar faster',
+                quiz2OptionB: 'B) Conduction stops completely',
+                quiz2OptionC: 'C) Radiation increases significantly',
+                quiz2OptionD: 'D) Nothing changes',
+                quiz3Question: 'Question 3: Which material has the highest thermal conductivity?',
+                quiz3OptionA: 'A) Wood',
+                quiz3OptionB: 'B) Air',
+                quiz3OptionC: 'C) Copper',
+                quiz3OptionD: 'D) Glass',
+                checkAnswerBtn: 'Check Answer',
+                experimentsTitle: 'Try These Experiments!',
+                experimentsSubtitle: 'Suggested Experiments with Your Apparatus:',
+                exp1: 'Experiment 1: Set heater to 50°C, fan to 0%. Observe temperature distribution along the bar.',
+                exp2: 'Experiment 2: Keep heater at 50°C, increase fan to 50%. Notice how convection affects temperatures.',
+                exp3: 'Experiment 3: Compare temperature profiles with radial vs linear heater at the same power.',
+                exp4: 'Experiment 4: Use the cooler to rapidly decrease temperatures and observe the cooling rate.',
+                exp5: 'Experiment 5: Create a Temperature vs Distance graph and calculate the temperature gradient.'
             },
             fr: {
                 pageTitle: '🔥 Laboratoire 1: Introduction au Transfert Thermique',
@@ -787,9 +819,39 @@
                 labelThickness: 'Épaisseur (d) en mètres:',
                 calcButton: '🔥 Calculer le Transfert Thermique',
                 section4Title: 'Comment Cela Se Rapporte à Votre Appareil de Transfert Thermique',
+                section4Para1: 'Votre appareil de transfert thermique utilise les trois types de transfert thermique:',
+                deviceActionTitle: '🔥 Votre Appareil en Action:',
+                deviceItem1: 'Chauffage Radial/Linéaire: Crée une surface chaude (source de chaleur)',
+                deviceItem2: 'Capteurs de Température (T1-T8): Mesurent la température à différentes distances du chauffage',
+                deviceItem3: 'Conduction: La chaleur se déplace à travers la barre métallique du chauffage aux capteurs',
+                deviceItem4: 'Convection: Le ventilateur crée un flux d\'air sur la barre, la refroidissant par convection forcée',
+                deviceItem5: 'Rayonnement: Une partie de la chaleur est perdue dans l\'environnement par rayonnement thermique',
+                deviceItem6: 'Refroidisseur: Retire activement la chaleur pour accélérer le refroidissement et réinitialiser les expériences',
+                section4Para2: 'En modifiant la température du chauffage, la vitesse du ventilateur et en utilisant le refroidisseur, vous pouvez explorer comment les taux de transfert thermique changent sous différentes conditions. Le graphique température vs distance vous montre le profil de température le long de la barre - des pentes plus raides signifient un transfert de chaleur plus rapide!',
                 quizTitle: 'Testez Vos Connaissances!',
                 quiz1Question: 'Question 1: Quel type de transfert thermique nécessite un contact physique direct?',
-                experimentsTitle: 'Essayez Ces Expériences!'
+                quiz1OptionA: 'A) Convection',
+                quiz1OptionB: 'B) Conduction',
+                quiz1OptionC: 'C) Rayonnement',
+                quiz1OptionD: 'D) Aucune des réponses ci-dessus',
+                quiz2Question: 'Question 2: Que se passe-t-il lorsque vous augmentez la vitesse du ventilateur sur votre appareil?',
+                quiz2OptionA: 'A) Le transfert de chaleur par convection augmente, refroidissant la barre plus rapidement',
+                quiz2OptionB: 'B) La conduction s\'arrête complètement',
+                quiz2OptionC: 'C) Le rayonnement augmente considérablement',
+                quiz2OptionD: 'D) Rien ne change',
+                quiz3Question: 'Question 3: Quel matériau a la conductivité thermique la plus élevée?',
+                quiz3OptionA: 'A) Bois',
+                quiz3OptionB: 'B) Air',
+                quiz3OptionC: 'C) Cuivre',
+                quiz3OptionD: 'D) Verre',
+                checkAnswerBtn: 'Vérifier la Réponse',
+                experimentsTitle: 'Essayez Ces Expériences!',
+                experimentsSubtitle: 'Expériences Suggérées avec Votre Appareil:',
+                exp1: 'Expérience 1: Réglez le chauffage à 50°C, ventilateur à 0%. Observez la distribution de température le long de la barre.',
+                exp2: 'Expérience 2: Gardez le chauffage à 50°C, augmentez le ventilateur à 50%. Remarquez comment la convection affecte les températures.',
+                exp3: 'Expérience 3: Comparez les profils de température avec chauffage radial vs linéaire à la même puissance.',
+                exp4: 'Expérience 4: Utilisez le refroidisseur pour diminuer rapidement les températures et observer le taux de refroidissement.',
+                exp5: 'Expérience 5: Créez un graphique Température vs Distance et calculez le gradient de température.'
             },
             de: {
                 pageTitle: '🔥 Labor 1: Einführung in die Wärmeübertragung',
@@ -814,9 +876,39 @@
                 labelThickness: 'Dicke (d) in Metern:',
                 calcButton: '🔥 Wärmeübertragung Berechnen',
                 section4Title: 'Wie Dies Sich auf Ihr Wärmeübertragungsgerät Bezieht',
+                section4Para1: 'Ihr Wärmeübertragungsgerät verwendet alle drei Arten der Wärmeübertragung:',
+                deviceActionTitle: '🔥 Ihr Gerät in Aktion:',
+                deviceItem1: 'Radialer/Linearer Heizer: Erzeugt eine heiße Oberfläche (Wärmequelle)',
+                deviceItem2: 'Temperatursensoren (T1-T8): Messen die Temperatur in verschiedenen Abständen vom Heizer',
+                deviceItem3: 'Leitung: Wärme wandert durch die Metallstange vom Heizer zu den Sensoren',
+                deviceItem4: 'Konvektion: Der Ventilator erzeugt Luftstrom über die Stange und kühlt sie durch erzwungene Konvektion',
+                deviceItem5: 'Strahlung: Einige Wärme geht durch Wärmestrahlung an die Umgebung verloren',
+                deviceItem6: 'Kühler: Entfernt aktiv Wärme, um die Kühlung zu beschleunigen und Experimente zurückzusetzen',
+                section4Para2: 'Durch Änderung der Heizertemperatur, Lüftergeschwindigkeit und Verwendung des Kühlers können Sie erkunden, wie sich Wärmeübertragungsraten unter verschiedenen Bedingungen ändern. Das Temperatur vs. Abstand Diagramm zeigt Ihnen das Temperaturprofil entlang der Stange - steilere Steigungen bedeuten schnellere Wärmeübertragung!',
                 quizTitle: 'Testen Sie Ihr Wissen!',
                 quiz1Question: 'Frage 1: Welche Art der Wärmeübertragung erfordert direkten physischen Kontakt?',
-                experimentsTitle: 'Probieren Sie Diese Experimente!'
+                quiz1OptionA: 'A) Konvektion',
+                quiz1OptionB: 'B) Leitung',
+                quiz1OptionC: 'C) Strahlung',
+                quiz1OptionD: 'D) Keine der oben genannten',
+                quiz2Question: 'Frage 2: Was passiert, wenn Sie die Lüftergeschwindigkeit an Ihrem Gerät erhöhen?',
+                quiz2OptionA: 'A) Konvektionswärmeübertragung nimmt zu, kühlt die Stange schneller',
+                quiz2OptionB: 'B) Leitung stoppt vollständig',
+                quiz2OptionC: 'C) Strahlung nimmt erheblich zu',
+                quiz2OptionD: 'D) Nichts ändert sich',
+                quiz3Question: 'Frage 3: Welches Material hat die höchste Wärmeleitfähigkeit?',
+                quiz3OptionA: 'A) Holz',
+                quiz3OptionB: 'B) Luft',
+                quiz3OptionC: 'C) Kupfer',
+                quiz3OptionD: 'D) Glas',
+                checkAnswerBtn: 'Antwort Überprüfen',
+                experimentsTitle: 'Probieren Sie Diese Experimente!',
+                experimentsSubtitle: 'Vorgeschlagene Experimente mit Ihrem Gerät:',
+                exp1: 'Experiment 1: Stellen Sie den Heizer auf 50°C, Ventilator auf 0%. Beobachten Sie die Temperaturverteilung entlang der Stange.',
+                exp2: 'Experiment 2: Halten Sie den Heizer bei 50°C, erhöhen Sie den Ventilator auf 50%. Beachten Sie, wie Konvektion die Temperaturen beeinflusst.',
+                exp3: 'Experiment 3: Vergleichen Sie Temperaturprofile mit radialem vs. linearem Heizer bei gleicher Leistung.',
+                exp4: 'Experiment 4: Verwenden Sie den Kühler, um Temperaturen schnell zu senken und die Kühlrate zu beobachten.',
+                exp5: 'Experiment 5: Erstellen Sie ein Temperatur vs. Abstand Diagramm und berechnen Sie den Temperaturgradienten.'
             },
             es: {
                 pageTitle: '🔥 Laboratorio 1: Introducción a la Transferencia de Calor',
@@ -841,9 +933,153 @@
                 labelThickness: 'Espesor (d) en metros:',
                 calcButton: '🔥 Calcular Transferencia de Calor',
                 section4Title: 'Cómo Esto Se Relaciona con Su Aparato de Transferencia de Calor',
+                section4Para1: 'Su aparato de transferencia de calor utiliza los tres tipos de transferencia de calor:',
+                deviceActionTitle: '🔥 Su Dispositivo en Acción:',
+                deviceItem1: 'Calentador Radial/Lineal: Crea una superficie caliente (fuente de calor)',
+                deviceItem2: 'Sensores de Temperatura (T1-T8): Miden la temperatura a diferentes distancias del calentador',
+                deviceItem3: 'Conducción: El calor viaja a través de la barra de metal desde el calentador hasta los sensores',
+                deviceItem4: 'Convección: El ventilador crea flujo de aire sobre la barra, enfriándola por convección forzada',
+                deviceItem5: 'Radiación: Se pierde algo de calor al ambiente a través de radiación térmica',
+                deviceItem6: 'Enfriador: Elimina activamente el calor para acelerar el enfriamiento y reiniciar experimentos',
+                section4Para2: 'Al cambiar la temperatura del calentador, la velocidad del ventilador y usando el enfriador, puede explorar cómo cambian las tasas de transferencia de calor bajo diferentes condiciones. El gráfico de temperatura vs distancia le muestra el perfil de temperatura a lo largo de la barra - ¡pendientes más pronunciadas significan transferencia de calor más rápida!',
                 quizTitle: '¡Pruebe Sus Conocimientos!',
                 quiz1Question: 'Pregunta 1: ¿Qué tipo de transferencia de calor requiere contacto físico directo?',
-                experimentsTitle: '¡Pruebe Estos Experimentos!'
+                quiz1OptionA: 'A) Convección',
+                quiz1OptionB: 'B) Conducción',
+                quiz1OptionC: 'C) Radiación',
+                quiz1OptionD: 'D) Ninguna de las anteriores',
+                quiz2Question: 'Pregunta 2: ¿Qué sucede cuando aumenta la velocidad del ventilador en su aparato?',
+                quiz2OptionA: 'A) La transferencia de calor por convección aumenta, enfriando la barra más rápido',
+                quiz2OptionB: 'B) La conducción se detiene completamente',
+                quiz2OptionC: 'C) La radiación aumenta significativamente',
+                quiz2OptionD: 'D) Nada cambia',
+                quiz3Question: 'Pregunta 3: ¿Qué material tiene la conductividad térmica más alta?',
+                quiz3OptionA: 'A) Madera',
+                quiz3OptionB: 'B) Aire',
+                quiz3OptionC: 'C) Cobre',
+                quiz3OptionD: 'D) Vidrio',
+                checkAnswerBtn: 'Verificar Respuesta',
+                experimentsTitle: '¡Pruebe Estos Experimentos!',
+                experimentsSubtitle: 'Experimentos Sugeridos con Su Aparato:',
+                exp1: 'Experimento 1: Configure el calentador a 50°C, ventilador a 0%. Observe la distribución de temperatura a lo largo de la barra.',
+                exp2: 'Experimento 2: Mantenga el calentador a 50°C, aumente el ventilador a 50%. Note cómo la convección afecta las temperaturas.',
+                exp3: 'Experimento 3: Compare perfiles de temperatura con calentador radial vs lineal a la misma potencia.',
+                exp4: 'Experimento 4: Use el enfriador para disminuir rápidamente las temperaturas y observar la tasa de enfriamiento.',
+                exp5: 'Experimento 5: Cree un gráfico de Temperatura vs Distancia y calcule el gradiente de temperatura.'
+            },
+            nl: {
+                pageTitle: '🔥 Lab 1: Inleiding tot Warmteoverdracht',
+                pageSubtitle: 'Begrijpen van de Grondbeginselen van Thermische Energieoverdracht',
+                section1Title: 'Wat is Warmteoverdracht?',
+                section1Para1: 'Warmteoverdracht is de beweging van thermische energie van de ene plaats naar de andere. In de natuur en techniek stroomt warmte altijd van een heter object naar een kouder object totdat thermisch evenwicht is bereikt. Begrijpen hoe warmte beweegt is cruciaal bij het ontwerpen van alles, van computerprocessors tot koelkasten tot ruimtevaartuigen.',
+                section1Para2: 'In dit lab leer je over de drie belangrijkste methoden van warmteoverdracht en hoe ze van toepassing zijn op echte situaties, inclusief je warmteoverdrachtapparaat!',
+                section2Title: 'Drie Soorten Warmteoverdracht',
+                section2Sub1: '1. Geleiding (Direct Contact)',
+                section2Para1: 'Geleiding is warmteoverdracht door direct contact. Wanneer je een hete kookplaat aanraakt, stroomt warmte van de kookplaat naar je hand door geleiding. In vaste stoffen wordt warmte overgedragen door moleculen die trillen en energie doorgeven aan naburige moleculen.',
+                section2Sub2: '2. Convectie (Vloeistofbeweging)',
+                section2Para2: 'Convectie is warmteoverdracht door de beweging van vloeistoffen (vloeistoffen of gassen). Wanneer je water kookt, stijgt heet water en zinkt koud water, waardoor een circulatiepatroon ontstaat. Zo werkt ook je autoradiator!',
+                section2Sub3: '3. Straling (Elektromagnetische Golven)',
+                section2Para3: 'Straling is warmteoverdracht door elektromagnetische golven. De zon verwarmt de aarde door straling - geen fysiek contact nodig! Alle objecten zenden thermische straling uit, maar hetere objecten zenden meer uit.',
+                section3Title: 'Interactieve Warmteoverdracht Calculator',
+                calcTitle: 'Bereken Geleidingswarmteoverdracht',
+                calcDesc: 'Gebruik deze calculator om uit te vinden hoeveel warmte door een materiaal stroomt.',
+                labelThermalCond: 'Thermische Geleidbaarheid (k) in W/m·K:',
+                labelArea: 'Dwarsdoorsnede Oppervlakte (A) in m²:',
+                labelTempHot: 'Temperatuur Hete Kant (T₁) in °C:',
+                labelTempCold: 'Temperatuur Koude Kant (T₂) in °C:',
+                labelThickness: 'Dikte (d) in meters:',
+                calcButton: '🔥 Bereken Warmteoverdracht',
+                section4Title: 'Hoe Dit Verband Houdt met Je Warmteoverdrachtapparaat',
+                section4Para1: 'Je warmteoverdrachtapparaat gebruikt alle drie soorten warmteoverdracht:',
+                deviceActionTitle: '🔥 Je Apparaat in Actie:',
+                deviceItem1: 'Radiale/Lineaire Verwarmer: Creëert een heet oppervlak (warmtebron)',
+                deviceItem2: 'Temperatuursensoren (T1-T8): Meten temperatuur op verschillende afstanden van de verwarmer',
+                deviceItem3: 'Geleiding: Warmte reist door de metalen staaf van de verwarmer naar de sensoren',
+                deviceItem4: 'Convectie: De ventilator creëert luchtstroom over de staaf, koelt deze door geforceerde convectie',
+                deviceItem5: 'Straling: Enige warmte gaat verloren aan de omgeving door thermische straling',
+                deviceItem6: 'Koeler: Verwijdert actief warmte om koeling te versnellen en experimenten te resetten',
+                section4Para2: 'Door de verwarmerstemperatuur, ventilatorsnelheid te veranderen en de koeler te gebruiken, kun je verkennen hoe warmteoverdrachtsnelheden veranderen onder verschillende omstandigheden. De temperatuur vs afstand grafiek toont je het temperatuurprofiel langs de staaf - steilere hellingen betekenen snellere warmteoverdracht!',
+                quizTitle: 'Test Je Kennis!',
+                quiz1Question: 'Vraag 1: Welk type warmteoverdracht vereist direct fysiek contact?',
+                quiz1OptionA: 'A) Convectie',
+                quiz1OptionB: 'B) Geleiding',
+                quiz1OptionC: 'C) Straling',
+                quiz1OptionD: 'D) Geen van de bovenstaande',
+                quiz2Question: 'Vraag 2: Wat gebeurt er wanneer je de ventilatorsnelheid op je apparaat verhoogt?',
+                quiz2OptionA: 'A) Convectiewarmteoverdracht neemt toe, koelt de staaf sneller',
+                quiz2OptionB: 'B) Geleiding stopt volledig',
+                quiz2OptionC: 'C) Straling neemt aanzienlijk toe',
+                quiz2OptionD: 'D) Er verandert niets',
+                quiz3Question: 'Vraag 3: Welk materiaal heeft de hoogste thermische geleidbaarheid?',
+                quiz3OptionA: 'A) Hout',
+                quiz3OptionB: 'B) Lucht',
+                quiz3OptionC: 'C) Koper',
+                quiz3OptionD: 'D) Glas',
+                checkAnswerBtn: 'Controleer Antwoord',
+                experimentsTitle: 'Probeer Deze Experimenten!',
+                experimentsSubtitle: 'Voorgestelde Experimenten met Je Apparaat:',
+                exp1: 'Experiment 1: Stel verwarmer in op 50°C, ventilator op 0%. Observeer temperatuurverdeling langs de staaf.',
+                exp2: 'Experiment 2: Houd verwarmer op 50°C, verhoog ventilator naar 50%. Merk op hoe convectie temperaturen beïnvloedt.',
+                exp3: 'Experiment 3: Vergelijk temperatuurprofielen met radiale vs lineaire verwarmer bij hetzelfde vermogen.',
+                exp4: 'Experiment 4: Gebruik de koeler om temperaturen snel te verlagen en de koelsnelheid te observeren.',
+                exp5: 'Experiment 5: Maak een Temperatuur vs Afstand grafiek en bereken de temperatuurgradiënt.'
+            },
+            ar: {
+                pageTitle: '🔥 المعمل 1: مقدمة في انتقال الحرارة',
+                pageSubtitle: 'فهم أساسيات نقل الطاقة الحرارية',
+                section1Title: 'ما هو انتقال الحرارة؟',
+                section1Para1: 'انتقال الحرارة هو حركة الطاقة الحرارية من مكان إلى آخر. في الطبيعة والهندسة، تتدفق الحرارة دائماً من جسم أكثر سخونة إلى جسم أكثر برودة حتى يتم الوصول إلى التوازن الحراري. فهم كيفية تحرك الحرارة أمر بالغ الأهمية في تصميم كل شيء من معالجات الكمبيوتر إلى الثلاجات إلى المركبات الفضائية.',
+                section1Para2: 'في هذا المعمل، سوف تتعلم عن الطرق الثلاثة الرئيسية لانتقال الحرارة وكيف تنطبق على المواقف الحقيقية، بما في ذلك جهاز انتقال الحرارة الخاص بك!',
+                section2Title: 'ثلاثة أنواع من انتقال الحرارة',
+                section2Sub1: '1. التوصيل (الاتصال المباشر)',
+                section2Para1: 'التوصيل هو انتقال الحرارة من خلال الاتصال المباشر. عندما تلمس موقداً ساخناً، تتدفق الحرارة من الموقد إلى يدك من خلال التوصيل. في المواد الصلبة، يتم نقل الحرارة من خلال جزيئات تهتز وتمرر الطاقة إلى الجزيئات المجاورة.',
+                section2Sub2: '2. الحمل (حركة السوائل)',
+                section2Para2: 'الحمل هو انتقال الحرارة من خلال حركة السوائل (السوائل أو الغازات). عندما تغلي الماء، يرتفع الماء الساخن وينخفض الماء البارد، مما يخلق نمط دوران. هكذا يعمل مبرد سيارتك أيضاً!',
+                section2Sub3: '3. الإشعاع (الموجات الكهرومغناطيسية)',
+                section2Para3: 'الإشعاع هو انتقال الحرارة من خلال الموجات الكهرومغناطيسية. الشمس تسخن الأرض من خلال الإشعاع - لا حاجة للاتصال المادي! جميع الأجسام تنبعث منها إشعاع حراري، لكن الأجسام الأكثر سخونة تنبعث منها المزيد.',
+                section3Title: 'آلة حاسبة تفاعلية لانتقال الحرارة',
+                calcTitle: 'احسب انتقال الحرارة بالتوصيل',
+                calcDesc: 'استخدم هذه الآلة الحاسبة لمعرفة مقدار الحرارة التي تتدفق عبر مادة.',
+                labelThermalCond: 'التوصيل الحراري (k) بوحدة W/m·K:',
+                labelArea: 'المساحة المقطعية (A) بوحدة m²:',
+                labelTempHot: 'درجة حرارة الجانب الساخن (T₁) بوحدة °C:',
+                labelTempCold: 'درجة حرارة الجانب البارد (T₂) بوحدة °C:',
+                labelThickness: 'السماكة (d) بالمتر:',
+                calcButton: '🔥 احسب انتقال الحرارة',
+                section4Title: 'كيف يرتبط هذا بجهاز انتقال الحرارة الخاص بك',
+                quizTitle: 'اختبر معرفتك!',
+                quiz1Question: 'السؤال 1: أي نوع من انتقال الحرارة يتطلب اتصالاً مادياً مباشراً؟',
+                quiz1OptionA: 'أ) الحمل',
+                quiz1OptionB: 'ب) التوصيل',
+                quiz1OptionC: 'ج) الإشعاع',
+                quiz1OptionD: 'د) لا شيء مما سبق',
+                quiz2Question: 'السؤال 2: ماذا يحدث عندما تزيد سرعة المروحة على جهازك؟',
+                quiz2OptionA: 'أ) يزيد انتقال الحرارة بالحمل، مما يبرد القضيب بشكل أسرع',
+                quiz2OptionB: 'ب) يتوقف التوصيل تماماً',
+                quiz2OptionC: 'ج) يزيد الإشعاع بشكل كبير',
+                quiz2OptionD: 'د) لا شيء يتغير',
+                quiz3Question: 'السؤال 3: أي مادة لديها أعلى توصيل حراري؟',
+                quiz3OptionA: 'أ) الخشب',
+                quiz3OptionB: 'ب) الهواء',
+                quiz3OptionC: 'ج) النحاس',
+                quiz3OptionD: 'د) الزجاج',
+                checkAnswerBtn: 'تحقق من الإجابة',
+                experimentsTitle: 'جرب هذه التجارب!',
+                experimentsSubtitle: 'التجارب المقترحة مع جهازك:',
+                exp1: 'التجربة 1: اضبط السخان على 50°C، المروحة على 0%. راقب توزيع درجة الحرارة على طول القضيب.',
+                exp2: 'التجربة 2: حافظ على السخان عند 50°C، زد المروحة إلى 50%. لاحظ كيف يؤثر الحمل على درجات الحرارة.',
+                exp3: 'التجربة 3: قارن ملفات درجة الحرارة مع السخان الشعاعي مقابل الخطي بنفس الطاقة.',
+                exp4: 'التجربة 4: استخدم المبرد لتقليل درجات الحرارة بسرعة ومراقبة معدل التبريد.',
+                exp5: 'التجربة 5: أنشئ رسم بياني لدرجة الحرارة مقابل المسافة واحسب تدرج درجة الحرارة.',
+                section4Para1: 'جهاز انتقال الحرارة الخاص بك يستخدم الأنواع الثلاثة من انتقال الحرارة:',
+                deviceActionTitle: '🔥 جهازك في العمل:',
+                deviceItem1: 'السخان الشعاعي/الخطي: ينشئ سطحاً ساخناً (مصدر حرارة)',
+                deviceItem2: 'مستشعرات درجة الحرارة (T1-T8): تقيس درجة الحرارة على مسافات مختلفة من السخان',
+                deviceItem3: 'التوصيل: تنتقل الحرارة عبر القضيب المعدني من السخان إلى المستشعرات',
+                deviceItem4: 'الحمل: المروحة تخلق تدفق هواء فوق القضيب، مما يبرده بالحمل القسري',
+                deviceItem5: 'الإشعاع: تفقد بعض الحرارة إلى البيئة من خلال الإشعاع الحراري',
+                deviceItem6: 'المبرد: يزيل الحرارة بنشاط لتسريع التبريد وإعادة تعيين التجارب',
+                section4Para2: 'عن طريق تغيير درجة حرارة السخان وسرعة المروحة واستخدام المبرد، يمكنك استكشاف كيف تتغير معدلات انتقال الحرارة تحت ظروف مختلفة. يوضح لك الرسم البياني لدرجة الحرارة مقابل المسافة ملف درجة الحرارة على طول القضيب - المنحدرات الأكثر انحداراً تعني انتقال حرارة أسرع!'
             }
         };
 
@@ -866,18 +1102,28 @@
                 }
             }
             
+            // Add or remove RTL class for Arabic
+            if (languageCode === 'ar') {
+                document.body.classList.add('rtl');
+                document.documentElement.setAttribute('dir', 'rtl');
+                document.documentElement.setAttribute('lang', 'ar');
+            } else {
+                document.body.classList.remove('rtl');
+                document.documentElement.setAttribute('dir', 'ltr');
+                document.documentElement.setAttribute('lang', languageCode);
+            }
+            
             // Save the selected language to localStorage
             localStorage.setItem('selectedLanguage', languageCode);
         }
 
         // Function to load the saved language when page loads
         function loadSavedLanguage() {
-            // Get the saved language from localStorage
+            // Get the saved language from localStorage (set from Curriculum page)
             var savedLanguage = localStorage.getItem('selectedLanguage');
             
             // If there is a saved language, use it
             if (savedLanguage) {
-                document.getElementById('languageSelector').value = savedLanguage;
                 changeLanguage(savedLanguage);
             }
         }
@@ -944,13 +1190,6 @@
             var windowWidth = window.innerWidth;
             
             // Get the language selector
-            var languageSelector = document.querySelector('.language-selector');
-            
-            // If window is very small, make sure language selector doesn't overflow
-            if (windowWidth < 600) {
-                // Language selector will be handled by CSS media query
-            }
-            
             // Ensure container doesn't overflow
             var container = document.querySelector('.container');
             if (container) {
@@ -964,11 +1203,6 @@
             loadSavedLanguage();
             
             // Add event listener to language selector
-            document.getElementById('languageSelector').addEventListener('change', function() {
-                var selectedLanguage = this.value;
-                changeLanguage(selectedLanguage);
-            });
-            
             // Allow Enter key to calculate
             var inputs = document.querySelectorAll('input[type="number"]');
             inputs.forEach(function(input) {
@@ -990,6 +1224,5 @@
     </script>
     
     <!-- Load Responsive Scaling Script -->
-    <script src="responsive-scaling.js"></script>
 </body>
 </html>

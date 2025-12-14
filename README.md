@@ -48,6 +48,14 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 ### 🎓 Educational Features
 - **Lab Modules**: Five interactive lab experiments (Lab 1-5)
 - **Curriculum Viewer**: Comprehensive heat transfer curriculum content
+- **Multilingual Support**: Complete translations for all lab sheets in 6 languages:
+  - English
+  - French (Français)
+  - German (Deutsch)
+  - Spanish (Español)
+  - Dutch (Nederlands)
+  - Arabic (العربية)
+- **Language Selection**: Choose your preferred language from the curriculum page - your selection is automatically applied to all lab sheets
 - **Simulation Mode**: Visualize heat transfer concepts with interactive simulations
 - **3D Visualization**: Three.js integration for 3D model viewing (GLTF/STEP files)
 
@@ -66,7 +74,7 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 
 ### 🎨 User Interface
 - **Modern Design**: Glassmorphism UI with gradient controls and smooth animations
-- **Theme Support**: Dark and Light themes with easy switching
+- **Dark Theme**: Modern dark theme optimized for data visualization
 - **Responsive Scaling**: Automatic UI scaling for different screen sizes
 - **Splash Screen**: Professional splash screen on startup
 - **Accessibility**: High contrast colors and clear visual feedback
@@ -182,9 +190,12 @@ The app also handles 4-byte control packets:
 ### Educational Labs
 
 1. **Open Curriculum** - Click the "📚 Curriculum" button
-2. **Select Lab** - Choose from Lab 1-5 from the curriculum menu
-3. **Follow Instructions** - Complete lab experiments with guided instructions
-4. **View Simulations** - Click "▶️ Visualize" to see interactive simulations
+2. **Select Language** - Choose your preferred language from the language selector at the top of the curriculum page (English, French, German, Spanish, Dutch, or Arabic)
+3. **Select Lab** - Choose from Lab 1-5 from the curriculum menu
+4. **Follow Instructions** - Complete lab experiments with guided instructions in your selected language
+5. **View Simulations** - Click "▶️ Visualize" to see interactive simulations
+
+**Note**: Your language preference is saved and automatically applied to all lab sheets. The language selector is only available on the curriculum page, not on individual lab sheets.
 
 ## 🔧 Troubleshooting
 
@@ -264,7 +275,7 @@ The app includes responsive scaling that automatically adjusts to different scre
 
 ### Themes
 
-The app supports Dark and Light themes. You can switch themes using the dropdown in the header, and your preference will be saved.
+The app uses a dark theme optimized for data visualization and extended use.
 
 ## 📦 Dependencies
 
@@ -298,6 +309,8 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history and changes.
 **Current Version**: 1.2.6
 
 ### Recent Updates
+- **Complete Multilingual Support**: All 5 lab sheets now fully translated in 6 languages (English, French, German, Spanish, Dutch, Arabic)
+- **Language Persistence**: Language selection from curriculum page is saved and applied to all lab sheets
 - **Graph Auto-Clear**: Graphs automatically clear when hardware device reconnects after disconnection
 - **UI Improvements**: Updated Control section heading styling
 

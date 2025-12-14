@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heat Transfer App - Admin Panel</title>
     
@@ -14,7 +15,6 @@
     <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
     <link rel="manifest" href="assets/site.webmanifest">
     <style>
-        /* Base font size will be controlled by responsive-scaling.js */
         html {
             font-size: 16px; /* Base size - will be scaled automatically */
         }
@@ -44,17 +44,6 @@
             --border: #444444;
             --accent: #2ed573;
             --chart-bg: #1a1a1a;
-            --chart-border: #444444;
-            --chart-grid: #444444;
-            --chart-text: #eeeeee;
-        }
-        body.theme-light {
-            --bg: #ffffff;
-            --text: #ffffff;
-            --panel: #6c6b6d;
-            --border: #444444;
-            --accent: #2ed573;
-            --chart-bg: #6c6b6d;
             --chart-border: #444444;
             --chart-grid: #444444;
             --chart-text: #eeeeee;
@@ -835,8 +824,6 @@
             <p>System logs, raw data, and debugging information</p>
         </div>
 
-        <button class="back-btn" onclick="goBack()">← Back to Main App</button>
-
         <!-- Tab Menu -->
         <div class="tab-menu">
             <div class="tab-buttons">
@@ -864,43 +851,6 @@
                 <div class="raw-data-container" id="rawDataContainer">
                     <div class="raw-data-entry">
                         <span class="log-timestamp">[Waiting for data...]</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- App Settings Panel -->
-        <div class="admin-panel" style="margin-bottom: 1.25rem;">
-            <h2>⚙️ App Settings</h2>
-            <div style="padding: 1.25rem;">
-                <div style="margin-bottom: 1.25rem;">
-                    <h3 style="color: var(--text, #ffffff); font-size: 1.2em; margin-bottom: 0.9375rem;">🔍 Display Scale Factor</h3>
-                    <p style="color: var(--text, #ffffff); opacity: 0.8; margin-bottom: 0.9375rem; line-height: 1.6;">
-                        Set a custom scale factor for the entire app. This affects all windows and persists across app restarts.
-                    </p>
-                    <div style="display: flex; align-items: center; gap: 0.9375rem; flex-wrap: wrap;">
-                        <label for="adminScaleInput" style="font-weight: bold; color: var(--text, #ffffff);">Scale Factor:</label>
-                        <input type="number" id="adminScaleInput" min="0.5" max="2.0" step="0.1" value="1.0" 
-                               style="width: 6.25rem; padding: 0.625rem; font-size: 1rem; border: 0.125rem solid var(--accent, #2ed573); border-radius: 0.5rem; text-align: center; font-weight: bold; background: var(--bg, #000); color: var(--text, #ffffff);">
-                        <button id="adminApplyScaleBtn" 
-                                style="background: linear-gradient(135deg, #2ed573 0%, #1e90ff 100%); color: white; border: none; padding: 0.625rem 1.25rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 0.25rem 0.9375rem rgba(0, 0, 0, 0.2);">
-                            💾 Save & Apply
-                        </button>
-                        <button id="adminResetScaleBtn" 
-                                style="background: linear-gradient(135deg, #ff4757 0%, #ff6348 100%); color: white; border: none; padding: 0.625rem 1.25rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 0.25rem 0.9375rem rgba(0, 0, 0, 0.2);">
-                            🔄 Reset to Auto
-                        </button>
-                    </div>
-                    <div id="scaleStatus" style="margin-top: 0.9375rem; padding: 0.625rem; border-radius: 0.5rem; display: none;"></div>
-                    <div style="margin-top: 0.9375rem; padding: 0.9375rem; background: var(--chart-bg, #1a1a1a); border-radius: 0.5rem; border-left: 0.25rem solid var(--accent, #2ed573);">
-                        <p style="color: var(--text, #ffffff); font-size: 0.875rem; margin: 0;">
-                            <strong>💡 Tips:</strong><br>
-                            • <strong>1.0</strong> = Normal size (100%)<br>
-                            • <strong>0.5</strong> = Half size (50%)<br>
-                            • <strong>1.5</strong> = 1.5x bigger (150%)<br>
-                            • <strong>2.0</strong> = Double size (200%)<br>
-                            • <strong>Reset to Auto</strong> = Scale based on window size
-                        </p>
                     </div>
                 </div>
             </div>
@@ -1110,11 +1060,6 @@
             console.log('Admin panel initialized');
             updateStats();
             startDataRateCalculation();
-        }
-
-        // Go back to main app
-        function goBack() {
-            window.close();
         }
 
         // Add log entry to admin panel
@@ -2131,105 +2076,5 @@
         });
     </script>
     
-    <!-- App Settings Scale Control Script -->
-    <script>
-        // Load current scale into input on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            var savedScale = localStorage.getItem('appScaleFactor');
-            var scaleInput = document.getElementById('adminScaleInput');
-            
-            if (savedScale && scaleInput) {
-                scaleInput.value = parseFloat(savedScale).toFixed(1);
-            }
-            
-            // Apply Scale button handler
-            var applyBtn = document.getElementById('adminApplyScaleBtn');
-            if (applyBtn) {
-                applyBtn.addEventListener('click', function() {
-                    var scaleInput = document.getElementById('adminScaleInput');
-                    var scaleValue = parseFloat(scaleInput.value);
-                    
-                    if (isNaN(scaleValue) || scaleValue < 0.5 || scaleValue > 2.0) {
-                        showScaleStatus('Please enter a value between 0.5 and 2.0', 'error');
-                        return;
-                    }
-                    
-                    // Save to localStorage
-                    localStorage.setItem('appScaleFactor', scaleValue.toString());
-                    
-                    // Apply to admin panel window
-                    if (window.setAppScale) {
-                        window.setAppScale(scaleValue);
-                    }
-                    
-                    // Try to apply to opener window (main app) if it exists
-                    if (window.opener && window.opener.setAppScale) {
-                        window.opener.setAppScale(scaleValue);
-                    }
-                    
-                    showScaleStatus('Scale factor ' + scaleValue.toFixed(1) + 'x saved and applied!', 'success');
-                });
-            }
-            
-            // Reset Scale button handler
-            var resetBtn = document.getElementById('adminResetScaleBtn');
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    localStorage.removeItem('appScaleFactor');
-                    var scaleInput = document.getElementById('adminScaleInput');
-                    if (scaleInput) {
-                        scaleInput.value = '1.0';
-                    }
-                    
-                    // Reset admin panel window
-                    if (window.resetAppScale) {
-                        window.resetAppScale();
-                    }
-                    
-                    // Reset opener window (main app) if it exists
-                    if (window.opener && window.opener.resetAppScale) {
-                        window.opener.resetAppScale();
-                    }
-                    
-                    showScaleStatus('Scale reset to automatic!', 'success');
-                });
-            }
-            
-            // Allow Enter key to apply
-            if (scaleInput) {
-                scaleInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        document.getElementById('adminApplyScaleBtn').click();
-                    }
-                });
-            }
-        });
-        
-        function showScaleStatus(message, type) {
-            var statusDiv = document.getElementById('scaleStatus');
-            if (!statusDiv) return;
-            
-            statusDiv.textContent = message;
-            statusDiv.style.display = 'block';
-            
-            if (type === 'success') {
-                statusDiv.style.background = '#d4edda';
-                statusDiv.style.color = '#155724';
-                statusDiv.style.border = '2px solid #28a745';
-            } else if (type === 'error') {
-                statusDiv.style.background = '#f8d7da';
-                statusDiv.style.color = '#721c24';
-                statusDiv.style.border = '2px solid #dc3545';
-            }
-            
-            // Hide after 3 seconds
-            setTimeout(function() {
-                statusDiv.style.display = 'none';
-            }, 3000);
-        }
-    </script>
-    
-    <!-- Load Responsive Scaling Script -->
-    <script src="responsive-scaling.js"></script>
 </body>
 </html>

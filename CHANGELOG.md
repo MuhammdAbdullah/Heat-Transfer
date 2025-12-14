@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - None
 
+## [1.2.8] - 2024-12-19
+
+### Changed
+- Updated version for new release
+
+## [1.2.7] - Previous Release
+
+### Changed
+- Version update
+
 ## [1.2.6] - 2024-12-10
 
 ### Fixed
@@ -43,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-time device data chart using Chart.js
 - System status indicator (Online/Offline)
 - Last update timestamp display
-- Theme selector (Dark/Light themes)
+- Dark theme support
 - Visualize button for simulation mode
 
 ### Changed

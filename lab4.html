@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab 4 - Forced vs Natural Convection</title>
     
@@ -15,7 +16,6 @@
     <link rel="manifest" href="assets/site.webmanifest">
     
     <style>
-        /* Base font size will be controlled by responsive-scaling.js */
         html {
             font-size: 16px; /* Base size - will be scaled automatically */
         }
@@ -43,17 +43,6 @@
             --chart-grid: #444444;
             --chart-text: #eeeeee;
         }
-        body.theme-light {
-            --bg: #ffffff;
-            --text: #ffffff;
-            --panel: #6c6b6d;
-            --border: #444444;
-            --accent: #2ed573;
-            --chart-bg: #6c6b6d;
-            --chart-border: #444444;
-            --chart-grid: #444444;
-            --chart-text: #eeeeee;
-        }
         
         * {
             margin: 0;
@@ -68,6 +57,67 @@
             padding: 1.25rem; /* Changed from 20px to rem */
             min-height: 100vh;
             font-size: 1rem; /* Use rem units */
+        }
+        
+        /* RTL (Right-to-Left) support for Arabic */
+        body.rtl,
+        body.rtl .container,
+        body.rtl .header,
+        body.rtl .content,
+        body.rtl .section,
+        body.rtl .section p,
+        body.rtl .section h2,
+        body.rtl .section h3,
+        body.rtl .section h4,
+        body.rtl .interactive-box,
+        body.rtl .key-points,
+        body.rtl .key-points ul,
+        body.rtl .key-points li,
+        body.rtl .quiz-section,
+        body.rtl .quiz-question,
+        body.rtl .quiz-question h4,
+        body.rtl .quiz-options,
+        body.rtl .quiz-options label,
+        body.rtl .formula,
+        body.rtl ul,
+        body.rtl ol,
+        body.rtl li,
+        body.rtl p,
+        body.rtl .input-group,
+        body.rtl .input-group label {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        body.rtl .header {
+            text-align: center;
+        }
+        
+        body.rtl .section {
+            border-left: none;
+            border-right: 0.3125rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .key-points {
+            border-left: none;
+            border-right: 0.3125rem solid #ffc107;
+        }
+        
+        body.rtl .formula {
+            border-left: none;
+            border-right: 0.25rem solid var(--accent, #2ed573);
+        }
+        
+        body.rtl .quiz-options label:hover {
+            transform: translateX(-0.3125rem);
+        }
+        
+        body.rtl table,
+        body.rtl .data-table,
+        body.rtl .data-table th,
+        body.rtl .data-table td {
+            direction: rtl;
+            text-align: right;
         }
 
         .container {
@@ -86,7 +136,9 @@
             padding: 1.875rem; /* Changed from 30px to rem */
             text-align: center;
             border-bottom: 0.125rem solid var(--border, #444); /* Changed from 2px to rem */
+            position: relative;
         }
+
 
         .header h1 {
             font-size: 2.5em;
@@ -398,51 +450,51 @@
 <body class="theme-dark">
     <div class="container">
         <div class="header">
-            <h1>💨 Lab 4: Forced vs Natural Convection</h1>
-            <p>Understanding How Air Movement Affects Heat Transfer</p>
+            <h1 data-translate="pageTitle">💨 Lab 4: Forced vs Natural Convection</h1>
+            <p data-translate="pageSubtitle">Understanding How Air Movement Affects Heat Transfer</p>
         </div>
 
         <div class="content">
             <!-- Introduction -->
             <div class="section">
-                <h2><span class="icon">📚</span> What is Convection?</h2>
-                <p>
+                <h2><span class="icon">📚</span> <span data-translate="section1Title">What is Convection?</span></h2>
+                <p data-translate="section1Para1">
                     <strong>Convection</strong> is heat transfer by the movement of fluids (liquids or gases). 
                     When air or water moves over a hot surface, it carries heat away. The faster the fluid moves, 
                     the more heat it can remove!
                 </p>
-                <p>
+                <p data-translate="section1Para2">
                     There are two main types of convection:
                 </p>
                 
                 <div class="comparison-box">
                     <div class="comparison-item">
-                        <h4>🌊 Natural Convection</h4>
-                        <p style="line-height: 1.8;">
+                        <h4 data-translate="naturalTitle">🌊 Natural Convection</h4>
+                        <p style="line-height: 1.8;" data-translate="naturalDesc">
                             Fluid movement caused by density differences due to temperature changes. 
                             Hot air rises, cold air sinks - no fans needed!
                         </p>
-                        <p><strong>Examples:</strong></p>
+                        <p data-translate="examplesTitle"><strong>Examples:</strong></p>
                         <ul style="text-align: left; margin: 10px 20px;">
-                            <li>Heat from a radiator</li>
-                            <li>Boiling water bubbles</li>
-                            <li>Hot air balloon rising</li>
-                            <li>Warm air rising in a room</li>
+                            <li data-translate="naturalEx1">Heat from a radiator</li>
+                            <li data-translate="naturalEx2">Boiling water bubbles</li>
+                            <li data-translate="naturalEx3">Hot air balloon rising</li>
+                            <li data-translate="naturalEx4">Warm air rising in a room</li>
                         </ul>
                     </div>
 
                     <div class="comparison-item">
-                        <h4>💨 Forced Convection</h4>
-                        <p style="line-height: 1.8;">
+                        <h4 data-translate="forcedTitle">💨 Forced Convection</h4>
+                        <p style="line-height: 1.8;" data-translate="forcedDesc">
                             Fluid movement caused by external means like fans, pumps, or wind. 
                             Much faster and more effective!
                         </p>
-                        <p><strong>Examples:</strong></p>
+                        <p data-translate="examplesTitle"><strong>Examples:</strong></p>
                         <ul style="text-align: left; margin: 10px 20px;">
-                            <li>Computer cooling fans</li>
-                            <li>Car radiator with fan</li>
-                            <li>Hair dryer</li>
-                            <li>Air conditioning</li>
+                            <li data-translate="forcedEx1">Computer cooling fans</li>
+                            <li data-translate="forcedEx2">Car radiator with fan</li>
+                            <li data-translate="forcedEx3">Hair dryer</li>
+                            <li data-translate="forcedEx4">Air conditioning</li>
                         </ul>
                     </div>
                 </div>
@@ -460,100 +512,100 @@
 
             <!-- Key Differences -->
             <div class="section">
-                <h2><span class="icon">⚖️</span> Comparing Natural and Forced Convection</h2>
+                <h2><span class="icon">⚖️</span> <span data-translate="section2Title">Comparing Natural and Forced Convection</span></h2>
                 
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Characteristic</th>
-                            <th>Natural Convection</th>
-                            <th>Forced Convection</th>
+                            <th data-translate="tableChar">Characteristic</th>
+                            <th data-translate="tableNatural">Natural Convection</th>
+                            <th data-translate="tableForced">Forced Convection</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Driving Force</strong></td>
-                            <td>Buoyancy (density differences)</td>
-                            <td>External (fan, pump)</td>
+                            <td data-translate="row1Label"><strong>Driving Force</strong></td>
+                            <td data-translate="row1Natural">Buoyancy (density differences)</td>
+                            <td data-translate="row1Forced">External (fan, pump)</td>
                         </tr>
                         <tr>
-                            <td><strong>Speed</strong></td>
-                            <td>Slow (< 1 m/s)</td>
-                            <td>Fast (1-100+ m/s)</td>
+                            <td data-translate="row2Label"><strong>Speed</strong></td>
+                            <td data-translate="row2Natural">Slow (< 1 m/s)</td>
+                            <td data-translate="row2Forced">Fast (1-100+ m/s)</td>
                         </tr>
                         <tr>
-                            <td><strong>h coefficient</strong></td>
-                            <td>Low (5-25 W/m²·K)</td>
-                            <td>High (25-250+ W/m²·K)</td>
+                            <td data-translate="row3Label"><strong>h coefficient</strong></td>
+                            <td data-translate="row3Natural">Low (5-25 W/m²·K)</td>
+                            <td data-translate="row3Forced">High (25-250+ W/m²·K)</td>
                         </tr>
                         <tr>
-                            <td><strong>Heat Transfer Rate</strong></td>
-                            <td>Lower</td>
-                            <td>Much Higher</td>
+                            <td data-translate="row4Label"><strong>Heat Transfer Rate</strong></td>
+                            <td data-translate="row4Natural">Lower</td>
+                            <td data-translate="row4Forced">Much Higher</td>
                         </tr>
                         <tr>
-                            <td><strong>Energy Cost</strong></td>
-                            <td>Free (no power needed)</td>
-                            <td>Requires power</td>
+                            <td data-translate="row5Label"><strong>Energy Cost</strong></td>
+                            <td data-translate="row5Natural">Free (no power needed)</td>
+                            <td data-translate="row5Forced">Requires power</td>
                         </tr>
                         <tr>
-                            <td><strong>Control</strong></td>
-                            <td>Limited control</td>
-                            <td>Easy to control (fan speed)</td>
+                            <td data-translate="row6Label"><strong>Control</strong></td>
+                            <td data-translate="row6Natural">Limited control</td>
+                            <td data-translate="row6Forced">Easy to control (fan speed)</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <div class="key-points">
-                    <h4>Key Insight:</h4>
+                    <h4 data-translate="keyInsightTitle">Key Insight:</h4>
                     <ul>
-                        <li><strong>Forced convection can be 10-20 times more effective than natural convection!</strong></li>
-                        <li>This is why computers have fans - natural convection alone isn't enough!</li>
+                        <li data-translate="insight1"><strong>Forced convection can be 10-20 times more effective than natural convection!</strong></li>
+                        <li data-translate="insight2">This is why computers have fans - natural convection alone isn't enough!</li>
                     </ul>
                 </div>
             </div>
 
             <!-- Interactive Calculator -->
             <div class="section">
-                <h2><span class="icon">🧮</span> Convection Heat Transfer Calculator</h2>
+                <h2><span class="icon">🧮</span> <span data-translate="section3Title">Convection Heat Transfer Calculator</span></h2>
                 
                 <div class="interactive-box">
-                    <h4>Compare Natural vs Forced Convection</h4>
+                    <h4 data-translate="calcTitle">Compare Natural vs Forced Convection</h4>
                     
                     <div class="grid-2">
                         <div class="input-group">
-                            <label for="surfaceTemp">Surface Temperature (°C):</label>
+                            <label for="surfaceTemp" data-translate="labelSurfaceTemp">Surface Temperature (°C):</label>
                             <input type="number" id="surfaceTemp" value="80" step="1">
                         </div>
 
                         <div class="input-group">
-                            <label for="ambientTemp">Ambient Air Temperature (°C):</label>
+                            <label for="ambientTemp" data-translate="labelAmbientTemp">Ambient Air Temperature (°C):</label>
                             <input type="number" id="ambientTemp" value="25" step="1">
                         </div>
 
                         <div class="input-group">
-                            <label for="surfaceArea">Surface Area (m²):</label>
+                            <label for="surfaceArea" data-translate="labelSurfaceArea">Surface Area (m²):</label>
                             <input type="number" id="surfaceArea" value="0.01" step="0.001">
                         </div>
 
                         <div class="input-group">
-                            <label for="convectionType">Convection Type:</label>
+                            <label for="convectionType" data-translate="labelConvectionType">Convection Type:</label>
                             <select id="convectionType" onchange="updateHValue()">
-                                <option value="10">Natural Convection (h = 10 W/m²·K)</option>
-                                <option value="50">Forced - Low Fan Speed (h = 50 W/m²·K)</option>
-                                <option value="100" selected>Forced - Medium Fan Speed (h = 100 W/m²·K)</option>
-                                <option value="200">Forced - High Fan Speed (h = 200 W/m²·K)</option>
+                                <option value="10" data-translate="optionNatural">Natural Convection (h = 10 W/m²·K)</option>
+                                <option value="50" data-translate="optionForcedLow">Forced - Low Fan Speed (h = 50 W/m²·K)</option>
+                                <option value="100" selected data-translate="optionForcedMed">Forced - Medium Fan Speed (h = 100 W/m²·K)</option>
+                                <option value="200" data-translate="optionForcedHigh">Forced - High Fan Speed (h = 200 W/m²·K)</option>
                             </select>
                         </div>
 
                         <div class="input-group">
-                            <label for="hValue">h coefficient (W/m²·K):</label>
+                            <label for="hValue" data-translate="labelH">h coefficient (W/m²·K):</label>
                             <input type="number" id="hValue" value="100" step="1" readonly style="background: #f0f0f0;">
                         </div>
                     </div>
 
-                    <button class="calculate-btn" onclick="calculateConvection()">💨 Calculate Heat Transfer</button>
-                    <button class="calculate-btn" onclick="compareConvection()">⚖️ Compare Natural vs Forced</button>
+                    <button class="calculate-btn" onclick="calculateConvection()" data-translate="btnCalc">💨 Calculate Heat Transfer</button>
+                    <button class="calculate-btn" onclick="compareConvection()" data-translate="btnCompare">⚖️ Compare Natural vs Forced</button>
 
                     <div class="result-box" id="convectionResult"></div>
                 </div>
@@ -561,86 +613,86 @@
 
             <!-- Your Apparatus -->
             <div class="section">
-                <h2><span class="icon">🔬</span> Observing Convection in Your Apparatus</h2>
+                <h2><span class="icon">🔬</span> <span data-translate="section4Title">Observing Convection in Your Apparatus</span></h2>
                 
                 <div class="key-points">
-                    <h4>What Your Fan Does:</h4>
+                    <h4 data-translate="fanTitle">What Your Fan Does:</h4>
                     <ul>
-                        <li><strong>Fan OFF (0%):</strong> Natural convection only - slow cooling</li>
-                        <li><strong>Fan ON (25-50%):</strong> Forced convection - moderate cooling</li>
-                        <li><strong>Fan ON (75-100%):</strong> Strong forced convection - rapid cooling</li>
+                        <li data-translate="fanOff"><strong>Fan OFF (0%):</strong> Natural convection only - slow cooling</li>
+                        <li data-translate="fanLow"><strong>Fan ON (25-50%):</strong> Forced convection - moderate cooling</li>
+                        <li data-translate="fanHigh"><strong>Fan ON (75-100%):</strong> Strong forced convection - rapid cooling</li>
                     </ul>
                 </div>
 
-                <h3>Observable Effects:</h3>
-                <p style="margin-left: 20px; line-height: 1.8;">
+                <h3 data-translate="effectsTitle">Observable Effects:</h3>
+                <p style="margin-left: 20px; line-height: 1.8;" data-translate="effectsPara">
                     <strong>1. Temperature Drop:</strong> Higher fan speed → Lower temperatures<br>
                     <strong>2. Cooling Rate:</strong> Faster fan → Faster temperature decrease<br>
                     <strong>3. Temperature Gradient:</strong> More airflow → Steeper gradients<br>
                     <strong>4. Steady-State:</strong> Fan controls final equilibrium temperature
                 </p>
 
-                <h3>Why Does This Matter?</h3>
-                <p>
+                <h3 data-translate="whyMattersTitle">Why Does This Matter?</h3>
+                <p data-translate="whyMattersPara">
                     Understanding convection is crucial for:
                 </p>
                 <ul style="margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Electronics Cooling:</strong> CPUs and GPUs need forced convection</li>
-                    <li><strong>HVAC Systems:</strong> Moving air distributes heating/cooling</li>
-                    <li><strong>Industrial Processes:</strong> Cooling hot materials efficiently</li>
-                    <li><strong>Energy Efficiency:</strong> Natural convection saves power when possible</li>
+                    <li data-translate="matter1"><strong>Electronics Cooling:</strong> CPUs and GPUs need forced convection</li>
+                    <li data-translate="matter2"><strong>HVAC Systems:</strong> Moving air distributes heating/cooling</li>
+                    <li data-translate="matter3"><strong>Industrial Processes:</strong> Cooling hot materials efficiently</li>
+                    <li data-translate="matter4"><strong>Energy Efficiency:</strong> Natural convection saves power when possible</li>
                 </ul>
             </div>
 
             <!-- Experiment Procedure -->
             <div class="section">
-                <h2><span class="icon">🧪</span> Experimental Procedure</h2>
+                <h2><span class="icon">🧪</span> <span data-translate="section5Title">Experimental Procedure</span></h2>
                 
                 <div class="interactive-box">
-                    <h4>Step-by-Step Experiment to Compare Convection Types</h4>
+                    <h4 data-translate="procedureTitle">Step-by-Step Experiment to Compare Convection Types</h4>
                     
                     <div style="line-height: 2;">
-                        <p><strong>📋 Setup:</strong></p>
+                        <p data-translate="setupTitle"><strong>📋 Setup:</strong></p>
                         <ol style="margin-left: 30px;">
-                            <li>Set heater to 70°C</li>
-                            <li>Wait for steady-state (temperatures stop changing)</li>
-                            <li>Record all temperatures (T1-T8)</li>
+                            <li data-translate="setup1">Set heater to 70°C</li>
+                            <li data-translate="setup2">Wait for steady-state (temperatures stop changing)</li>
+                            <li data-translate="setup3">Record all temperatures (T1-T8)</li>
                         </ol>
                         <br>
                         
-                        <p><strong>🌊 Part 1: Natural Convection</strong></p>
+                        <p data-translate="part1Title"><strong>🌊 Part 1: Natural Convection</strong></p>
                         <ol style="margin-left: 30px;">
-                            <li>Set fan to 0% (OFF)</li>
-                            <li>Wait 5-10 minutes for steady-state</li>
-                            <li>Record all T1-T8 temperatures</li>
-                            <li>Note how long it took to stabilize</li>
+                            <li data-translate="part1Step1">Set fan to 0% (OFF)</li>
+                            <li data-translate="part1Step2">Wait 5-10 minutes for steady-state</li>
+                            <li data-translate="part1Step3">Record all T1-T8 temperatures</li>
+                            <li data-translate="part1Step4">Note how long it took to stabilize</li>
                         </ol>
                         <br>
                         
-                        <p><strong>💨 Part 2: Forced Convection - Low Speed</strong></p>
+                        <p data-translate="part2Title"><strong>💨 Part 2: Forced Convection - Low Speed</strong></p>
                         <ol style="margin-left: 30px;">
-                            <li>Set fan to 25%</li>
-                            <li>Wait for new steady-state</li>
-                            <li>Record all T1-T8 temperatures</li>
-                            <li>Compare to natural convection</li>
+                            <li data-translate="part2Step1">Set fan to 25%</li>
+                            <li data-translate="part2Step2">Wait for new steady-state</li>
+                            <li data-translate="part2Step3">Record all T1-T8 temperatures</li>
+                            <li data-translate="part2Step4">Compare to natural convection</li>
                         </ol>
                         <br>
                         
-                        <p><strong>💨 Part 3: Forced Convection - High Speed</strong></p>
+                        <p data-translate="part3Title"><strong>💨 Part 3: Forced Convection - High Speed</strong></p>
                         <ol style="margin-left: 30px;">
-                            <li>Set fan to 75%</li>
-                            <li>Wait for new steady-state</li>
-                            <li>Record all T1-T8 temperatures</li>
-                            <li>Compare to previous cases</li>
+                            <li data-translate="part3Step1">Set fan to 75%</li>
+                            <li data-translate="part3Step2">Wait for new steady-state</li>
+                            <li data-translate="part3Step3">Record all T1-T8 temperatures</li>
+                            <li data-translate="part3Step4">Compare to previous cases</li>
                         </ol>
                         <br>
                         
-                        <p><strong>📊 Analysis:</strong></p>
+                        <p data-translate="analysisTitle"><strong>📊 Analysis:</strong></p>
                         <ul style="margin-left: 30px;">
-                            <li>Plot Temperature vs Distance for each fan speed</li>
-                            <li>Calculate average temperature drop for each case</li>
-                            <li>Estimate convection coefficients</li>
-                            <li>Calculate improvement factor (forced vs natural)</li>
+                            <li data-translate="analysis1">Plot Temperature vs Distance for each fan speed</li>
+                            <li data-translate="analysis2">Calculate average temperature drop for each case</li>
+                            <li data-translate="analysis3">Estimate convection coefficients</li>
+                            <li data-translate="analysis4">Calculate improvement factor (forced vs natural)</li>
                         </ul>
                     </div>
                 </div>
@@ -648,57 +700,57 @@
 
             <!-- Quiz -->
             <div class="quiz-section">
-                <h2><span class="icon">✅</span> Test Your Understanding!</h2>
+                <h2><span class="icon">✅</span> <span data-translate="quizTitle">Test Your Understanding!</span></h2>
                 
                 <div class="quiz-question">
-                    <h4>Question 1: What drives natural convection?</h4>
+                    <h4 data-translate="quiz1Question">Question 1: What drives natural convection?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q1" value="a"> A) Fans and pumps</label>
-                        <label><input type="radio" name="q1" value="b"> B) Density differences from temperature changes</label>
-                        <label><input type="radio" name="q1" value="c"> C) Magnetic fields</label>
-                        <label><input type="radio" name="q1" value="d"> D) Pressure differences only</label>
+                        <label><input type="radio" name="q1" value="a"> <span data-translate="quiz1OptionA">A) Fans and pumps</span></label>
+                        <label><input type="radio" name="q1" value="b"> <span data-translate="quiz1OptionB">B) Density differences from temperature changes</span></label>
+                        <label><input type="radio" name="q1" value="c"> <span data-translate="quiz1OptionC">C) Magnetic fields</span></label>
+                        <label><input type="radio" name="q1" value="d"> <span data-translate="quiz1OptionD">D) Pressure differences only</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q1', 'b', 'fb1')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb1"></div>
                 </div>
 
                 <div class="quiz-question">
-                    <h4>Question 2: Which has a higher heat transfer coefficient (h)?</h4>
+                    <h4 data-translate="quiz2Question">Question 2: Which has a higher heat transfer coefficient (h)?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q2" value="a"> A) Natural convection</label>
-                        <label><input type="radio" name="q2" value="b"> B) Forced convection</label>
-                        <label><input type="radio" name="q2" value="c"> C) They are equal</label>
-                        <label><input type="radio" name="q2" value="d"> D) It depends on color</label>
+                        <label><input type="radio" name="q2" value="a"> <span data-translate="quiz2OptionA">A) Natural convection</span></label>
+                        <label><input type="radio" name="q2" value="b"> <span data-translate="quiz2OptionB">B) Forced convection</span></label>
+                        <label><input type="radio" name="q2" value="c"> <span data-translate="quiz2OptionC">C) They are equal</span></label>
+                        <label><input type="radio" name="q2" value="d"> <span data-translate="quiz2OptionD">D) It depends on color</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'b', 'fb2')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q2', 'b', 'fb2')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb2"></div>
                 </div>
 
                 <div class="quiz-question">
-                    <h4>Question 3: In your apparatus, what does increasing fan speed do?</h4>
+                    <h4 data-translate="quiz3Question">Question 3: In your apparatus, what does increasing fan speed do?</h4>
                     <div class="quiz-options">
-                        <label><input type="radio" name="q3" value="a"> A) Increases convection and lowers temperatures</label>
-                        <label><input type="radio" name="q3" value="b"> B) Has no effect on temperatures</label>
-                        <label><input type="radio" name="q3" value="c"> C) Increases temperatures</label>
-                        <label><input type="radio" name="q3" value="d"> D) Only affects heater power</label>
+                        <label><input type="radio" name="q3" value="a"> <span data-translate="quiz3OptionA">A) Increases convection and lowers temperatures</span></label>
+                        <label><input type="radio" name="q3" value="b"> <span data-translate="quiz3OptionB">B) Has no effect on temperatures</span></label>
+                        <label><input type="radio" name="q3" value="c"> <span data-translate="quiz3OptionC">C) Increases temperatures</span></label>
+                        <label><input type="radio" name="q3" value="d"> <span data-translate="quiz3OptionD">D) Only affects heater power</span></label>
                     </div>
-                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'a', 'fb3')">Check Answer</button>
+                    <button class="check-answer-btn" onclick="checkAnswer('q3', 'a', 'fb3')" data-translate="checkAnswerBtn">Check Answer</button>
                     <div class="feedback" id="fb3"></div>
                 </div>
             </div>
 
             <!-- Suggested Experiments -->
             <div class="section">
-                <h2><span class="icon">🧪</span> Advanced Experiments</h2>
+                <h2><span class="icon">🧪</span> <span data-translate="experimentsTitle">Advanced Experiments</span></h2>
                 
                 <div class="key-points">
-                    <h4>Try These:</h4>
+                    <h4 data-translate="tryThese">Try These:</h4>
                     <ul>
-                        <li><strong>Exp 1:</strong> Measure cooling time from 80°C to 40°C with fan OFF vs fan at 50%</li>
-                        <li><strong>Exp 2:</strong> Plot cooling curves for different fan speeds (0%, 25%, 50%, 75%, 100%)</li>
-                        <li><strong>Exp 3:</strong> Calculate the convection coefficient for each fan speed using Q = h×A×ΔT</li>
-                        <li><strong>Exp 4:</strong> Find the minimum fan speed needed to keep temperatures below 60°C</li>
-                        <li><strong>Exp 5:</strong> Compare power consumption vs cooling effectiveness</li>
+                        <li data-translate="exp1"><strong>Exp 1:</strong> Measure cooling time from 80°C to 40°C with fan OFF vs fan at 50%</li>
+                        <li data-translate="exp2"><strong>Exp 2:</strong> Plot cooling curves for different fan speeds (0%, 25%, 50%, 75%, 100%)</li>
+                        <li data-translate="exp3"><strong>Exp 3:</strong> Calculate the convection coefficient for each fan speed using Q = h×A×ΔT</li>
+                        <li data-translate="exp4"><strong>Exp 4:</strong> Find the minimum fan speed needed to keep temperatures below 60°C</li>
+                        <li data-translate="exp5"><strong>Exp 5:</strong> Compare power consumption vs cooling effectiveness</li>
                     </ul>
                 </div>
             </div>
@@ -777,9 +829,781 @@
                 fb.innerHTML = '❌ Not quite - review the material!';
             }
         }
+        // Translation data for all languages
+        var translations = {
+            en: {
+                pageTitle: '💨 Lab 4: Forced vs Natural Convection',
+                pageSubtitle: 'Understanding How Air Movement Affects Heat Transfer',
+                section1Title: 'What is Convection?',
+                section1Para1: 'Convection is heat transfer by the movement of fluids (liquids or gases). When air or water moves over a hot surface, it carries heat away. The faster the fluid moves, the more heat it can remove!',
+                section1Para2: 'There are two main types of convection:',
+                naturalTitle: '🌊 Natural Convection',
+                naturalDesc: 'Fluid movement caused by density differences due to temperature changes. Hot air rises, cold air sinks - no fans needed!',
+                examplesTitle: 'Examples:',
+                naturalEx1: 'Heat from a radiator',
+                naturalEx2: 'Boiling water bubbles',
+                naturalEx3: 'Hot air balloon rising',
+                naturalEx4: 'Warm air rising in a room',
+                forcedTitle: '💨 Forced Convection',
+                forcedDesc: 'Fluid movement caused by external means like fans, pumps, or wind. Much faster and more effective!',
+                forcedEx1: 'Computer cooling fans',
+                forcedEx2: 'Car radiator with fan',
+                forcedEx3: 'Hair dryer',
+                forcedEx4: 'Air conditioning',
+                section2Title: 'Comparing Natural and Forced Convection',
+                tableChar: 'Characteristic',
+                tableNatural: 'Natural Convection',
+                tableForced: 'Forced Convection',
+                row1Label: 'Driving Force',
+                row1Natural: 'Buoyancy (density differences)',
+                row1Forced: 'External (fan, pump)',
+                row2Label: 'Speed',
+                row2Natural: 'Slow (< 1 m/s)',
+                row2Forced: 'Fast (1-100+ m/s)',
+                row3Label: 'h coefficient',
+                row3Natural: 'Low (5-25 W/m²·K)',
+                row3Forced: 'High (25-250+ W/m²·K)',
+                row4Label: 'Heat Transfer Rate',
+                row4Natural: 'Lower',
+                row4Forced: 'Much Higher',
+                row5Label: 'Energy Cost',
+                row5Natural: 'Free (no power needed)',
+                row5Forced: 'Requires power',
+                row6Label: 'Control',
+                row6Natural: 'Limited control',
+                row6Forced: 'Easy to control (fan speed)',
+                keyInsightTitle: 'Key Insight:',
+                insight1: 'Forced convection can be 10-20 times more effective than natural convection!',
+                insight2: 'This is why computers have fans - natural convection alone isn\'t enough!',
+                section3Title: 'Convection Heat Transfer Calculator',
+                calcTitle: 'Compare Natural vs Forced Convection',
+                labelSurfaceTemp: 'Surface Temperature (°C):',
+                labelAmbientTemp: 'Ambient Air Temperature (°C):',
+                labelSurfaceArea: 'Surface Area (m²):',
+                labelConvectionType: 'Convection Type:',
+                optionNatural: 'Natural Convection (h = 10 W/m²·K)',
+                optionForcedLow: 'Forced - Low Fan Speed (h = 50 W/m²·K)',
+                optionForcedMed: 'Forced - Medium Fan Speed (h = 100 W/m²·K)',
+                optionForcedHigh: 'Forced - High Fan Speed (h = 200 W/m²·K)',
+                labelH: 'h coefficient (W/m²·K):',
+                btnCalc: '💨 Calculate Heat Transfer',
+                btnCompare: '⚖️ Compare Natural vs Forced',
+                section4Title: 'Observing Convection in Your Apparatus',
+                fanTitle: 'What Your Fan Does:',
+                fanOff: 'Fan OFF (0%): Natural convection only - slow cooling',
+                fanLow: 'Fan ON (25-50%): Forced convection - moderate cooling',
+                fanHigh: 'Fan ON (75-100%): Strong forced convection - rapid cooling',
+                effectsTitle: 'Observable Effects:',
+                effectsPara: '1. Temperature Drop: Higher fan speed → Lower temperatures\n2. Cooling Rate: Faster fan → Faster temperature decrease\n3. Temperature Gradient: More airflow → Steeper gradients\n4. Steady-State: Fan controls final equilibrium temperature',
+                whyMattersTitle: 'Why Does This Matter?',
+                whyMattersPara: 'Understanding convection is crucial for:',
+                matter1: 'Electronics Cooling: CPUs and GPUs need forced convection',
+                matter2: 'HVAC Systems: Moving air distributes heating/cooling',
+                matter3: 'Industrial Processes: Cooling hot materials efficiently',
+                matter4: 'Energy Efficiency: Natural convection saves power when possible',
+                section5Title: 'Experimental Procedure',
+                procedureTitle: 'Step-by-Step Experiment to Compare Convection Types',
+                setupTitle: '📋 Setup:',
+                setup1: 'Set heater to 70°C',
+                setup2: 'Wait for steady-state (temperatures stop changing)',
+                setup3: 'Record all temperatures (T1-T8)',
+                part1Title: '🌊 Part 1: Natural Convection',
+                part1Step1: 'Set fan to 0% (OFF)',
+                part1Step2: 'Wait 5-10 minutes for steady-state',
+                part1Step3: 'Record all T1-T8 temperatures',
+                part1Step4: 'Note how long it took to stabilize',
+                part2Title: '💨 Part 2: Forced Convection - Low Speed',
+                part2Step1: 'Set fan to 25%',
+                part2Step2: 'Wait for new steady-state',
+                part2Step3: 'Record all T1-T8 temperatures',
+                part2Step4: 'Compare to natural convection',
+                part3Title: '💨 Part 3: Forced Convection - High Speed',
+                part3Step1: 'Set fan to 75%',
+                part3Step2: 'Wait for new steady-state',
+                part3Step3: 'Record all T1-T8 temperatures',
+                part3Step4: 'Compare to previous cases',
+                analysisTitle: '📊 Analysis:',
+                analysis1: 'Plot Temperature vs Distance for each fan speed',
+                analysis2: 'Calculate average temperature drop for each case',
+                analysis3: 'Estimate convection coefficients',
+                analysis4: 'Calculate improvement factor (forced vs natural)',
+                quizTitle: 'Test Your Understanding!',
+                quiz1Question: 'Question 1: What drives natural convection?',
+                quiz1OptionA: 'A) Fans and pumps',
+                quiz1OptionB: 'B) Density differences from temperature changes',
+                quiz1OptionC: 'C) Magnetic fields',
+                quiz1OptionD: 'D) Pressure differences only',
+                quiz2Question: 'Question 2: Which has a higher heat transfer coefficient (h)?',
+                quiz2OptionA: 'A) Natural convection',
+                quiz2OptionB: 'B) Forced convection',
+                quiz2OptionC: 'C) They are equal',
+                quiz2OptionD: 'D) It depends on color',
+                quiz3Question: 'Question 3: In your apparatus, what does increasing fan speed do?',
+                quiz3OptionA: 'A) Increases convection and lowers temperatures',
+                quiz3OptionB: 'B) Has no effect on temperatures',
+                quiz3OptionC: 'C) Increases temperatures',
+                quiz3OptionD: 'D) Only affects heater power',
+                checkAnswerBtn: 'Check Answer',
+                experimentsTitle: 'Advanced Experiments',
+                tryThese: 'Try These:',
+                exp1: 'Exp 1: Measure cooling time from 80°C to 40°C with fan OFF vs fan at 50%',
+                exp2: 'Exp 2: Plot cooling curves for different fan speeds (0%, 25%, 50%, 75%, 100%)',
+                exp3: 'Exp 3: Calculate the convection coefficient for each fan speed using Q = h×A×ΔT',
+                exp4: 'Exp 4: Find the minimum fan speed needed to keep temperatures below 60°C',
+                exp5: 'Exp 5: Compare power consumption vs cooling effectiveness'
+            },
+            fr: {
+                pageTitle: '💨 Laboratoire 4: Convection Forcée vs Naturelle',
+                pageSubtitle: 'Comprendre Comment le Mouvement de l\'Air Affecte le Transfert Thermique',
+                section1Title: 'Qu\'est-ce que la Convection?',
+                section1Para1: 'La convection est le transfert de chaleur par le mouvement de fluides (liquides ou gaz). Lorsque l\'air ou l\'eau se déplace sur une surface chaude, il emporte la chaleur. Plus le fluide se déplace rapidement, plus il peut retirer de chaleur!',
+                section1Para2: 'Il existe deux types principaux de convection:',
+                naturalTitle: '🌊 Convection Naturelle',
+                naturalDesc: 'Mouvement de fluide causé par les différences de densité dues aux changements de température. L\'air chaud monte, l\'air froid descend - pas besoin de ventilateurs!',
+                examplesTitle: 'Exemples:',
+                naturalEx1: 'Chaleur d\'un radiateur',
+                naturalEx2: 'Bulles d\'eau bouillante',
+                naturalEx3: 'Montgolfière qui s\'élève',
+                naturalEx4: 'Air chaud qui monte dans une pièce',
+                forcedTitle: '💨 Convection Forcée',
+                forcedDesc: 'Mouvement de fluide causé par des moyens externes comme les ventilateurs, pompes ou le vent. Beaucoup plus rapide et plus efficace!',
+                forcedEx1: 'Ventilateurs de refroidissement d\'ordinateur',
+                forcedEx2: 'Radiateur de voiture avec ventilateur',
+                forcedEx3: 'Sèche-cheveux',
+                forcedEx4: 'Climatisation',
+                section2Title: 'Comparaison de la Convection Naturelle et Forcée',
+                tableChar: 'Caractéristique',
+                tableNatural: 'Convection Naturelle',
+                tableForced: 'Convection Forcée',
+                row1Label: 'Force Motrice',
+                row1Natural: 'Flottabilité (différences de densité)',
+                row1Forced: 'Externe (ventilateur, pompe)',
+                row2Label: 'Vitesse',
+                row2Natural: 'Lente (< 1 m/s)',
+                row2Forced: 'Rapide (1-100+ m/s)',
+                row3Label: 'Coefficient h',
+                row3Natural: 'Faible (5-25 W/m²·K)',
+                row3Forced: 'Élevé (25-250+ W/m²·K)',
+                row4Label: 'Taux de Transfert Thermique',
+                row4Natural: 'Plus faible',
+                row4Forced: 'Beaucoup plus élevé',
+                row5Label: 'Coût Énergétique',
+                row5Natural: 'Gratuit (pas besoin d\'énergie)',
+                row5Forced: 'Nécessite de l\'énergie',
+                row6Label: 'Contrôle',
+                row6Natural: 'Contrôle limité',
+                row6Forced: 'Facile à contrôler (vitesse du ventilateur)',
+                keyInsightTitle: 'Idée Clé:',
+                insight1: 'La convection forcée peut être 10 à 20 fois plus efficace que la convection naturelle!',
+                insight2: 'C\'est pourquoi les ordinateurs ont des ventilateurs - la convection naturelle seule ne suffit pas!',
+                section3Title: 'Calculateur de Transfert Thermique par Convection',
+                calcTitle: 'Comparer Convection Naturelle vs Forcée',
+                labelSurfaceTemp: 'Température de Surface (°C):',
+                labelAmbientTemp: 'Température de l\'Air Ambiant (°C):',
+                labelSurfaceArea: 'Surface (m²):',
+                labelConvectionType: 'Type de Convection:',
+                optionNatural: 'Convection Naturelle (h = 10 W/m²·K)',
+                optionForcedLow: 'Forcée - Faible Vitesse Ventilateur (h = 50 W/m²·K)',
+                optionForcedMed: 'Forcée - Vitesse Ventilateur Moyenne (h = 100 W/m²·K)',
+                optionForcedHigh: 'Forcée - Haute Vitesse Ventilateur (h = 200 W/m²·K)',
+                labelH: 'Coefficient h (W/m²·K):',
+                btnCalc: '💨 Calculer le Transfert Thermique',
+                btnCompare: '⚖️ Comparer Naturelle vs Forcée',
+                section4Title: 'Observer la Convection dans Votre Appareil',
+                fanTitle: 'Ce Que Fait Votre Ventilateur:',
+                fanOff: 'Ventilateur OFF (0%): Convection naturelle uniquement - refroidissement lent',
+                fanLow: 'Ventilateur ON (25-50%): Convection forcée - refroidissement modéré',
+                fanHigh: 'Ventilateur ON (75-100%): Convection forcée forte - refroidissement rapide',
+                effectsTitle: 'Effets Observables:',
+                effectsPara: '1. Chute de Température: Vitesse ventilateur plus élevée → Températures plus basses\n2. Taux de Refroidissement: Ventilateur plus rapide → Diminution de température plus rapide\n3. Gradient de Température: Plus de flux d\'air → Gradients plus raides\n4. État Stable: Le ventilateur contrôle la température d\'équilibre finale',
+                whyMattersTitle: 'Pourquoi C\'est Important?',
+                whyMattersPara: 'Comprendre la convection est crucial pour:',
+                matter1: 'Refroidissement Électronique: Les CPU et GPU ont besoin de convection forcée',
+                matter2: 'Systèmes CVC: L\'air en mouvement distribue le chauffage/refroidissement',
+                matter3: 'Processus Industriels: Refroidir efficacement les matériaux chauds',
+                matter4: 'Efficacité Énergétique: La convection naturelle économise l\'énergie quand c\'est possible',
+                section5Title: 'Procédure Expérimentale',
+                procedureTitle: 'Expérience Étape par Étape pour Comparer les Types de Convection',
+                setupTitle: '📋 Configuration:',
+                setup1: 'Réglez le chauffage à 70°C',
+                setup2: 'Attendez l\'état stable (les températures arrêtent de changer)',
+                setup3: 'Enregistrez toutes les températures (T1-T8)',
+                part1Title: '🌊 Partie 1: Convection Naturelle',
+                part1Step1: 'Réglez le ventilateur à 0% (OFF)',
+                part1Step2: 'Attendez 5-10 minutes pour l\'état stable',
+                part1Step3: 'Enregistrez toutes les températures T1-T8',
+                part1Step4: 'Notez combien de temps il a fallu pour stabiliser',
+                part2Title: '💨 Partie 2: Convection Forcée - Faible Vitesse',
+                part2Step1: 'Réglez le ventilateur à 25%',
+                part2Step2: 'Attendez le nouvel état stable',
+                part2Step3: 'Enregistrez toutes les températures T1-T8',
+                part2Step4: 'Comparez à la convection naturelle',
+                part3Title: '💨 Partie 3: Convection Forcée - Haute Vitesse',
+                part3Step1: 'Réglez le ventilateur à 75%',
+                part3Step2: 'Attendez le nouvel état stable',
+                part3Step3: 'Enregistrez toutes les températures T1-T8',
+                part3Step4: 'Comparez aux cas précédents',
+                analysisTitle: '📊 Analyse:',
+                analysis1: 'Tracez Température vs Distance pour chaque vitesse de ventilateur',
+                analysis2: 'Calculez la chute de température moyenne pour chaque cas',
+                analysis3: 'Estimez les coefficients de convection',
+                analysis4: 'Calculez le facteur d\'amélioration (forcée vs naturelle)',
+                quizTitle: 'Testez Votre Compréhension!',
+                quiz1Question: 'Question 1: Qu\'est-ce qui entraîne la convection naturelle?',
+                quiz1OptionA: 'A) Ventilateurs et pompes',
+                quiz1OptionB: 'B) Différences de densité dues aux changements de température',
+                quiz1OptionC: 'C) Champs magnétiques',
+                quiz1OptionD: 'D) Différences de pression uniquement',
+                quiz2Question: 'Question 2: Lequel a un coefficient de transfert de chaleur (h) plus élevé?',
+                quiz2OptionA: 'A) Convection naturelle',
+                quiz2OptionB: 'B) Convection forcée',
+                quiz2OptionC: 'C) Ils sont égaux',
+                quiz2OptionD: 'D) Cela dépend de la couleur',
+                quiz3Question: 'Question 3: Dans votre appareil, que fait l\'augmentation de la vitesse du ventilateur?',
+                quiz3OptionA: 'A) Augmente la convection et abaisse les températures',
+                quiz3OptionB: 'B) N\'a aucun effet sur les températures',
+                quiz3OptionC: 'C) Augmente les températures',
+                quiz3OptionD: 'D) Affecte uniquement la puissance du chauffage',
+                checkAnswerBtn: 'Vérifier la Réponse',
+                experimentsTitle: 'Expériences Avancées',
+                tryThese: 'Essayez Ceci:',
+                exp1: 'Exp 1: Mesurez le temps de refroidissement de 80°C à 40°C avec ventilateur OFF vs ventilateur à 50%',
+                exp2: 'Exp 2: Tracez les courbes de refroidissement pour différentes vitesses de ventilateur (0%, 25%, 50%, 75%, 100%)',
+                exp3: 'Exp 3: Calculez le coefficient de convection pour chaque vitesse de ventilateur en utilisant Q = h×A×ΔT',
+                exp4: 'Exp 4: Trouvez la vitesse minimale de ventilateur nécessaire pour maintenir les températures en dessous de 60°C',
+                exp5: 'Exp 5: Comparez la consommation d\'énergie vs l\'efficacité de refroidissement'
+            },
+            de: {
+                pageTitle: '💨 Labor 4: Erzwungene vs Natürliche Konvektion',
+                pageSubtitle: 'Verstehen, Wie Luftbewegung die Wärmeübertragung Beeinflusst',
+                section1Title: 'Was ist Konvektion?',
+                section1Para1: 'Konvektion ist Wärmeübertragung durch die Bewegung von Flüssigkeiten (Flüssigkeiten oder Gase). Wenn Luft oder Wasser über eine heiße Oberfläche strömt, transportiert es Wärme ab. Je schneller sich das Fluid bewegt, desto mehr Wärme kann es entfernen!',
+                section1Para2: 'Es gibt zwei Hauptarten der Konvektion:',
+                naturalTitle: '🌊 Natürliche Konvektion',
+                naturalDesc: 'Flüssigkeitsbewegung verursacht durch Dichteunterschiede aufgrund von Temperaturänderungen. Heiße Luft steigt, kalte Luft sinkt - keine Ventilatoren nötig!',
+                examplesTitle: 'Beispiele:',
+                naturalEx1: 'Wärme von einem Heizkörper',
+                naturalEx2: 'Blasen von kochendem Wasser',
+                naturalEx3: 'Aufsteigender Heißluftballon',
+                naturalEx4: 'Warme Luft steigt in einem Raum',
+                forcedTitle: '💨 Erzwungene Konvektion',
+                forcedDesc: 'Flüssigkeitsbewegung verursacht durch externe Mittel wie Ventilatoren, Pumpen oder Wind. Viel schneller und effektiver!',
+                forcedEx1: 'Computer-Kühlventilatoren',
+                forcedEx2: 'Autokühler mit Ventilator',
+                forcedEx3: 'Haartrockner',
+                forcedEx4: 'Klimaanlage',
+                section2Title: 'Vergleich von Natürlicher und Erzwungener Konvektion',
+                tableChar: 'Merkmal',
+                tableNatural: 'Natürliche Konvektion',
+                tableForced: 'Erzwungene Konvektion',
+                row1Label: 'Antriebskraft',
+                row1Natural: 'Auftrieb (Dichteunterschiede)',
+                row1Forced: 'Extern (Ventilator, Pumpe)',
+                row2Label: 'Geschwindigkeit',
+                row2Natural: 'Langsam (< 1 m/s)',
+                row2Forced: 'Schnell (1-100+ m/s)',
+                row3Label: 'h-Koeffizient',
+                row3Natural: 'Niedrig (5-25 W/m²·K)',
+                row3Forced: 'Hoch (25-250+ W/m²·K)',
+                row4Label: 'Wärmeübertragungsrate',
+                row4Natural: 'Niedriger',
+                row4Forced: 'Viel höher',
+                row5Label: 'Energiekosten',
+                row5Natural: 'Kostenlos (keine Energie nötig)',
+                row5Forced: 'Benötigt Energie',
+                row6Label: 'Steuerung',
+                row6Natural: 'Begrenzte Steuerung',
+                row6Forced: 'Einfach zu steuern (Lüftergeschwindigkeit)',
+                keyInsightTitle: 'Wichtige Erkenntnis:',
+                insight1: 'Erzwungene Konvektion kann 10-20 mal effektiver sein als natürliche Konvektion!',
+                insight2: 'Deshalb haben Computer Ventilatoren - natürliche Konvektion allein reicht nicht!',
+                section3Title: 'Konvektionswärmeübertragungsrechner',
+                calcTitle: 'Vergleichen Sie Natürliche vs Erzwungene Konvektion',
+                labelSurfaceTemp: 'Oberflächentemperatur (°C):',
+                labelAmbientTemp: 'Umgebungslufttemperatur (°C):',
+                labelSurfaceArea: 'Oberfläche (m²):',
+                labelConvectionType: 'Konvektionstyp:',
+                optionNatural: 'Natürliche Konvektion (h = 10 W/m²·K)',
+                optionForcedLow: 'Erzwungen - Niedrige Lüftergeschwindigkeit (h = 50 W/m²·K)',
+                optionForcedMed: 'Erzwungen - Mittlere Lüftergeschwindigkeit (h = 100 W/m²·K)',
+                optionForcedHigh: 'Erzwungen - Hohe Lüftergeschwindigkeit (h = 200 W/m²·K)',
+                labelH: 'h-Koeffizient (W/m²·K):',
+                btnCalc: '💨 Wärmeübertragung Berechnen',
+                btnCompare: '⚖️ Natürlich vs Erzwungen Vergleichen',
+                section4Title: 'Konvektion in Ihrem Gerät Beobachten',
+                fanTitle: 'Was Ihr Ventilator Tut:',
+                fanOff: 'Ventilator AUS (0%): Nur natürliche Konvektion - langsames Kühlen',
+                fanLow: 'Ventilator EIN (25-50%): Erzwungene Konvektion - mäßiges Kühlen',
+                fanHigh: 'Ventilator EIN (75-100%): Starke erzwungene Konvektion - schnelles Kühlen',
+                effectsTitle: 'Beobachtbare Effekte:',
+                effectsPara: '1. Temperaturabfall: Höhere Lüftergeschwindigkeit → Niedrigere Temperaturen\n2. Kühlrate: Schnellerer Ventilator → Schnellere Temperaturabnahme\n3. Temperaturgradient: Mehr Luftstrom → Steilere Gradienten\n4. Stationärer Zustand: Ventilator kontrolliert endgültige Gleichgewichtstemperatur',
+                whyMattersTitle: 'Warum Ist Das Wichtig?',
+                whyMattersPara: 'Konvektion zu verstehen ist entscheidend für:',
+                matter1: 'Elektronikkühlung: CPUs und GPUs benötigen erzwungene Konvektion',
+                matter2: 'HLK-Systeme: Bewegte Luft verteilt Heizung/Kühlung',
+                matter3: 'Industrielle Prozesse: Heiße Materialien effizient kühlen',
+                matter4: 'Energieeffizienz: Natürliche Konvektion spart Energie wenn möglich',
+                section5Title: 'Experimentelles Verfahren',
+                procedureTitle: 'Schritt-für-Schritt Experiment zum Vergleichen von Konvektionstypen',
+                setupTitle: '📋 Aufbau:',
+                setup1: 'Heizer auf 70°C einstellen',
+                setup2: 'Auf stationären Zustand warten (Temperaturen ändern sich nicht mehr)',
+                setup3: 'Alle Temperaturen aufzeichnen (T1-T8)',
+                part1Title: '🌊 Teil 1: Natürliche Konvektion',
+                part1Step1: 'Ventilator auf 0% (AUS) stellen',
+                part1Step2: '5-10 Minuten auf stationären Zustand warten',
+                part1Step3: 'Alle T1-T8 Temperaturen aufzeichnen',
+                part1Step4: 'Notieren, wie lange es dauerte zu stabilisieren',
+                part2Title: '💨 Teil 2: Erzwungene Konvektion - Niedrige Geschwindigkeit',
+                part2Step1: 'Ventilator auf 25% stellen',
+                part2Step2: 'Auf neuen stationären Zustand warten',
+                part2Step3: 'Alle T1-T8 Temperaturen aufzeichnen',
+                part2Step4: 'Mit natürlicher Konvektion vergleichen',
+                part3Title: '💨 Teil 3: Erzwungene Konvektion - Hohe Geschwindigkeit',
+                part3Step1: 'Ventilator auf 75% stellen',
+                part3Step2: 'Auf neuen stationären Zustand warten',
+                part3Step3: 'Alle T1-T8 Temperaturen aufzeichnen',
+                part3Step4: 'Mit vorherigen Fällen vergleichen',
+                analysisTitle: '📊 Analyse:',
+                analysis1: 'Temperatur vs Abstand für jede Lüftergeschwindigkeit zeichnen',
+                analysis2: 'Durchschnittlichen Temperaturabfall für jeden Fall berechnen',
+                analysis3: 'Konvektionskoeffizienten schätzen',
+                analysis4: 'Verbesserungsfaktor berechnen (erzwungen vs natürlich)',
+                quizTitle: 'Testen Sie Ihr Verständnis!',
+                quiz1Question: 'Frage 1: Was treibt natürliche Konvektion an?',
+                quiz1OptionA: 'A) Ventilatoren und Pumpen',
+                quiz1OptionB: 'B) Dichteunterschiede durch Temperaturänderungen',
+                quiz1OptionC: 'C) Magnetfelder',
+                quiz1OptionD: 'D) Nur Druckunterschiede',
+                quiz2Question: 'Frage 2: Welches hat einen höheren Wärmeübertragungskoeffizienten (h)?',
+                quiz2OptionA: 'A) Natürliche Konvektion',
+                quiz2OptionB: 'B) Erzwungene Konvektion',
+                quiz2OptionC: 'C) Sie sind gleich',
+                quiz2OptionD: 'D) Es hängt von der Farbe ab',
+                quiz3Question: 'Frage 3: Was bewirkt eine Erhöhung der Lüftergeschwindigkeit in Ihrem Gerät?',
+                quiz3OptionA: 'A) Erhöht Konvektion und senkt Temperaturen',
+                quiz3OptionB: 'B) Hat keinen Effekt auf Temperaturen',
+                quiz3OptionC: 'C) Erhöht Temperaturen',
+                quiz3OptionD: 'D) Betrifft nur die Heizerleistung',
+                checkAnswerBtn: 'Antwort Überprüfen',
+                experimentsTitle: 'Fortgeschrittene Experimente',
+                tryThese: 'Versuchen Sie Dies:',
+                exp1: 'Exp 1: Messen Sie Kühlzeit von 80°C auf 40°C mit Ventilator AUS vs Ventilator bei 50%',
+                exp2: 'Exp 2: Zeichnen Sie Kühlkurven für verschiedene Lüftergeschwindigkeiten (0%, 25%, 50%, 75%, 100%)',
+                exp3: 'Exp 3: Berechnen Sie den Konvektionskoeffizienten für jede Lüftergeschwindigkeit mit Q = h×A×ΔT',
+                exp4: 'Exp 4: Finden Sie die minimale Lüftergeschwindigkeit, um Temperaturen unter 60°C zu halten',
+                exp5: 'Exp 5: Vergleichen Sie Energieverbrauch vs Kühleffektivität'
+            },
+            es: {
+                pageTitle: '💨 Laboratorio 4: Convección Forzada vs Natural',
+                pageSubtitle: 'Comprender Cómo el Movimiento del Aire Afecta la Transferencia de Calor',
+                section1Title: '¿Qué es la Convección?',
+                section1Para1: 'La convección es la transferencia de calor por el movimiento de fluidos (líquidos o gases). Cuando el aire o el agua se mueven sobre una superficie caliente, transportan el calor. ¡Cuanto más rápido se mueve el fluido, más calor puede eliminar!',
+                section1Para2: 'Hay dos tipos principales de convección:',
+                naturalTitle: '🌊 Convección Natural',
+                naturalDesc: 'Movimiento de fluido causado por diferencias de densidad debidas a cambios de temperatura. El aire caliente sube, el aire frío baja - ¡no se necesitan ventiladores!',
+                examplesTitle: 'Ejemplos:',
+                naturalEx1: 'Calor de un radiador',
+                naturalEx2: 'Burbujas de agua hirviendo',
+                naturalEx3: 'Globo de aire caliente subiendo',
+                naturalEx4: 'Aire caliente subiendo en una habitación',
+                forcedTitle: '💨 Convección Forzada',
+                forcedDesc: 'Movimiento de fluido causado por medios externos como ventiladores, bombas o viento. ¡Mucho más rápido y efectivo!',
+                forcedEx1: 'Ventiladores de refrigeración de computadora',
+                forcedEx2: 'Radiador de automóvil con ventilador',
+                forcedEx3: 'Secador de pelo',
+                forcedEx4: 'Aire acondicionado',
+                section2Title: 'Comparando Convección Natural y Forzada',
+                tableChar: 'Característica',
+                tableNatural: 'Convección Natural',
+                tableForced: 'Convección Forzada',
+                row1Label: 'Fuerza Motriz',
+                row1Natural: 'Flotabilidad (diferencias de densidad)',
+                row1Forced: 'Externa (ventilador, bomba)',
+                row2Label: 'Velocidad',
+                row2Natural: 'Lenta (< 1 m/s)',
+                row2Forced: 'Rápida (1-100+ m/s)',
+                row3Label: 'Coeficiente h',
+                row3Natural: 'Bajo (5-25 W/m²·K)',
+                row3Forced: 'Alto (25-250+ W/m²·K)',
+                row4Label: 'Tasa de Transferencia de Calor',
+                row4Natural: 'Más baja',
+                row4Forced: 'Mucho más alta',
+                row5Label: 'Costo de Energía',
+                row5Natural: 'Gratis (no necesita energía)',
+                row5Forced: 'Requiere energía',
+                row6Label: 'Control',
+                row6Natural: 'Control limitado',
+                row6Forced: 'Fácil de controlar (velocidad del ventilador)',
+                keyInsightTitle: 'Perspectiva Clave:',
+                insight1: '¡La convección forzada puede ser 10-20 veces más efectiva que la convección natural!',
+                insight2: '¡Por eso las computadoras tienen ventiladores - la convección natural sola no es suficiente!',
+                section3Title: 'Calculadora de Transferencia de Calor por Convección',
+                calcTitle: 'Comparar Convección Natural vs Forzada',
+                labelSurfaceTemp: 'Temperatura de Superficie (°C):',
+                labelAmbientTemp: 'Temperatura del Aire Ambiente (°C):',
+                labelSurfaceArea: 'Área de Superficie (m²):',
+                labelConvectionType: 'Tipo de Convección:',
+                optionNatural: 'Convección Natural (h = 10 W/m²·K)',
+                optionForcedLow: 'Forzada - Baja Velocidad Ventilador (h = 50 W/m²·K)',
+                optionForcedMed: 'Forzada - Velocidad Ventilador Media (h = 100 W/m²·K)',
+                optionForcedHigh: 'Forzada - Alta Velocidad Ventilador (h = 200 W/m²·K)',
+                labelH: 'Coeficiente h (W/m²·K):',
+                btnCalc: '💨 Calcular Transferencia de Calor',
+                btnCompare: '⚖️ Comparar Natural vs Forzada',
+                section4Title: 'Observando Convección en Su Aparato',
+                fanTitle: 'Lo Que Hace Su Ventilador:',
+                fanOff: 'Ventilador APAGADO (0%): Solo convección natural - enfriamiento lento',
+                fanLow: 'Ventilador ENCENDIDO (25-50%): Convección forzada - enfriamiento moderado',
+                fanHigh: 'Ventilador ENCENDIDO (75-100%): Convección forzada fuerte - enfriamiento rápido',
+                effectsTitle: 'Efectos Observables:',
+                effectsPara: '1. Caída de Temperatura: Mayor velocidad ventilador → Temperaturas más bajas\n2. Tasa de Enfriamiento: Ventilador más rápido → Disminución de temperatura más rápida\n3. Gradiente de Temperatura: Más flujo de aire → Gradientes más empinados\n4. Estado Estable: El ventilador controla la temperatura de equilibrio final',
+                whyMattersTitle: '¿Por Qué Importa Esto?',
+                whyMattersPara: 'Entender la convección es crucial para:',
+                matter1: 'Refrigeración Electrónica: Los CPU y GPU necesitan convección forzada',
+                matter2: 'Sistemas HVAC: El aire en movimiento distribuye calefacción/refrigeración',
+                matter3: 'Procesos Industriales: Enfriar materiales calientes eficientemente',
+                matter4: 'Eficiencia Energética: La convección natural ahorra energía cuando es posible',
+                section5Title: 'Procedimiento Experimental',
+                procedureTitle: 'Experimento Paso a Paso para Comparar Tipos de Convección',
+                setupTitle: '📋 Configuración:',
+                setup1: 'Configure el calentador a 70°C',
+                setup2: 'Espere el estado estable (las temperaturas dejan de cambiar)',
+                setup3: 'Registre todas las temperaturas (T1-T8)',
+                part1Title: '🌊 Parte 1: Convección Natural',
+                part1Step1: 'Configure el ventilador a 0% (APAGADO)',
+                part1Step2: 'Espere 5-10 minutos para el estado estable',
+                part1Step3: 'Registre todas las temperaturas T1-T8',
+                part1Step4: 'Note cuánto tiempo tardó en estabilizarse',
+                part2Title: '💨 Parte 2: Convección Forzada - Baja Velocidad',
+                part2Step1: 'Configure el ventilador a 25%',
+                part2Step2: 'Espere el nuevo estado estable',
+                part2Step3: 'Registre todas las temperaturas T1-T8',
+                part2Step4: 'Compare con convección natural',
+                part3Title: '💨 Parte 3: Convección Forzada - Alta Velocidad',
+                part3Step1: 'Configure el ventilador a 75%',
+                part3Step2: 'Espere el nuevo estado estable',
+                part3Step3: 'Registre todas las temperaturas T1-T8',
+                part3Step4: 'Compare con casos anteriores',
+                analysisTitle: '📊 Análisis:',
+                analysis1: 'Trace Temperatura vs Distancia para cada velocidad de ventilador',
+                analysis2: 'Calcule la caída promedio de temperatura para cada caso',
+                analysis3: 'Estime coeficientes de convección',
+                analysis4: 'Calcule el factor de mejora (forzada vs natural)',
+                quizTitle: '¡Pruebe Su Comprensión!',
+                quiz1Question: 'Pregunta 1: ¿Qué impulsa la convección natural?',
+                quiz1OptionA: 'A) Ventiladores y bombas',
+                quiz1OptionB: 'B) Diferencias de densidad por cambios de temperatura',
+                quiz1OptionC: 'C) Campos magnéticos',
+                quiz1OptionD: 'D) Solo diferencias de presión',
+                quiz2Question: 'Pregunta 2: ¿Cuál tiene un coeficiente de transferencia de calor (h) más alto?',
+                quiz2OptionA: 'A) Convección natural',
+                quiz2OptionB: 'B) Convección forzada',
+                quiz2OptionC: 'C) Son iguales',
+                quiz2OptionD: 'D) Depende del color',
+                quiz3Question: 'Pregunta 3: En su aparato, ¿qué hace aumentar la velocidad del ventilador?',
+                quiz3OptionA: 'A) Aumenta la convección y baja las temperaturas',
+                quiz3OptionB: 'B) No tiene efecto en las temperaturas',
+                quiz3OptionC: 'C) Aumenta las temperaturas',
+                quiz3OptionD: 'D) Solo afecta la potencia del calentador',
+                checkAnswerBtn: 'Verificar Respuesta',
+                experimentsTitle: 'Experimentos Avanzados',
+                tryThese: 'Pruebe Esto:',
+                exp1: 'Exp 1: Mida el tiempo de enfriamiento de 80°C a 40°C con ventilador APAGADO vs ventilador al 50%',
+                exp2: 'Exp 2: Trace curvas de enfriamiento para diferentes velocidades de ventilador (0%, 25%, 50%, 75%, 100%)',
+                exp3: 'Exp 3: Calcule el coeficiente de convección para cada velocidad de ventilador usando Q = h×A×ΔT',
+                exp4: 'Exp 4: Encuentre la velocidad mínima de ventilador necesaria para mantener temperaturas por debajo de 60°C',
+                exp5: 'Exp 5: Compare consumo de energía vs efectividad de enfriamiento'
+            },
+            nl: {
+                pageTitle: '💨 Lab 4: Geforceerde vs Natuurlijke Convectie',
+                pageSubtitle: 'Begrijpen Hoe Luchtbeweging Warmteoverdracht Beïnvloedt',
+                section1Title: 'Wat is Convectie?',
+                section1Para1: 'Convectie is warmteoverdracht door de beweging van vloeistoffen (vloeistoffen of gassen). Wanneer lucht of water over een heet oppervlak beweegt, voert het warmte af. Hoe sneller de vloeistof beweegt, hoe meer warmte het kan verwijderen!',
+                section1Para2: 'Er zijn twee hoofdtypen convectie:',
+                naturalTitle: '🌊 Natuurlijke Convectie',
+                naturalDesc: 'Vloeistofbeweging veroorzaakt door dichtheidsverschillen door temperatuurveranderingen. Hete lucht stijgt, koude lucht daalt - geen ventilatoren nodig!',
+                examplesTitle: 'Voorbeelden:',
+                naturalEx1: 'Warmte van een radiator',
+                naturalEx2: 'Bubbels van kokend water',
+                naturalEx3: 'Stijgende heteluchtballon',
+                naturalEx4: 'Warme lucht stijgt in een kamer',
+                forcedTitle: '💨 Geforceerde Convectie',
+                forcedDesc: 'Vloeistofbeweging veroorzaakt door externe middelen zoals ventilatoren, pompen of wind. Veel sneller en effectiever!',
+                forcedEx1: 'Computer koelventilatoren',
+                forcedEx2: 'Autoradiator met ventilator',
+                forcedEx3: 'Haardroger',
+                forcedEx4: 'Airconditioning',
+                section2Title: 'Natuurlijke en Geforceerde Convectie Vergelijken',
+                tableChar: 'Kenmerk',
+                tableNatural: 'Natuurlijke Convectie',
+                tableForced: 'Geforceerde Convectie',
+                row1Label: 'Drijfkracht',
+                row1Natural: 'Drijfvermogen (dichtheidsverschillen)',
+                row1Forced: 'Extern (ventilator, pomp)',
+                row2Label: 'Snelheid',
+                row2Natural: 'Langzaam (< 1 m/s)',
+                row2Forced: 'Snel (1-100+ m/s)',
+                row3Label: 'h-coëfficiënt',
+                row3Natural: 'Laag (5-25 W/m²·K)',
+                row3Forced: 'Hoog (25-250+ W/m²·K)',
+                row4Label: 'Warmteoverdrachtsnelheid',
+                row4Natural: 'Lager',
+                row4Forced: 'Veel hoger',
+                row5Label: 'Energiekosten',
+                row5Natural: 'Gratis (geen energie nodig)',
+                row5Forced: 'Vereist energie',
+                row6Label: 'Controle',
+                row6Natural: 'Beperkte controle',
+                row6Forced: 'Makkelijk te controleren (ventilatorsnelheid)',
+                keyInsightTitle: 'Belangrijk Inzicht:',
+                insight1: 'Geforceerde convectie kan 10-20 keer effectiever zijn dan natuurlijke convectie!',
+                insight2: 'Daarom hebben computers ventilatoren - natuurlijke convectie alleen is niet genoeg!',
+                section3Title: 'Convectie Warmteoverdracht Calculator',
+                calcTitle: 'Vergelijk Natuurlijke vs Geforceerde Convectie',
+                labelSurfaceTemp: 'Oppervlaktetemperatuur (°C):',
+                labelAmbientTemp: 'Omgevingstemperatuur (°C):',
+                labelSurfaceArea: 'Oppervlakte (m²):',
+                labelConvectionType: 'Convectietype:',
+                optionNatural: 'Natuurlijke Convectie (h = 10 W/m²·K)',
+                optionForcedLow: 'Geforceerd - Lage Ventilatorsnelheid (h = 50 W/m²·K)',
+                optionForcedMed: 'Geforceerd - Gemiddelde Ventilatorsnelheid (h = 100 W/m²·K)',
+                optionForcedHigh: 'Geforceerd - Hoge Ventilatorsnelheid (h = 200 W/m²·K)',
+                labelH: 'h-coëfficiënt (W/m²·K):',
+                btnCalc: '💨 Bereken Warmteoverdracht',
+                btnCompare: '⚖️ Vergelijk Natuurlijk vs Geforceerd',
+                section4Title: 'Convectie Observeren in Uw Apparaat',
+                fanTitle: 'Wat Uw Ventilator Doet:',
+                fanOff: 'Ventilator UIT (0%): Alleen natuurlijke convectie - langzame koeling',
+                fanLow: 'Ventilator AAN (25-50%): Geforceerde convectie - matige koeling',
+                fanHigh: 'Ventilator AAN (75-100%): Sterke geforceerde convectie - snelle koeling',
+                effectsTitle: 'Waarneembare Effecten:',
+                effectsPara: '1. Temperatuurdaling: Hogere ventilatorsnelheid → Lagere temperaturen\n2. Koelsnelheid: Snellere ventilator → Snellere temperatuurdaling\n3. Temperatuurgradiënt: Meer luchtstroom → Steilere gradiënten\n4. Stationaire Toestand: Ventilator controleert eindevenwichtstemperatuur',
+                whyMattersTitle: 'Waarom Is Dit Belangrijk?',
+                whyMattersPara: 'Convectie begrijpen is cruciaal voor:',
+                matter1: 'Elektronica Koeling: CPU\'s en GPU\'s hebben geforceerde convectie nodig',
+                matter2: 'HVAC Systemen: Bewegende lucht verdeelt verwarming/koeling',
+                matter3: 'Industriële Processen: Hete materialen efficiënt koelen',
+                matter4: 'Energie-efficiëntie: Natuurlijke convectie bespaart energie wanneer mogelijk',
+                section5Title: 'Experimentele Procedure',
+                procedureTitle: 'Stap-voor-Stap Experiment om Convectietypen te Vergelijken',
+                setupTitle: '📋 Opstelling:',
+                setup1: 'Stel verwarmer in op 70°C',
+                setup2: 'Wacht op stationaire toestand (temperaturen stoppen met veranderen)',
+                setup3: 'Registreer alle temperaturen (T1-T8)',
+                part1Title: '🌊 Deel 1: Natuurlijke Convectie',
+                part1Step1: 'Stel ventilator in op 0% (UIT)',
+                part1Step2: 'Wacht 5-10 minuten op stationaire toestand',
+                part1Step3: 'Registreer alle T1-T8 temperaturen',
+                part1Step4: 'Noteer hoe lang het duurde om te stabiliseren',
+                part2Title: '💨 Deel 2: Geforceerde Convectie - Lage Snelheid',
+                part2Step1: 'Stel ventilator in op 25%',
+                part2Step2: 'Wacht op nieuwe stationaire toestand',
+                part2Step3: 'Registreer alle T1-T8 temperaturen',
+                part2Step4: 'Vergelijk met natuurlijke convectie',
+                part3Title: '💨 Deel 3: Geforceerde Convectie - Hoge Snelheid',
+                part3Step1: 'Stel ventilator in op 75%',
+                part3Step2: 'Wacht op nieuwe stationaire toestand',
+                part3Step3: 'Registreer alle T1-T8 temperaturen',
+                part3Step4: 'Vergelijk met eerdere gevallen',
+                analysisTitle: '📊 Analyse:',
+                analysis1: 'Teken Temperatuur vs Afstand voor elke ventilatorsnelheid',
+                analysis2: 'Bereken gemiddelde temperatuurdaling voor elk geval',
+                analysis3: 'Schat convectiecoëfficiënten',
+                analysis4: 'Bereken verbeteringsfactor (geforceerd vs natuurlijk)',
+                quizTitle: 'Test Je Begrip!',
+                quiz1Question: 'Vraag 1: Wat drijft natuurlijke convectie aan?',
+                quiz1OptionA: 'A) Ventilatoren en pompen',
+                quiz1OptionB: 'B) Dichtheidsverschillen door temperatuurveranderingen',
+                quiz1OptionC: 'C) Magnetische velden',
+                quiz1OptionD: 'D) Alleen drukverschillen',
+                quiz2Question: 'Vraag 2: Welke heeft een hogere warmteoverdrachtscoëfficiënt (h)?',
+                quiz2OptionA: 'A) Natuurlijke convectie',
+                quiz2OptionB: 'B) Geforceerde convectie',
+                quiz2OptionC: 'C) Ze zijn gelijk',
+                quiz2OptionD: 'D) Het hangt af van de kleur',
+                quiz3Question: 'Vraag 3: Wat doet het verhogen van de ventilatorsnelheid in je apparaat?',
+                quiz3OptionA: 'A) Verhoogt convectie en verlaagt temperaturen',
+                quiz3OptionB: 'B) Heeft geen effect op temperaturen',
+                quiz3OptionC: 'C) Verhoogt temperaturen',
+                quiz3OptionD: 'D) Beïnvloedt alleen verwarmervermogen',
+                checkAnswerBtn: 'Controleer Antwoord',
+                experimentsTitle: 'Geavanceerde Experimenten',
+                tryThese: 'Probeer Dit:',
+                exp1: 'Exp 1: Meet koeltijd van 80°C naar 40°C met ventilator UIT vs ventilator op 50%',
+                exp2: 'Exp 2: Teken koelcurves voor verschillende ventilatorsnelheden (0%, 25%, 50%, 75%, 100%)',
+                exp3: 'Exp 3: Bereken de convectiecoëfficiënt voor elke ventilatorsnelheid met Q = h×A×ΔT',
+                exp4: 'Exp 4: Vind de minimale ventilatorsnelheid nodig om temperaturen onder 60°C te houden',
+                exp5: 'Exp 5: Vergelijk energieverbruik vs koel effectiviteit'
+            },
+            ar: {
+                pageTitle: '💨 المعمل 4: الحمل القسري مقابل الطبيعي',
+                pageSubtitle: 'فهم كيف تؤثر حركة الهواء على انتقال الحرارة',
+                section1Title: 'ما هو الحمل؟',
+                section1Para1: 'الحمل هو انتقال الحرارة من خلال حركة السوائل (السوائل أو الغازات). عندما يتحرك الهواء أو الماء فوق سطح ساخن، فإنه يحمل الحرارة بعيداً. كلما تحركت السوائل بشكل أسرع، كلما أمكنها إزالة المزيد من الحرارة!',
+                section1Para2: 'هناك نوعان رئيسيان من الحمل:',
+                naturalTitle: '🌊 الحمل الطبيعي',
+                naturalDesc: 'حركة السوائل الناجمة عن اختلافات الكثافة بسبب تغيرات درجة الحرارة. الهواء الساخن يرتفع، الهواء البارد ينخفض - لا حاجة للمراوح!',
+                examplesTitle: 'أمثلة:',
+                naturalEx1: 'الحرارة من المبرد',
+                naturalEx2: 'فقاعات الماء المغلي',
+                naturalEx3: 'بالون الهواء الساخن يرتفع',
+                naturalEx4: 'الهواء الدافئ يرتفع في الغرفة',
+                forcedTitle: '💨 الحمل القسري',
+                forcedDesc: 'حركة السوائل الناجمة عن وسائل خارجية مثل المراوح أو المضخات أو الرياح. أسرع بكثير وأكثر فعالية!',
+                forcedEx1: 'مراوح تبريد الكمبيوتر',
+                forcedEx2: 'مبرد السيارة مع مروحة',
+                forcedEx3: 'مجفف الشعر',
+                forcedEx4: 'تكييف الهواء',
+                section2Title: 'مقارنة الحمل الطبيعي والقسري',
+                tableChar: 'الخاصية',
+                tableNatural: 'الحمل الطبيعي',
+                tableForced: 'الحمل القسري',
+                row1Label: 'القوة الدافعة',
+                row1Natural: 'الطفو (اختلافات الكثافة)',
+                row1Forced: 'خارجية (مروحة، مضخة)',
+                row2Label: 'السرعة',
+                row2Natural: 'بطيئة (< 1 m/s)',
+                row2Forced: 'سريعة (1-100+ m/s)',
+                row3Label: 'معامل h',
+                row3Natural: 'منخفض (5-25 W/m²·K)',
+                row3Forced: 'عالي (25-250+ W/m²·K)',
+                row4Label: 'معدل انتقال الحرارة',
+                row4Natural: 'أقل',
+                row4Forced: 'أعلى بكثير',
+                row5Label: 'تكلفة الطاقة',
+                row5Natural: 'مجانية (لا حاجة للطاقة)',
+                row5Forced: 'يتطلب طاقة',
+                row6Label: 'التحكم',
+                row6Natural: 'تحكم محدود',
+                row6Forced: 'سهل التحكم (سرعة المروحة)',
+                keyInsightTitle: 'رؤية رئيسية:',
+                insight1: 'الحمل القسري يمكن أن يكون أكثر فعالية بـ 10-20 مرة من الحمل الطبيعي!',
+                insight2: 'لهذا السبب تحتوي أجهزة الكمبيوتر على مراوح - الحمل الطبيعي وحده لا يكفي!',
+                section3Title: 'آلة حاسبة انتقال الحرارة بالحمل',
+                calcTitle: 'قارن الحمل الطبيعي مقابل القسري',
+                labelSurfaceTemp: 'درجة حرارة السطح (°C):',
+                labelAmbientTemp: 'درجة حرارة الهواء المحيط (°C):',
+                labelSurfaceArea: 'مساحة السطح (m²):',
+                labelConvectionType: 'نوع الحمل:',
+                optionNatural: 'الحمل الطبيعي (h = 10 W/m²·K)',
+                optionForcedLow: 'القسري - سرعة مروحة منخفضة (h = 50 W/m²·K)',
+                optionForcedMed: 'القسري - سرعة مروحة متوسطة (h = 100 W/m²·K)',
+                optionForcedHigh: 'القسري - سرعة مروحة عالية (h = 200 W/m²·K)',
+                labelH: 'معامل h (W/m²·K):',
+                btnCalc: '💨 احسب انتقال الحرارة',
+                btnCompare: '⚖️ قارن الطبيعي مقابل القسري',
+                section4Title: 'مراقبة الحمل في جهازك',
+                fanTitle: 'ما تفعله المروحة:',
+                fanOff: 'المروحة إيقاف (0%): حمل طبيعي فقط - تبريد بطيء',
+                fanLow: 'المروحة تشغيل (25-50%): حمل قسري - تبريد معتدل',
+                fanHigh: 'المروحة تشغيل (75-100%): حمل قسري قوي - تبريد سريع',
+                effectsTitle: 'التأثيرات الملحوظة:',
+                effectsPara: '1. انخفاض درجة الحرارة: سرعة مروحة أعلى → درجات حرارة أقل\n2. معدل التبريد: مروحة أسرع → انخفاض درجة الحرارة أسرع\n3. تدرج درجة الحرارة: تدفق هواء أكثر → تدرجات أكثر انحداراً\n4. الحالة المستقرة: المروحة تتحكم في درجة حرارة التوازن النهائية',
+                whyMattersTitle: 'لماذا هذا مهم؟',
+                whyMattersPara: 'فهم الحمل أمر بالغ الأهمية لـ:',
+                matter1: 'تبريد الإلكترونيات: معالجات CPU و GPU تحتاج إلى حمل قسري',
+                matter2: 'أنظمة التدفئة والتهوية: الهواء المتحرك يوزع التدفئة/التبريد',
+                matter3: 'العمليات الصناعية: تبريد المواد الساخنة بكفاءة',
+                matter4: 'كفاءة الطاقة: الحمل الطبيعي يوفر الطاقة عندما يكون ذلك ممكناً',
+                section5Title: 'الإجراء التجريبي',
+                procedureTitle: 'تجربة خطوة بخطوة لمقارنة أنواع الحمل',
+                setupTitle: '📋 الإعداد:',
+                setup1: 'اضبط السخان على 70°C',
+                setup2: 'انتظر الحالة المستقرة (تتوقف درجات الحرارة عن التغيير)',
+                setup3: 'سجل جميع درجات الحرارة (T1-T8)',
+                part1Title: '🌊 الجزء 1: الحمل الطبيعي',
+                part1Step1: 'اضبط المروحة على 0% (إيقاف)',
+                part1Step2: 'انتظر 5-10 دقائق للحالة المستقرة',
+                part1Step3: 'سجل جميع درجات حرارة T1-T8',
+                part1Step4: 'لاحظ كم استغرق من الوقت للاستقرار',
+                part2Title: '💨 الجزء 2: الحمل القسري - سرعة منخفضة',
+                part2Step1: 'اضبط المروحة على 25%',
+                part2Step2: 'انتظر الحالة المستقرة الجديدة',
+                part2Step3: 'سجل جميع درجات حرارة T1-T8',
+                part2Step4: 'قارن مع الحمل الطبيعي',
+                part3Title: '💨 الجزء 3: الحمل القسري - سرعة عالية',
+                part3Step1: 'اضبط المروحة على 75%',
+                part3Step2: 'انتظر الحالة المستقرة الجديدة',
+                part3Step3: 'سجل جميع درجات حرارة T1-T8',
+                part3Step4: 'قارن مع الحالات السابقة',
+                analysisTitle: '📊 التحليل:',
+                analysis1: 'ارسم درجة الحرارة مقابل المسافة لكل سرعة مروحة',
+                analysis2: 'احسب متوسط انخفاض درجة الحرارة لكل حالة',
+                analysis3: 'قدّر معاملات الحمل',
+                analysis4: 'احسب عامل التحسين (القسري مقابل الطبيعي)',
+                quizTitle: 'اختبر فهمك!',
+                quiz1Question: 'السؤال 1: ما الذي يدفع الحمل الطبيعي؟',
+                quiz1OptionA: 'أ) المراوح والمضخات',
+                quiz1OptionB: 'ب) اختلافات الكثافة من تغيرات درجة الحرارة',
+                quiz1OptionC: 'ج) المجالات المغناطيسية',
+                quiz1OptionD: 'د) اختلافات الضغط فقط',
+                quiz2Question: 'السؤال 2: أي منها لديه معامل انتقال حرارة (h) أعلى؟',
+                quiz2OptionA: 'أ) الحمل الطبيعي',
+                quiz2OptionB: 'ب) الحمل القسري',
+                quiz2OptionC: 'ج) متساويان',
+                quiz2OptionD: 'د) يعتمد على اللون',
+                quiz3Question: 'السؤال 3: في جهازك، ماذا يفعل زيادة سرعة المروحة؟',
+                quiz3OptionA: 'أ) يزيد الحمل ويخفض درجات الحرارة',
+                quiz3OptionB: 'ب) لا يؤثر على درجات الحرارة',
+                quiz3OptionC: 'ج) يزيد درجات الحرارة',
+                quiz3OptionD: 'د) يؤثر فقط على قوة السخان',
+                checkAnswerBtn: 'تحقق من الإجابة',
+                experimentsTitle: 'تجارب متقدمة',
+                tryThese: 'جرب هذا:',
+                exp1: 'التجربة 1: قس وقت التبريد من 80°C إلى 40°C مع المروحة إيقاف مقابل المروحة عند 50%',
+                exp2: 'التجربة 2: ارسم منحنيات التبريد لسرعات مروحة مختلفة (0%, 25%, 50%, 75%, 100%)',
+                exp3: 'التجربة 3: احسب معامل الحمل لكل سرعة مروحة باستخدام Q = h×A×ΔT',
+                exp4: 'التجربة 4: ابحث عن الحد الأدنى لسرعة المروحة اللازمة للحفاظ على درجات الحرارة أقل من 60°C',
+                exp5: 'التجربة 5: قارن استهلاك الطاقة مقابل فعالية التبريد'
+            }
+        };
+
+        // Function to change the language of the page
+        function changeLanguage(languageCode) {
+            var languageTranslations = translations[languageCode];
+            if (!languageTranslations) return;
+            
+            var elementsToTranslate = document.querySelectorAll('[data-translate]');
+            for (var i = 0; i < elementsToTranslate.length; i++) {
+                var element = elementsToTranslate[i];
+                var translationKey = element.getAttribute('data-translate');
+                var translatedText = languageTranslations[translationKey];
+                
+                if (translatedText) {
+                    element.textContent = translatedText;
+                }
+            }
+            
+            // Add or remove RTL class for Arabic
+            if (languageCode === 'ar') {
+                document.body.classList.add('rtl');
+                document.documentElement.setAttribute('dir', 'rtl');
+                document.documentElement.setAttribute('lang', 'ar');
+            } else {
+                document.body.classList.remove('rtl');
+                document.documentElement.setAttribute('dir', 'ltr');
+                document.documentElement.setAttribute('lang', languageCode);
+            }
+            
+            localStorage.setItem('selectedLanguage', languageCode);
+        }
+
+        // Function to load the saved language when page loads
+        function loadSavedLanguage() {
+            // Get the saved language from localStorage (set from Curriculum page)
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            if (savedLanguage) {
+                changeLanguage(savedLanguage);
+            }
+        }
+
+        // When the page loads, load the saved language
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSavedLanguage();
+        });
     </script>
     
     <!-- Load Responsive Scaling Script -->
-    <script src="responsive-scaling.js"></script>
 </body>
 </html>

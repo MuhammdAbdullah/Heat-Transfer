@@ -712,6 +712,10 @@ const fanOffBtn = document.getElementById('fanOff');
 const fan50Btn = document.getElementById('fan50');
 const fan100Btn = document.getElementById('fan100');
 var heaterMode = 0; // 0=off,1=left,2=right,3=cooler
+var coolerEnabled = false; // Track cooler state: false=off, true=on
+var simulationWindow = null; // Track simulation window reference
+var curriculumWindow = null; // Track curriculum window reference
+var graphWindow = null; // Track graph window reference
 var heaterLeftTemp = 0; // Store left heater temperature
 var heaterRightTemp = 0; // Store right heater temperature
 var safetyCommandsSent = false; // Track if safety commands were sent after reconnection
@@ -827,7 +831,7 @@ function setSafeValuesOffline() {
     // Set fan speed to 0
     if (fanSpeedInput) {
         fanSpeedInput.value = 0;
-        if (fanSpeedDisplay) fanSpeedDisplay.textContent = '0%';
+        if (fanSpeedDisplay) fanSpeedDisplay.value = '0';
         updateSliderFill(0);
         updateFanIcon(0);
     }
@@ -840,7 +844,7 @@ function setSafeValuesOffline() {
         updateHeaterIcon(20);
         // Also update the display value
         var heaterTempValue = document.getElementById('heaterTempValue');
-        if (heaterTempValue) heaterTempValue.textContent = '20°C';
+        if (heaterTempValue) heaterTempValue.value = '20';
         addToLog('Heater slider set to 20°C (minimum position)');
     }
     
@@ -1275,8 +1279,8 @@ function updateFanSliderFromHardware(fanSpeed) {
         
         // Update the display text
         if (fanSpeedDisplay) {
-            fanSpeedDisplay.textContent = fanSpeed + '%';
-            addToLog('DEBUG: Set fanSpeedDisplay.textContent to: ' + fanSpeedDisplay.textContent);
+            fanSpeedDisplay.value = fanSpeed;
+            addToLog('DEBUG: Set fanSpeedDisplay.value to: ' + fanSpeedDisplay.value);
         }
         
         // Update the visual slider fill
@@ -1336,8 +1340,8 @@ function updateHeaterSliderFromHardware(temperature) {
         
         // Update the display text
         if (heaterTempValue) {
-            heaterTempValue.textContent = temperature + '°C';
-            addToLog('DEBUG: Set heaterTempValue.textContent to: ' + heaterTempValue.textContent);
+            heaterTempValue.value = temperature;
+            addToLog('DEBUG: Set heaterTempValue.value to: ' + heaterTempValue.value);
         }
         
         // Update the visual slider fill
@@ -1359,18 +1363,23 @@ function updateCoolerButtonFromHardware(state) {
     // Ensure cooler state is valid (0 or 1)
     state = state === 1 ? 1 : 0;
     
+    // Update global state
+    coolerEnabled = state === 1;
+    
     addToLog('DEBUG: Updating cooler button to state: ' + (state ? 'ON' : 'OFF'));
     addToLog('DEBUG: coolerBtn element found: ' + (coolerBtn ? 'YES' : 'NO'));
     
     // Update the cooler button state
     if (coolerBtn) {
         if (state === 1) {
-            // Turn cooler ON
+            // Cooler is ON - button should say "Cooler Off" (to turn it off)
             coolerBtn.classList.add('active');
+            coolerBtn.textContent = 'Cooler Off';
             addToLog('DEBUG: Added active class to coolerBtn (ON)');
         } else {
-            // Turn cooler OFF
+            // Cooler is OFF - button should say "Cooler On" (to turn it on)
             coolerBtn.classList.remove('active');
+            coolerBtn.textContent = 'Cooler On';
             addToLog('DEBUG: Removed active class from coolerBtn (OFF)');
         }
         
@@ -1500,6 +1509,61 @@ function displayRawData(dataArray) {
 	if (rawDataDisplay) rawDataDisplay.textContent = hexString;
 }
 
+// Helper function to convert RGB to hex color
+function rgbToHex(r, g, b) {
+	return '#' + [r, g, b].map(function(x) {
+		var hex = Math.round(x).toString(16);
+		return hex.length === 1 ? '0' + hex : hex;
+	}).join('');
+}
+
+// Function to get color for temperature: Blue at 1.0°C, Red at 75°C
+function getTemperatureColor(temp) {
+	// Clamp temperature between 1.0 and 75.0
+	var clampedTemp = Math.max(1.0, Math.min(75.0, temp));
+	// Calculate ratio from 0 (1.0°C) to 1 (75°C)
+	var ratio = (clampedTemp - 1.0) / (75.0 - 1.0);
+	// Blue: RGB(0, 0, 255), Red: RGB(255, 0, 0)
+	var red = Math.round(ratio * 255);
+	var green = 0;
+	var blue = Math.round((1.0 - ratio) * 255);
+	return rgbToHex(red, green, blue);
+}
+
+// Function to get color for power: Green at 0W, Red at 36W
+function getPowerColor(power) {
+	// Clamp power between 0 and 36
+	var clampedPower = Math.max(0, Math.min(36, power));
+	// Calculate ratio from 0 (0W) to 1 (36W)
+	var ratio = clampedPower / 36.0;
+	// Green: RGB(0, 255, 0), Red: RGB(255, 0, 0)
+	var red = Math.round(ratio * 255);
+	var green = Math.round((1.0 - ratio) * 255);
+	var blue = 0;
+	return rgbToHex(red, green, blue);
+}
+
+// Function to get color for wind speed: Green at 0 m/s, Red at 2.1 m/s
+function getWindSpeedColor(speed) {
+	// Clamp speed between 0 and 2.1
+	var clampedSpeed = Math.max(0, Math.min(2.1, speed));
+	// Calculate ratio from 0 (0 m/s) to 1 (2.1 m/s)
+	var ratio = clampedSpeed / 2.1;
+	// Green: RGB(0, 255, 0), Red: RGB(255, 0, 0)
+	var red = Math.round(ratio * 255);
+	var green = Math.round((1.0 - ratio) * 255);
+	var blue = 0;
+	return rgbToHex(red, green, blue);
+}
+
+// Function to validate temperature: if > 200 or < -10, return 0.00
+function validateTemperature(temp) {
+	if (temp > 200 || temp < -10) {
+		return 0.00;
+	}
+	return temp;
+}
+
 function parseAndDisplayData(dataArray) {
 	var parsedInfo = '';
 	var actualData = dataArray.slice(2, 54);
@@ -1510,30 +1574,36 @@ function parseAndDisplayData(dataArray) {
 	parsedInfo += 'Data Length: ' + actualData.length + ' bytes\n';
 	parsedInfo += 'Footer: 0x' + dataArray[54].toString(16).padStart(2, '0') + ' 0x' + dataArray[55].toString(16).padStart(2, '0') + '\n\n';
 	parsedInfo += 'Data Interpretation:\n';
-	// Bytes 2..33 (32 bytes) are eight 4-byte float temperatures (little-endian)
-	if (actualData.length >= 32) {
-		for (var sensorIndex = 0; sensorIndex < 8; sensorIndex++) {
-			var base = sensorIndex * 4;
-			var b0 = actualData[base + 0];
-			var b1 = actualData[base + 1];
-			var b2 = actualData[base + 2];
-			var b3 = actualData[base + 3];
-			var buf = new ArrayBuffer(4);
-			var dv = new DataView(buf);
-			dv.setUint8(0, b0);
-			dv.setUint8(1, b1);
-			dv.setUint8(2, b2);
-			dv.setUint8(3, b3);
-			var temp = dv.getFloat32(0, true); // little-endian
-			// Map Sensor8->T1, Sensor7->T2, ..., Sensor1->T8
-			var labelIndex = 8 - sensorIndex; // Sensor8..1
-			var tileId = 't' + (9 - labelIndex); // t1..t8
-			var tileEl = document.getElementById(tileId);
-			if (tileEl) {
-				tileEl.textContent = 'T' + (9 - labelIndex) + ': ' + temp.toFixed(2) + '\u00B0C';
+		// Bytes 2..33 (32 bytes) are eight 4-byte float temperatures (little-endian)
+		if (actualData.length >= 32) {
+			for (var sensorIndex = 0; sensorIndex < 8; sensorIndex++) {
+				var base = sensorIndex * 4;
+				var b0 = actualData[base + 0];
+				var b1 = actualData[base + 1];
+				var b2 = actualData[base + 2];
+				var b3 = actualData[base + 3];
+				var buf = new ArrayBuffer(4);
+				var dv = new DataView(buf);
+				dv.setUint8(0, b0);
+				dv.setUint8(1, b1);
+				dv.setUint8(2, b2);
+				dv.setUint8(3, b3);
+				var temp = dv.getFloat32(0, true); // little-endian
+				// Validate temperature: if > 200 or < -10, set to 0.00
+				var validatedTemp = validateTemperature(temp);
+				// Map Sensor8->T1, Sensor7->T2, ..., Sensor1->T8
+				var labelIndex = 8 - sensorIndex; // Sensor8..1
+				var tileId = 't' + (9 - labelIndex); // t1..t8
+				var tileEl = document.getElementById(tileId);
+				if (tileEl) {
+					tileEl.textContent = 'T' + (9 - labelIndex) + ': ' + validatedTemp.toFixed(2) + '\u00B0C';
+					// Keep text white, add border glow: Blue at 1.0°C, Red at 75°C
+					var color = getTemperatureColor(validatedTemp);
+					tileEl.style.color = '#ffffff';
+					tileEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
+				}
+				parsedInfo += 'Sensor ' + (sensorIndex + 1) + ': ' + validatedTemp.toFixed(2) + '\u00B0C\n';
 			}
-			parsedInfo += 'Sensor ' + (sensorIndex + 1) + ': ' + temp.toFixed(2) + '\u00B0C\n';
-		}
 		
 		// Display heater temperatures in tiles (bytes 36-43)
 		if (actualData.length >= 44) {
@@ -1543,12 +1613,18 @@ function parseAndDisplayData(dataArray) {
 			var hbuf1 = new ArrayBuffer(4);
 			var hdv1 = new DataView(hbuf1);
 			hdv1.setUint8(0, hb0); hdv1.setUint8(1, hb1); hdv1.setUint8(2, hb2); hdv1.setUint8(3, hb3);
-			heaterLeftTemp = hdv1.getFloat32(0, true);
+			var rawHeaterLeftTemp = hdv1.getFloat32(0, true);
+			// Validate temperature: if > 200 or < -10, set to 0.00
+			heaterLeftTemp = validateTemperature(rawHeaterLeftTemp);
 			console.log('Radial Heater temp:', heaterLeftTemp);
 			var heaterLeftEl = document.getElementById('heaterLeftTile');
 			console.log('Radial Heater element found:', !!heaterLeftEl);
 			if (heaterLeftEl) {
 				heaterLeftEl.textContent = 'Radial Heater: ' + heaterLeftTemp.toFixed(2) + '°C';
+				// Keep text white, add border glow: Blue at 1.0°C, Red at 75°C
+				var color = getTemperatureColor(heaterLeftTemp);
+				heaterLeftEl.style.color = '#ffffff';
+				heaterLeftEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
 				console.log('Updated radial heater tile:', heaterLeftEl.textContent);
 			}
 			
@@ -1557,12 +1633,18 @@ function parseAndDisplayData(dataArray) {
 			var hbuf2 = new ArrayBuffer(4);
 			var hdv2 = new DataView(hbuf2);
 			hdv2.setUint8(0, hb4); hdv2.setUint8(1, hb5); hdv2.setUint8(2, hb6); hdv2.setUint8(3, hb7);
-			heaterRightTemp = hdv2.getFloat32(0, true);
+			var rawHeaterRightTemp = hdv2.getFloat32(0, true);
+			// Validate temperature: if > 200 or < -10, set to 0.00
+			heaterRightTemp = validateTemperature(rawHeaterRightTemp);
 			console.log('Linear Heater temp:', heaterRightTemp);
 			var heaterRightEl = document.getElementById('heaterRightTile');
 			console.log('Linear Heater element found:', !!heaterRightEl);
 			if (heaterRightEl) {
 				heaterRightEl.textContent = 'Linear Heater: ' + heaterRightTemp.toFixed(2) + '°C';
+				// Keep text white, add border glow: Blue at 1.0°C, Red at 75°C
+				var color = getTemperatureColor(heaterRightTemp);
+				heaterRightEl.style.color = '#ffffff';
+				heaterRightEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
 				console.log('Updated linear heater tile:', heaterRightEl.textContent);
 			}
 			
@@ -1598,7 +1680,10 @@ function parseAndDisplayData(dataArray) {
 				adv.setUint8(1, actualData[b + 1]);
 				adv.setUint8(2, actualData[b + 2]);
 				adv.setUint8(3, actualData[b + 3]);
-				tempsForChart.push(adv.getFloat32(0, true));
+				var rawTemp = adv.getFloat32(0, true);
+				// Validate temperature before adding to chart
+				var validatedTemp = validateTemperature(rawTemp);
+				tempsForChart.push(validatedTemp);
 			}
 			// Heaters if available
 			if (actualData.length >= 44) {
@@ -1608,8 +1693,11 @@ function parseAndDisplayData(dataArray) {
 				var hdv1 = new DataView(hbuf1), hdv2 = new DataView(hbuf2);
 				hdv1.setUint8(0, hb0); hdv1.setUint8(1, hb1); hdv1.setUint8(2, hb2); hdv1.setUint8(3, hb3);
 				hdv2.setUint8(0, hb4); hdv2.setUint8(1, hb5); hdv2.setUint8(2, hb6); hdv2.setUint8(3, hb7);
-				tempsForChart.push(hdv1.getFloat32(0, true));
-				tempsForChart.push(hdv2.getFloat32(0, true));
+				var rawHeaterLeft = hdv1.getFloat32(0, true);
+				var rawHeaterRight = hdv2.getFloat32(0, true);
+				// Validate heater temperatures before adding to chart
+				tempsForChart.push(validateTemperature(rawHeaterLeft));
+				tempsForChart.push(validateTemperature(rawHeaterRight));
 			} else {
 				tempsForChart.push(NaN);
 				tempsForChart.push(NaN);
@@ -1643,6 +1731,7 @@ function parseAndDisplayData(dataArray) {
 		}
 
 		// Bytes 38..45 (actualData[36..43]): two more temperature sensors as float32
+		// Note: This section is redundant - heaters are already handled above, but keeping for compatibility
 		if (actualData.length >= 44) {
 			console.log('Parsing heater sensor data, data length: ' + actualData.length);
 			for (var extraIndex = 0; extraIndex < 2; extraIndex++) {
@@ -1657,12 +1746,14 @@ function parseAndDisplayData(dataArray) {
 				edv.setUint8(1, eb1);
 				edv.setUint8(2, eb2);
 				edv.setUint8(3, eb3);
-				var etemp = edv.getFloat32(0, true);
+				var rawEtemp = edv.getFloat32(0, true);
+				// Validate temperature: if > 200 or < -10, set to 0.00
+				var etemp = validateTemperature(rawEtemp);
 				parsedInfo += 'Sensor ' + (9 + extraIndex) + ': ' + etemp.toFixed(2) + '\u00B0C\n';
 				console.log('Heater sensor ' + extraIndex + ' temperature: ' + etemp.toFixed(2) + '°C');
 				// Heater elements are now handled in the main parsing section
 				
-				// Store heater temperatures for display
+				// Store heater temperatures for display (already validated above, but update here too)
 				if (extraIndex === 0) {
 					heaterLeftTemp = etemp;
 				} else {
@@ -1680,7 +1771,13 @@ function parseAndDisplayData(dataArray) {
 			var power = pdv.getFloat32(0, true);
 			parsedInfo += 'Power: ' + power.toFixed(1) + ' W\n';
 			var powerEl = document.getElementById('powerTile');
-			if (powerEl) { powerEl.textContent = 'Power: ' + power.toFixed(1) + ' W'; }
+			if (powerEl) {
+				powerEl.textContent = 'Power: ' + power.toFixed(1) + ' W';
+				// Keep text white, add border glow: Green at 0W, Red at 36W
+				var color = getPowerColor(power);
+				powerEl.style.color = '#ffffff';
+				powerEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
+			}
 		}
 		
 		// Bytes 50..53 (actualData[48..51]): Air Speed as float32
@@ -1692,7 +1789,13 @@ function parseAndDisplayData(dataArray) {
 			var airSpeed = adv.getFloat32(0, true);
 			parsedInfo += 'Air Speed: ' + airSpeed.toFixed(2) + ' m/s\n';
 			var airSpeedEl = document.getElementById('airSpeedTile');
-			if (airSpeedEl) { airSpeedEl.textContent = 'Air Speed: ' + airSpeed.toFixed(2) + ' m/s'; }
+			if (airSpeedEl) {
+				airSpeedEl.textContent = 'Air Speed: ' + airSpeed.toFixed(2) + ' m/s';
+				// Keep text white, add border glow: Green at 0 m/s, Red at 2.1 m/s
+				var color = getWindSpeedColor(airSpeed);
+				airSpeedEl.style.color = '#ffffff';
+				airSpeedEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
+			}
 		}
 	} else if (actualData.length >= 4) {
 		// At least one sensor available
@@ -1853,14 +1956,6 @@ function downloadCsvFile(csvContent) {
 }
 
 function getChartThemeColors() {
-	if (document.body.classList.contains('theme-light')) {
-		return {
-			background: '#6c6b6d',
-			border: '#444444',
-			grid: '#444444',
-			text: '#000000'
-		};
-	}
 	return {
 		background: '#1a1a1a',
 		border: '#444444',
@@ -1873,12 +1968,7 @@ function applyTheme(themeKey) {
 	var body = document.body;
 	body.classList.remove('theme-light');
 	body.classList.remove('theme-dark');
-
-	if (themeKey === 'light') {
-		body.classList.add('theme-light');
-	} else {
-		body.classList.add('theme-dark');
-	}
+	body.classList.add('theme-dark');
 	updateChartTheme();
 }
 
@@ -2094,7 +2184,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var newMode = this.value;
             if (newMode !== chartDisplayMode) {
                 chartDisplayMode = newMode;
-                addToLog('Chart display mode changed to: ' + (newMode === 'limited' ? 'Limited Points (Last 50)' : 'All Data Points'));
+                addToLog('Chart display mode changed to: ' + (newMode === 'limited' ? 'Last 50 Points' : 'All Data Points'));
                 
                 // Clear all chart data when switching modes (start fresh)
                 chartData.time = [];
@@ -2142,6 +2232,90 @@ document.addEventListener('DOMContentLoaded', function() {
         stopCsvBtn.addEventListener('click', function() {
             stopCsvSaving();
         });
+    }
+    
+    // Function to resize distance input boxes based on content
+    function resizeDistanceInput(input) {
+        if (!input) return;
+        
+        // Get the current value or use placeholder
+        var textToMeasure = input.value || input.placeholder || '0';
+        if (!textToMeasure) textToMeasure = '0';
+        
+        var computedStyle = window.getComputedStyle(input);
+        var fontSize = parseFloat(computedStyle.fontSize) || 16;
+        
+        // Use canvas for accurate text measurement
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('2d');
+        
+        // Build font string: weight size family
+        var fontFamily = computedStyle.fontFamily || 'Arial';
+        var fontWeight = computedStyle.fontWeight || 'normal';
+        var fontString = fontWeight + ' ' + fontSize + 'px ' + fontFamily;
+        context.font = fontString;
+        
+        // Measure text width
+        var textWidth = context.measureText(textToMeasure).width;
+        
+        // Get padding and border values
+        var paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        var paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+        var borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
+        var borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
+        
+        // Calculate total width needed
+        // With box-sizing: border-box, width includes padding and border
+        var totalWidth = textWidth + paddingLeft + paddingRight + borderLeft + borderRight;
+        
+        // Add generous buffer (at least 30px or 2 character widths)
+        var charWidth = textWidth / Math.max(textToMeasure.length, 1);
+        var buffer = Math.max(charWidth * 2.5, 30);
+        totalWidth += buffer;
+        
+        // Set min and max constraints
+        var rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+        var minWidth = 4 * rootFontSize; // 4rem minimum
+        var maxWidth = 40 * rootFontSize; // 40rem maximum (very large for long numbers like 10000)
+        totalWidth = Math.max(minWidth, Math.min(maxWidth, totalWidth));
+        
+        // Set the width
+        input.style.width = totalWidth + 'px';
+        
+        // Force a reflow to ensure the width is applied
+        input.offsetHeight;
+    }
+    
+    // Apply resize function to all distance inputs
+    for (var i = 1; i <= 8; i++) {
+        (function(index) {
+            var distanceInput = document.getElementById('distanceT' + index);
+            if (distanceInput) {
+                // Resize function wrapper
+                var resizeHandler = function() {
+                    resizeDistanceInput(distanceInput);
+                };
+                
+                // Resize on input change (as user types) - use requestAnimationFrame for better performance
+                distanceInput.addEventListener('input', function() {
+                    requestAnimationFrame(resizeHandler);
+                });
+                
+                // Resize on change (when user finishes editing)
+                distanceInput.addEventListener('change', resizeHandler);
+                
+                // Resize on focus (in case value was changed programmatically)
+                distanceInput.addEventListener('focus', resizeHandler);
+                
+                // Resize on blur (when user clicks away)
+                distanceInput.addEventListener('blur', resizeHandler);
+                
+                // Initial resize after a short delay to ensure DOM is ready
+                setTimeout(function() {
+                    resizeDistanceInput(distanceInput);
+                }, 200);
+            }
+        })(i);
     }
     
     // Initialize Chart.js test chart for live data (10 temps + power + target)
@@ -2222,7 +2396,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const openGraphBtn = document.getElementById('openGraphBtn');
     if (openGraphBtn) {
         openGraphBtn.addEventListener('click', function() {
-            openGraphWindow();
+            // Check if window is already open
+            if (graphWindow && !graphWindow.closed) {
+                // Window is open - close it first
+                graphWindow.close();
+                graphWindow = null;
+                addToLog('Graph window closed.');
+                // Small delay before reopening to ensure it's fully closed
+                setTimeout(function() {
+                    openGraphWindow();
+                }, 100);
+            } else {
+                // Window is not open - just open it
+                openGraphWindow();
+            }
         });
     }
 
@@ -2468,35 +2655,57 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Create a new window for printing
-                var printWindow = window.open('', '_blank');
-                if (!printWindow) {
-                    alert('Please allow popups to print the chart.');
-                    return;
-                }
+                // Print directly using hidden iframe - completely invisible
+                var iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.left = '-9999px';
+                iframe.style.top = '-9999px';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = 'none';
+                iframe.style.visibility = 'hidden';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
                 
-                printWindow.document.write('<!DOCTYPE html><html><head><title>Print Chart</title>');
-                printWindow.document.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
-                printWindow.document.write('<style>');
-                printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
-                printWindow.document.write('img { max-width: 100%; height: auto; display: block; margin: 0 auto; }');
-                printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
-                printWindow.document.write('.print-button { margin: 20px auto; padding: 15px 30px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }');
-                printWindow.document.write('.print-button:hover { background: #0056b3; }');
-                printWindow.document.write('.help-text { color: #666; font-size: 14px; margin-top: 10px; }');
-                printWindow.document.write('@media print { .print-button { display: none; } .help-text { display: none; } }');
-                printWindow.document.write('</style>');
-                printWindow.document.write('<script>');
-                printWindow.document.write('function doPrint() { window.print(); }');
-                printWindow.document.write('window.onload = function() { window.focus(); setTimeout(function(){ window.print(); }, 200); };');
-                printWindow.document.write('</script>');
-                printWindow.document.write('</head><body>');
-                printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
-                printWindow.document.write('<img src="' + imageData + '" id="chartImage" onerror="alert(\'Image failed to load\');" />');
-                printWindow.document.write('<button class="print-button" onclick="doPrint();">🖨️ Print This Page</button>');
-                printWindow.document.write('<p class="help-text">The print dialog should open automatically. If not, click the button above or press Ctrl+P (Cmd+P on Mac).</p>');
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
+                var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write('<!DOCTYPE html><html><head><title>Print Chart</title>');
+                iframeDoc.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
+                iframeDoc.write('<style>');
+                iframeDoc.write('body { margin: 0; padding: 20px; text-align: center; }');
+                iframeDoc.write('img { max-width: 100%; height: auto; display: block; margin: 0 auto; }');
+                iframeDoc.write('h2 { font-family: Arial, sans-serif; color: #333; }');
+                iframeDoc.write('@media print { body { margin: 0; padding: 0; } }');
+                iframeDoc.write('</style>');
+                iframeDoc.write('</head><body>');
+                iframeDoc.write('<h2>Device Data Chart - Temperature vs Time</h2>');
+                iframeDoc.write('<img src="' + imageData + '" id="chartImage" />');
+                iframeDoc.write('</body></html>');
+                iframeDoc.close();
+                
+                // Wait for image to load before printing
+                setTimeout(function() {
+                    var img = iframeDoc.getElementById('chartImage');
+                    if (img && img.complete) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                        setTimeout(function() {
+                            if (iframe.parentNode) {
+                                document.body.removeChild(iframe);
+                            }
+                        }, 500);
+                    } else if (img) {
+                        img.onload = function() {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                            setTimeout(function() {
+                                if (iframe.parentNode) {
+                                    document.body.removeChild(iframe);
+                                }
+                            }, 500);
+                        };
+                    }
+                }, 100);
             } catch (error) {
                 alert('Error printing chart: ' + error.message);
                 console.error('Print error:', error);
@@ -2522,6 +2731,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!canvas) {
             alert('Distance chart canvas not found!');
+            return;
+        }
+
+        // Check if chart has any data
+        var hasData = false;
+        if (chart.data && chart.data.datasets) {
+            for (var i = 0; i < chart.data.datasets.length; i++) {
+                if (chart.data.datasets[i].data && chart.data.datasets[i].data.length > 0) {
+                    hasData = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!hasData) {
+            alert('Chart has no data to print! Please make sure data is being received.');
             return;
         }
 
@@ -2556,35 +2781,58 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Create a new window for printing
-                var printWindow = window.open('', '_blank');
-                if (!printWindow) {
-                    alert('Please allow popups to print the chart.');
-                    return;
-                }
+                // Print directly using hidden iframe - completely invisible
+                var iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.left = '-9999px';
+                iframe.style.top = '-9999px';
+                iframe.style.width = '1px';
+                iframe.style.height = '1px';
+                iframe.style.border = 'none';
+                iframe.style.visibility = 'hidden';
+                iframe.style.opacity = '0';
+                iframe.style.pointerEvents = 'none';
+                document.body.appendChild(iframe);
                 
-                printWindow.document.write('<!DOCTYPE html><html><head><title>Print Chart</title>');
-                printWindow.document.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
-                printWindow.document.write('<style>');
-                printWindow.document.write('body { margin: 0; padding: 20px; text-align: center; }');
-                printWindow.document.write('img { max-width: 100%; height: auto; display: block; margin: 0 auto; }');
-                printWindow.document.write('h2 { font-family: Arial, sans-serif; color: #333; }');
-                printWindow.document.write('.print-button { margin: 20px auto; padding: 15px 30px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }');
-                printWindow.document.write('.print-button:hover { background: #0056b3; }');
-                printWindow.document.write('.help-text { color: #666; font-size: 14px; margin-top: 10px; }');
-                printWindow.document.write('@media print { .print-button { display: none; } .help-text { display: none; } }');
-                printWindow.document.write('</style>');
-                printWindow.document.write('<script>');
-                printWindow.document.write('function doPrint() { window.print(); }');
-                printWindow.document.write('window.onload = function() { window.focus(); setTimeout(function(){ window.print(); }, 200); };');
-                printWindow.document.write('</script>');
-                printWindow.document.write('</head><body>');
-                printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
-                printWindow.document.write('<img src="' + imageData + '" id="chartImage" />');
-                printWindow.document.write('<button class="print-button" onclick="doPrint();">🖨️ Print This Page</button>');
-                printWindow.document.write('<p class="help-text">The print dialog should open automatically. If not, click the button above or press Ctrl+P (Cmd+P on Mac).</p>');
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
+                var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write('<!DOCTYPE html><html><head><title>Print Chart</title>');
+                iframeDoc.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
+                iframeDoc.write('<style>');
+                iframeDoc.write('body { margin: 0; padding: 20px; text-align: center; }');
+                iframeDoc.write('img { max-width: 100%; height: auto; display: block; margin: 0 auto; }');
+                iframeDoc.write('h2 { font-family: Arial, sans-serif; color: #333; }');
+                iframeDoc.write('@media print { body { margin: 0; padding: 0; } }');
+                iframeDoc.write('</style>');
+                iframeDoc.write('</head><body>');
+                iframeDoc.write('<h2>Temperature vs Distance Graph</h2>');
+                iframeDoc.write('<img src="' + imageData + '" id="chartImage" />');
+                iframeDoc.write('</body></html>');
+                iframeDoc.close();
+                
+                // Wait for image to load before printing
+                setTimeout(function() {
+                    var img = iframeDoc.getElementById('chartImage');
+                    if (img && img.complete) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                        setTimeout(function() {
+                            if (iframe.parentNode) {
+                                document.body.removeChild(iframe);
+                            }
+                        }, 500);
+                    } else if (img) {
+                        img.onload = function() {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                            setTimeout(function() {
+                                if (iframe.parentNode) {
+                                    document.body.removeChild(iframe);
+                                }
+                            }, 500);
+                        };
+                    }
+                }, 100);
             } catch (error) {
                 alert('Error printing distance chart: ' + error.message);
                 console.error('Print error:', error);
@@ -2661,6 +2909,41 @@ document.addEventListener('DOMContentLoaded', function() {
         var timeCanvas = null;
         var distanceCanvas = null;
 
+        // Check if at least one chart has data
+        var timeHasData = false;
+        var distanceHasData = false;
+        
+        // Check time chart data (try liveChartRef first, then chartJsRef as fallback)
+        var chartToCheck = timeChart;
+        if (!chartToCheck && chartJsRef) {
+            chartToCheck = chartJsRef;
+        }
+        
+        if (chartToCheck && chartToCheck.data && chartToCheck.data.datasets) {
+            for (var i = 0; i < chartToCheck.data.datasets.length; i++) {
+                if (chartToCheck.data.datasets[i].data && chartToCheck.data.datasets[i].data.length > 0) {
+                    timeHasData = true;
+                    break;
+                }
+            }
+        }
+        
+        // Check distance chart data
+        if (distanceChart && distanceChart.data && distanceChart.data.datasets) {
+            for (var j = 0; j < distanceChart.data.datasets.length; j++) {
+                if (distanceChart.data.datasets[j].data && distanceChart.data.datasets[j].data.length > 0) {
+                    distanceHasData = true;
+                    break;
+                }
+            }
+        }
+        
+        // If neither chart has data, show error message
+        if (!timeHasData && !distanceHasData) {
+            alert('Chart has no data to print! Please make sure data is being received.');
+            return;
+        }
+
         // Get canvases from chart instances and prepare for printing
         var timeOriginalColors = null;
         var distanceOriginalColors = null;
@@ -2729,83 +3012,88 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Create a new window for printing both charts
-                var printWindow = window.open('', '_blank');
-                if (!printWindow) {
-                    alert('Please allow popups to print the charts.');
-                    return;
-                }
+                // Print directly using hidden iframe - completely invisible
+                var iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.left = '-9999px';
+                iframe.style.top = '-9999px';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = 'none';
+                iframe.style.visibility = 'hidden';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
                 
-                printWindow.document.write('<!DOCTYPE html><html><head><title>Print Both Charts</title>');
-                printWindow.document.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
-                printWindow.document.write('<style>');
-                printWindow.document.write('body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: white; }');
-                printWindow.document.write('.print-controls { text-align: center; margin-bottom: 20px; }');
-                printWindow.document.write('.chart-page { width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; page-break-after: always; page-break-inside: avoid; background: white; }');
-                printWindow.document.write('.chart-page:last-child { page-break-after: auto; }');
-                printWindow.document.write('img { max-width: 90%; height: auto; display: block; margin: 20px auto; }');
-                printWindow.document.write('h2 { color: #333; margin: 20px 0; }');
-                printWindow.document.write('.print-button { margin: 20px auto; padding: 15px 30px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }');
-                printWindow.document.write('.print-button:hover { background: #0056b3; }');
-                printWindow.document.write('.help-text { color: #666; font-size: 14px; margin-top: 10px; }');
-                printWindow.document.write('@media print {');
-                printWindow.document.write('  body { margin: 0; padding: 0; background: white !important; }');
-                printWindow.document.write('  .print-controls { display: none; }');
-                printWindow.document.write('  .chart-page { page-break-after: always; page-break-inside: avoid; background: white !important; }');
-                printWindow.document.write('  .chart-page:last-child { page-break-after: auto; }');
-                printWindow.document.write('}');
-                printWindow.document.write('</style>');
-                printWindow.document.write('</head><body>');
-                printWindow.document.write('<div class="print-controls">');
-                printWindow.document.write('<button class="print-button" onclick="doPrint();">🖨️ Print Both Charts</button>');
-                printWindow.document.write('<p class="help-text">The print dialog should open automatically. If not, click the button above or press Ctrl+P (Cmd+P on Mac).</p>');
-                printWindow.document.write('</div>');
+                var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write('<!DOCTYPE html><html><head><title>Print Both Charts</title>');
+                iframeDoc.write('<meta http-equiv="Content-Security-Policy" content="img-src data: \'self\'; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\'; default-src \'self\' data:;">');
+                iframeDoc.write('<style>');
+                iframeDoc.write('body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: white; }');
+                iframeDoc.write('.chart-page { width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; page-break-after: always; page-break-inside: avoid; background: white; }');
+                iframeDoc.write('.chart-page:last-child { page-break-after: auto; }');
+                iframeDoc.write('img { max-width: 90%; height: auto; display: block; margin: 20px auto; }');
+                iframeDoc.write('h2 { color: #333; margin: 20px 0; }');
+                iframeDoc.write('@media print {');
+                iframeDoc.write('  body { margin: 0; padding: 0; background: white !important; }');
+                iframeDoc.write('  .chart-page { page-break-after: always; page-break-inside: avoid; background: white !important; }');
+                iframeDoc.write('  .chart-page:last-child { page-break-after: auto; }');
+                iframeDoc.write('}');
+                iframeDoc.write('</style>');
+                iframeDoc.write('</head><body>');
                 
-                var imagesLoaded = 0;
                 var totalImages = 0;
                 if (timeImageData) totalImages++;
                 if (distanceImageData) totalImages++;
                 
                 // First chart - Temperature vs Time
                 if (timeImageData) {
-                    printWindow.document.write('<div class="chart-page">');
-                    printWindow.document.write('<h2>Device Data Chart - Temperature vs Time</h2>');
-                    printWindow.document.write('<img src="' + timeImageData + '" id="img1" onerror="alert(\'Time chart image failed to load\');" />');
-                    printWindow.document.write('</div>');
+                    iframeDoc.write('<div class="chart-page">');
+                    iframeDoc.write('<h2>Device Data Chart - Temperature vs Time</h2>');
+                    iframeDoc.write('<img src="' + timeImageData + '" id="img1" />');
+                    iframeDoc.write('</div>');
                 }
                 
                 // Second chart - Temperature vs Distance
                 if (distanceImageData) {
-                    printWindow.document.write('<div class="chart-page">');
-                    printWindow.document.write('<h2>Temperature vs Distance Graph</h2>');
-                    printWindow.document.write('<img src="' + distanceImageData + '" id="img2" onerror="alert(\'Distance chart image failed to load\');" />');
-                    printWindow.document.write('</div>');
+                    iframeDoc.write('<div class="chart-page">');
+                    iframeDoc.write('<h2>Temperature vs Distance Graph</h2>');
+                    iframeDoc.write('<img src="' + distanceImageData + '" id="img2" />');
+                    iframeDoc.write('</div>');
                 }
                 
-                printWindow.document.write('<script>');
-                printWindow.document.write('function doPrint() { window.print(); }');
-                printWindow.document.write('var imagesLoaded = 0;');
-                printWindow.document.write('var totalImages = ' + totalImages + ';');
-                printWindow.document.write('function checkAndPrint() {');
-                printWindow.document.write('  imagesLoaded++;');
-                printWindow.document.write('  if (imagesLoaded >= totalImages) {');
-                printWindow.document.write('    window.focus();');
-                printWindow.document.write('    setTimeout(function(){ window.print(); }, 200);');
-                printWindow.document.write('  }');
-                printWindow.document.write('}');
-                printWindow.document.write('window.onload = function() {');
+                iframeDoc.write('<script>');
+                iframeDoc.write('var imagesLoaded = 0;');
+                iframeDoc.write('var totalImages = ' + totalImages + ';');
+                iframeDoc.write('function checkAndPrint() {');
+                iframeDoc.write('  imagesLoaded++;');
+                iframeDoc.write('  if (imagesLoaded >= totalImages) {');
+                iframeDoc.write('    window.focus();');
+                iframeDoc.write('    setTimeout(function(){ window.print(); }, 200);');
+                iframeDoc.write('  }');
+                iframeDoc.write('}');
+                iframeDoc.write('window.onload = function() {');
                 if (timeImageData) {
-                    printWindow.document.write('  var img1 = document.getElementById("img1");');
-                    printWindow.document.write('  if (img1) { img1.onload = checkAndPrint; if (img1.complete) checkAndPrint(); }');
+                    iframeDoc.write('  var img1 = document.getElementById("img1");');
+                    iframeDoc.write('  if (img1) { img1.onload = checkAndPrint; if (img1.complete) checkAndPrint(); }');
                 }
                 if (distanceImageData) {
-                    printWindow.document.write('  var img2 = document.getElementById("img2");');
-                    printWindow.document.write('  if (img2) { img2.onload = checkAndPrint; if (img2.complete) checkAndPrint(); }');
+                    iframeDoc.write('  var img2 = document.getElementById("img2");');
+                    iframeDoc.write('  if (img2) { img2.onload = checkAndPrint; if (img2.complete) checkAndPrint(); }');
                 }
-                printWindow.document.write('};');
-                printWindow.document.write('</script>');
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
+                iframeDoc.write('};');
+                iframeDoc.write('</script>');
+                iframeDoc.write('</body></html>');
+                iframeDoc.close();
+                
+                iframe.onload = function() {
+                    setTimeout(function() {
+                        iframe.contentWindow.focus();
+                        setTimeout(function() {
+                            document.body.removeChild(iframe);
+                        }, 1000);
+                    }, 200);
+                };
             } catch (error) {
                 alert('Error printing charts: ' + error.message);
                 console.error('Print error:', error);
@@ -2827,19 +3115,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// Apply saved theme/layout
 	try {
-		var savedTheme = localStorage.getItem('appTheme') || 'dark';
 		var savedLayout = localStorage.getItem('appLayout') || 'standard';
-		applyTheme(savedTheme);
+		applyTheme('dark');
 		applyLayout(savedLayout);
-		var themeSel = document.getElementById('themeSelect');
 		var layoutSel = document.getElementById('layoutSelect');
-		if (themeSel) {
-			themeSel.value = savedTheme;
-			themeSel.addEventListener('change', function(){ 
-				applyTheme(themeSel.value); 
-				localStorage.setItem('appTheme', themeSel.value);
-			});
-		}
 		if (layoutSel) layoutSel.addEventListener('change', function(){ applyLayout(layoutSel.value); localStorage.setItem('appLayout', layoutSel.value); });
 	} catch (e) { /* ignore */ }
 
@@ -2847,28 +3126,76 @@ document.addEventListener('DOMContentLoaded', function() {
     var simulateBtn = document.getElementById('simulateBtn');
     if (simulateBtn) {
         simulateBtn.addEventListener('click', function() {
-            // Only open the STEP viewer window
-            var simWindow = window.open('simulation.html', 'simulationWindow', 'width=450,height=320,resizable=yes');
-            if (simWindow) {
-                simWindow.focus();
+            // Check if window is already open
+            if (simulationWindow && !simulationWindow.closed) {
+                // Window is open - close it first
+                simulationWindow.close();
+                simulationWindow = null;
+                addToLog('Simulation window closed.');
+                // Small delay before reopening to ensure it's fully closed
+                setTimeout(function() {
+                    openSimulationWindow();
+                }, 100);
+            } else {
+                // Window is not open - just open it
+                openSimulationWindow();
             }
-
-            addToLog('Simulation window opened (STEP preview only).');
         });
+    }
+    
+    // Helper function to open simulation window
+    function openSimulationWindow() {
+        // Only open the STEP viewer window
+        simulationWindow = window.open('simulation.html', 'simulationWindow', 'width=450,height=320,resizable=yes');
+        if (simulationWindow) {
+            simulationWindow.focus();
+            // Track when window is closed
+            var checkClosed = setInterval(function() {
+                if (simulationWindow.closed) {
+                    clearInterval(checkClosed);
+                    simulationWindow = null;
+                }
+            }, 500);
+            addToLog('Simulation window opened (STEP preview only).');
+        }
     }
 
     // Curriculum button - opens Curriculum menu
     var curriculumBtn = document.getElementById('curriculumBtn');
     if (curriculumBtn) {
         curriculumBtn.addEventListener('click', function() {
-            // Open Curriculum menu window
-            var curriculumWindow = window.open('curriculum.html', 'curriculumWindow', 'width=1100,height=900,resizable=yes,scrollbars=yes');
-            if (curriculumWindow) {
-                curriculumWindow.focus();
+            // Check if window is already open
+            if (curriculumWindow && !curriculumWindow.closed) {
+                // Window is open - close it first
+                curriculumWindow.close();
+                curriculumWindow = null;
+                addToLog('Curriculum window closed.');
+                // Small delay before reopening to ensure it's fully closed
+                setTimeout(function() {
+                    openCurriculumWindow();
+                }, 100);
+            } else {
+                // Window is not open - just open it
+                openCurriculumWindow();
             }
-            
-            addToLog('Heat Transfer Curriculum opened.');
         });
+    }
+    
+    // Helper function to open curriculum window
+    function openCurriculumWindow() {
+        // Open Curriculum menu window
+        curriculumWindow = window.open('curriculum.html', 'curriculumWindow', 'width=1100,height=900,resizable=yes,scrollbars=yes');
+        if (curriculumWindow) {
+            curriculumWindow.focus();
+            // Track when window is closed
+            var checkClosed = setInterval(function() {
+                if (curriculumWindow.closed) {
+                    clearInterval(checkClosed);
+                    curriculumWindow = null;
+                }
+            }, 500);
+            addToLog('Heat Transfer Curriculum opened.');
+        }
     }
 
     // Comprehensive window resize handler to fix layout issues
@@ -2903,11 +3230,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Function to sync Print Graph button sizes
+    function syncPrintButtonSizes() {
+        var printChartBtn = document.getElementById('printChartBtn');
+        var printDistanceChartBtn = document.getElementById('printDistanceChartBtn');
+        
+        if (printChartBtn && printDistanceChartBtn) {
+            // Temporarily remove width constraints to measure natural size
+            printChartBtn.style.width = 'auto';
+            printDistanceChartBtn.style.width = 'auto';
+            
+            // Force a reflow to get accurate measurements
+            void printChartBtn.offsetWidth;
+            void printDistanceChartBtn.offsetWidth;
+            
+            // Get the natural width of the source button (with full text visible)
+            var sourceWidth = printChartBtn.scrollWidth;
+            var sourceHeight = printChartBtn.offsetHeight;
+            
+            // Apply the exact same size to both buttons
+            printChartBtn.style.width = sourceWidth + 'px';
+            printDistanceChartBtn.style.width = sourceWidth + 'px';
+            printDistanceChartBtn.style.height = sourceHeight + 'px';
+        }
+    }
+    
+    // Sync button sizes on load with multiple attempts to ensure it works
+    setTimeout(function() {
+        syncPrintButtonSizes();
+    }, 100);
+    setTimeout(function() {
+        syncPrintButtonSizes();
+    }, 500);
+    setTimeout(function() {
+        syncPrintButtonSizes();
+    }, 1000);
+    
     // Add resize event listener with debouncing for better performance
     var resizeTimeout;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(handleWindowResize, 100);
+        resizeTimeout = setTimeout(function() {
+            handleWindowResize();
+            syncPrintButtonSizes(); // Sync button sizes after resize
+        }, 100);
     });
     
     // Call once on load to ensure initial layout is correct
@@ -2953,12 +3319,74 @@ if (fanSpeedInput) {
     
     fanSpeedInput.addEventListener('input', function() {
         var percentage = parseInt(fanSpeedInput.value, 10);
-        if (fanSpeedDisplay) fanSpeedDisplay.textContent = percentage + '%';
+        if (fanSpeedDisplay) fanSpeedDisplay.value = percentage;
         updateSliderFill(fanSpeedInput.value);
         updateFanIcon(fanSpeedInput.value);
         // Update button states in real-time
         updateFanButtons(percentage);
     });
+    
+    // Handle user typing in fan speed input field
+    if (fanSpeedDisplay) {
+        // Function to validate and send fan speed data
+        async function validateAndSendFanSpeed() {
+            var value = parseInt(fanSpeedDisplay.value, 10);
+            if (isNaN(value)) {
+                // Reset to current slider value if invalid
+                if (fanSpeedInput) {
+                    fanSpeedDisplay.value = parseInt(fanSpeedInput.value, 10);
+                }
+            } else {
+                // Clamp value to valid range
+                value = Math.max(0, Math.min(100, value));
+                fanSpeedDisplay.value = value;
+                // Update slider and send to hardware
+                if (fanSpeedInput) {
+                    fanSpeedInput.value = value;
+                    updateSliderFill(value);
+                    updateFanIcon(value);
+                    updateFanButtons(value);
+                    // Send to hardware
+                    try {
+                        var result = await window.electronAPI.sendFanSpeed(value);
+                        if (!result || !result.success) {
+                            addToLog('Failed to send fan speed: ' + (result && result.error ? result.error : 'Unknown error'));
+                        }
+                    } catch (error) {
+                        addToLog('Error sending fan speed: ' + error.message);
+                    }
+                }
+            }
+        }
+        
+        fanSpeedDisplay.addEventListener('input', function() {
+            var value = parseInt(fanSpeedDisplay.value, 10);
+            if (!isNaN(value)) {
+                // Clamp value to valid range
+                value = Math.max(0, Math.min(100, value));
+                fanSpeedDisplay.value = value;
+                // Update slider
+                if (fanSpeedInput) {
+                    fanSpeedInput.value = value;
+                    updateSliderFill(value);
+                    updateFanIcon(value);
+                    updateFanButtons(value);
+                }
+            }
+        });
+        
+        // Send data when user clicks outside (blur)
+        fanSpeedDisplay.addEventListener('blur', validateAndSendFanSpeed);
+        
+        // Send data when user presses Enter
+        fanSpeedDisplay.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault();
+                validateAndSendFanSpeed();
+                fanSpeedDisplay.blur(); // Remove focus after sending
+            }
+        });
+    }
     
     // Fan slider hover tooltip
     fanSpeedInput.addEventListener('mousemove', function(e) {
@@ -2990,7 +3418,7 @@ if (fanSpeedInput) {
     // Initialize slider fill and fan icons
     updateSliderFill(fanSpeedInput.value);
     updateFanIcon(fanSpeedInput.value);
-    if (fanSpeedDisplay) fanSpeedDisplay.textContent = parseInt(fanSpeedInput.value, 10) + '%';
+    if (fanSpeedDisplay) fanSpeedDisplay.value = parseInt(fanSpeedInput.value, 10);
     // Initialize button states
     var initialSpeed = parseInt(fanSpeedInput.value, 10);
     updateFanButtons(initialSpeed);
@@ -3032,10 +3460,70 @@ if (heaterTempInput && heaterTempValue) {
     
     heaterTempInput.addEventListener('input', function() {
         var temp = parseInt(heaterTempInput.value, 10);
-        if (heaterTempValue) heaterTempValue.textContent = String(temp) + '\u00B0C';
+        if (heaterTempValue) heaterTempValue.value = temp;
         updateHeaterSliderFill(heaterTempInput.value);
         updateHeaterIcon(heaterTempInput.value);
     });
+    
+    // Handle user typing in heater temperature input field
+    if (heaterTempValue) {
+        // Function to validate and send heater temperature data
+        async function validateAndSendHeaterTemp() {
+            var value = parseInt(heaterTempValue.value, 10);
+            if (isNaN(value)) {
+                // Reset to current slider value if invalid
+                if (heaterTempInput) {
+                    heaterTempValue.value = parseInt(heaterTempInput.value, 10);
+                }
+            } else {
+                // Clamp value to valid range
+                value = Math.max(20, Math.min(70, value));
+                heaterTempValue.value = value;
+                // Update slider and send to hardware
+                if (heaterTempInput) {
+                    heaterTempInput.value = value;
+                    updateHeaterSliderFill(value);
+                    updateHeaterIcon(value);
+                    // Send to hardware
+                    try {
+                        var result = await window.electronAPI.sendHeaterTemp(value);
+                        if (!result || !result.success) {
+                            addToLog('Failed to send heater temp: ' + (result && result.error ? result.error : 'Unknown error'));
+                        }
+                    } catch (error) {
+                        addToLog('Error sending heater temp: ' + error.message);
+                    }
+                }
+            }
+        }
+        
+        heaterTempValue.addEventListener('input', function() {
+            var value = parseInt(heaterTempValue.value, 10);
+            if (!isNaN(value)) {
+                // Clamp value to valid range
+                value = Math.max(20, Math.min(70, value));
+                heaterTempValue.value = value;
+                // Update slider
+                if (heaterTempInput) {
+                    heaterTempInput.value = value;
+                    updateHeaterSliderFill(value);
+                    updateHeaterIcon(value);
+                }
+            }
+        });
+        
+        // Send data when user clicks outside (blur)
+        heaterTempValue.addEventListener('blur', validateAndSendHeaterTemp);
+        
+        // Send data when user presses Enter
+        heaterTempValue.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault();
+                validateAndSendHeaterTemp();
+                heaterTempValue.blur(); // Remove focus after sending
+            }
+        });
+    }
     
     // Heater slider hover tooltip
     heaterTempInput.addEventListener('mousemove', function(e) {
@@ -3134,6 +3622,20 @@ async function setCoolerMode(enabled) {
         if (!res || !res.success) {
             addToLog('Failed to set cooler: ' + (res && res.error ? res.error : 'Unknown error'));
         } else {
+            // Update global state
+            coolerEnabled = enabled;
+            // Update button text and style
+            if (coolerBtn) {
+                if (enabled) {
+                    // Cooler is ON - button should say "Cooler Off" (to turn it off)
+                    coolerBtn.classList.add('active');
+                    coolerBtn.textContent = 'Cooler Off';
+                } else {
+                    // Cooler is OFF - button should say "Cooler On" (to turn it on)
+                    coolerBtn.classList.remove('active');
+                    coolerBtn.textContent = 'Cooler On';
+                }
+            }
             addToLog('Cooler set to: ' + (enabled ? 'ON' : 'OFF'));
         }
     } catch (e) {
@@ -3160,10 +3662,13 @@ if (heaterRightBtn) {
 }
 
 if (coolerBtn) {
+    // Initialize button text based on current state
+    coolerBtn.textContent = coolerEnabled ? 'Cooler Off' : 'Cooler On';
+    
     coolerBtn.addEventListener('click', function() {
-        // Always turn cooler ON (cooling mode)
-        coolerBtn.classList.add('active');
-        setCoolerMode(true);
+        // Toggle cooler state
+        var newState = !coolerEnabled;
+        setCoolerMode(newState);
     });
 }
 
@@ -3182,7 +3687,7 @@ async function setFanSpeed(speed) {
     
     // Update the display
     if (fanSpeedDisplay) {
-        fanSpeedDisplay.textContent = speed + '%';
+        fanSpeedDisplay.value = speed;
     }
     
     // Update slider fill and icon
@@ -3281,9 +3786,18 @@ async function openAdminPanel() {
 
 function openGraphWindow() {
     // Open graph in a new window with data sharing
-    const graphWindow = window.open('chart.html', 'graphWindow', 'width=1000,height=700,scrollbars=yes,resizable=yes');
+    graphWindow = window.open('chart.html', 'graphWindow', 'width=1000,height=700,scrollbars=yes,resizable=yes');
     
     if (graphWindow) {
+        graphWindow.focus();
+        // Track when window is closed
+        var checkClosed = setInterval(function() {
+            if (graphWindow.closed) {
+                clearInterval(checkClosed);
+                graphWindow = null;
+            }
+        }, 500);
+        
         addToLog('Graph window opened');
         
         // Wait for the window to load, then share data
@@ -3295,13 +3809,13 @@ function openGraphWindow() {
     }
 }
 
-function setupGraphCommunication(graphWindow) {
+function setupGraphCommunication(windowRef) {
     // Make chartData available to the graph window
-    if (graphWindow) {
+    if (windowRef) {
         // Share the chart data object with current heater slider value
         var currentHeaterValue = heaterTempInput ? parseInt(heaterTempInput.value, 10) : 20;
-        graphWindow.chartData = chartData;
-        graphWindow.currentHeaterValue = currentHeaterValue;
+        windowRef.chartData = chartData;
+        windowRef.currentHeaterValue = currentHeaterValue;
         
         // Set up periodic data updates
         setInterval(function() {
