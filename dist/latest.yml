@@ -1,8 +1,8 @@
-version: 1.2.7
+version: 1.3.0
 files:
-  - url: Heat.Transfer.App.Setup.1.2.7.exe
-    sha512: P5AD7D1eOKgfqt+n4SQryIFXs6oiX/G4Gt7n6Yd9n0hMn6vWceUDdYsFvANeG3wbRCXSA63aCq82Yt7hf/vKpQ==
-    size: 101697740
-path: Heat.Transfer.App.Setup.1.2.7.exe
-sha512: P5AD7D1eOKgfqt+n4SQryIFXs6oiX/G4Gt7n6Yd9n0hMn6vWceUDdYsFvANeG3wbRCXSA63aCq82Yt7hf/vKpQ==
-releaseDate: '2025-12-10T11:58:11.855Z'
+  - url: Heat-Transfer-App-Setup-1.3.0.exe
+    sha512: SH/y0/RN/uoChztVZfIJAotkNL2HgBGKZch1NTuUGPoeuhsan9ICbZokyCkJBF4JXGaIvrNXKAUsivF+UeyMfQ==
+    size: 122325582
+path: Heat-Transfer-App-Setup-1.3.0.exe
+sha512: SH/y0/RN/uoChztVZfIJAotkNL2HgBGKZch1NTuUGPoeuhsan9ICbZokyCkJBF4JXGaIvrNXKAUsivF+UeyMfQ==
+releaseDate: '2025-12-14T15:48:07.755Z'
