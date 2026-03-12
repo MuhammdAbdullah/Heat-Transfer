@@ -1,8 +1,8 @@
-version: 1.2.8
+version: 1.3.1
 files:
-  - url: Heat-Transfer-App-Setup-1.2.8.exe
-    sha512: d3Td81vNgT8G+NY9zhtelD4+bN0kxn/qM1FPKnW6cs0b6tdG8Vk964u+hwN4phb1JFA7QYlF8HbCumabEmmR8g==
-    size: 122325215
-path: Heat-Transfer-App-Setup-1.2.8.exe
-sha512: d3Td81vNgT8G+NY9zhtelD4+bN0kxn/qM1FPKnW6cs0b6tdG8Vk964u+hwN4phb1JFA7QYlF8HbCumabEmmR8g==
-releaseDate: '2026-03-11T12:06:13.391Z'
+  - url: Heat-Transfer-App-Setup-1.3.1.exe
+    sha512: KVh70sqlZbn6CXaVY5W9R9WgyHfg+JXD+qzuNTRa3ew2kNN5ogLONeM/ikHeXP4iHeP2sfqbX1l5ATcriwf5OA==
+    size: 122325494
+path: Heat-Transfer-App-Setup-1.3.1.exe
+sha512: KVh70sqlZbn6CXaVY5W9R9WgyHfg+JXD+qzuNTRa3ew2kNN5ogLONeM/ikHeXP4iHeP2sfqbX1l5ATcriwf5OA==
+releaseDate: '2026-03-12T14:46:46.507Z'
