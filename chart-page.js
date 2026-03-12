@@ -1,5 +1,5 @@
 // Live Heat Transfer Data Chart
-(function(){
+(function () {
     var chart = null;
     var chartData = {
         time: [],
@@ -21,7 +21,7 @@
             console.error('Chart.js failed to load');
             return;
         }
-        setTimeout(function(){ startWhenReady(tries + 1); }, 100);
+        setTimeout(function () { startWhenReady(tries + 1); }, 100);
     }
     startWhenReady(0);
 
@@ -29,7 +29,7 @@
         var canvas = document.getElementById('testChartPage');
         if (!canvas) return;
         var ctx = canvas.getContext('2d');
-        
+
         chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -58,9 +58,9 @@
                     mode: 'index'
                 },
                 plugins: {
-                    legend: { 
+                    legend: {
                         display: true,
-                        labels: { 
+                        labels: {
                             color: '#ddd',
                             usePointStyle: true,
                             pointStyle: 'line',
@@ -78,15 +78,16 @@
                     }
                 },
                 scales: {
-                    x: { 
-                        ticks: { 
+                    x: {
+                        ticks: {
                             color: '#ddd',
+                            maxRotation: 0,
                             maxTicksLimit: 10,
-                            callback: function(value) {
-                                return value.toFixed(1);
+                            callback: function (value) {
+                                return parseFloat(value).toFixed(1);
                             }
                         },
-                        grid: { 
+                        grid: {
                             color: '#333',
                             drawBorder: true
                         },
@@ -96,17 +97,17 @@
                             color: '#ddd'
                         }
                     },
-                    y: { 
+                    y: {
                         type: 'linear',
                         display: true,
                         position: 'left',
-                        ticks: { 
+                        ticks: {
                             color: '#ddd',
-                            callback: function(value) {
+                            callback: function (value) {
                                 return value.toFixed(1) + '°C';
                             }
                         },
-                        grid: { 
+                        grid: {
                             color: '#333',
                             drawBorder: true
                         },
@@ -123,10 +124,10 @@
                         type: 'linear',
                         display: true,
                         position: 'right',
-                        ticks: { 
+                        ticks: {
                             color: '#1e90ff',
-                            callback: function(value) {
-                                return value.toFixed(1) + 'W';
+                            callback: function (value) {
+                                return value.toFixed(2) + 'W';
                             }
                         },
                         grid: {
@@ -146,31 +147,31 @@
         });
 
         // Make chart responsive to window resize
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             if (chart) {
                 chart.resize();
                 // Re-scale Y-axis after resize
-                setTimeout(function() {
+                setTimeout(function () {
                     autoScaleYAxis();
                 }, 100);
             }
         });
 
         // Add click event listener to legend to detect show/hide
-        setTimeout(function() {
+        setTimeout(function () {
             if (chart && chart.legend) {
                 // Listen for legend clicks to auto-scale when datasets are hidden/shown
-                chart.legend.onClick = function(e, legendItem, legend) {
+                chart.legend.onClick = function (e, legendItem, legend) {
                     // Call the default legend click behavior
                     var index = legendItem.datasetIndex;
                     var ci = chart;
                     var meta = ci.getDatasetMeta(index);
-                    
+
                     meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
                     ci.update();
-                    
+
                     // Auto-scale after hiding/showing
-                    setTimeout(function() {
+                    setTimeout(function () {
                         autoScaleYAxis();
                     }, 100);
                 };
@@ -179,9 +180,9 @@
 
         // Request data from parent window
         requestDataFromParent();
-        
+
         // Initial auto-scale after a short delay
-        setTimeout(function() {
+        setTimeout(function () {
             autoScaleYAxis();
         }, 500);
 
@@ -199,9 +200,9 @@
                 updateChartWithData(parentData);
             }
         }
-        
+
         // Set up periodic data requests
-        setInterval(function() {
+        setInterval(function () {
             if (window.chartData) {
                 var parentData = window.chartData;
                 if (parentData && parentData.time && parentData.series) {
@@ -216,44 +217,44 @@
 
         // Update chart data
         chart.data.labels = data.time.slice(-maxPoints);
-        
+
         // Update temperature data (T1-T8)
         for (var i = 0; i < 8; i++) {
             chart.data.datasets[i].data = data.series[i].slice(-maxPoints);
         }
-        
+
         // Update heater data (indices 8-9)
         if (data.series[8]) chart.data.datasets[8].data = data.series[8].slice(-maxPoints);
         if (data.series[9]) chart.data.datasets[9].data = data.series[9].slice(-maxPoints);
-        
+
         // Update target temperature data (index 11)
         if (data.series[11]) {
             chart.data.datasets[10].data = data.series[11].slice(-maxPoints);
             console.log('Target temp data:', data.series[11].slice(-5)); // Debug log
         }
-        
+
         // Update power data (index 10)
         if (data.series[10]) chart.data.datasets[11].data = data.series[10].slice(-maxPoints);
-        
+
         // Auto-scale Y-axis based on current data
         autoScaleYAxis();
-        
+
         chart.update('none');
     }
 
     function autoScaleYAxis() {
         if (!chart) return;
-        
+
         // Auto-scale temperature axis (left Y-axis)
         var tempValues = [];
         var powerValues = [];
         var visibleTempDatasets = 0;
         var visiblePowerDatasets = 0;
-        
+
         for (var i = 0; i < chart.data.datasets.length; i++) {
             var dataset = chart.data.datasets[i];
             var meta = chart.getDatasetMeta(i);
-            
+
             // Only include data from visible datasets
             if (!meta.hidden && !dataset.hidden) {
                 for (var j = 0; j < dataset.data.length; j++) {
@@ -270,51 +271,93 @@
                 }
             }
         }
-        
+
         // Auto-scale temperature axis (left)
         if (tempValues.length > 0 && visibleTempDatasets > 0) {
             var tempMin = Math.min(...tempValues);
             var tempMax = Math.max(...tempValues);
             var tempRange = tempMax - tempMin;
-            
+
             var tempPadding = Math.max(tempRange * 0.15, 5);
             var newTempMin = tempMin - tempPadding;
             var newTempMax = tempMax + tempPadding;
-            
-            if (newTempMax - newTempMin < 10) {
-                var center = (newTempMin + newTempMax) / 2;
-                newTempMin = center - 5;
-                newTempMax = center + 5;
+
+            // Round to multiples of 5
+            newTempMin = Math.floor(newTempMin / 5) * 5;
+            newTempMax = Math.ceil(newTempMax / 5) * 5;
+
+            // Ensure minimum 20 degree range
+            if (newTempMax - newTempMin < 20) {
+                var diff = 20 - (newTempMax - newTempMin);
+                // adjust equally if diff is multiple of 10, else roughly equal
+                var expand = Math.ceil((diff / 2) / 5) * 5;
+                newTempMin -= expand;
+                newTempMax += expand;
+                // readjust if over-expanded
+                if (newTempMax - newTempMin > 20) {
+                    if (newTempMax - newTempMin >= 30) {
+                        newTempMax -= 5;
+                    }
+                }
             }
-            
+
             chart.options.scales.y.min = newTempMin;
             chart.options.scales.y.max = newTempMax;
-            
+
+            // Calculate dynamic step size for Temperature
+            var newTempRange = newTempMax - newTempMin;
+            var tempStepSize = 5;
+            if (newTempRange > 100) tempStepSize = 25;
+            else if (newTempRange >= 50) tempStepSize = 10;
+            else tempStepSize = 5;
+            chart.options.scales.y.ticks.stepSize = tempStepSize;
+
             console.log('Auto-scaled temperature axis to:', newTempMin.toFixed(1), 'to', newTempMax.toFixed(1), '°C');
         }
-        
+
         // Auto-scale power axis (right)
         if (powerValues.length > 0 && visiblePowerDatasets > 0) {
             var powerMin = Math.min(...powerValues);
             var powerMax = Math.max(...powerValues);
             var powerRange = powerMax - powerMin;
-            
+
             var powerPadding = Math.max(powerRange * 0.15, 5);
             var newPowerMin = Math.max(powerMin - powerPadding, 0); // Power can't be negative
             var newPowerMax = powerMax + powerPadding;
-            
+
+            // Round to multiples of 5
+            newPowerMin = Math.max(Math.floor(newPowerMin / 5) * 5, 0);
+            newPowerMax = Math.ceil(newPowerMax / 5) * 5;
+
+            // Ensure minimum 10 W range
             if (newPowerMax - newPowerMin < 10) {
-                var center = (newPowerMin + newPowerMax) / 2;
-                newPowerMin = Math.max(center - 5, 0);
-                newPowerMax = center + 5;
+                var diffP = 10 - (newPowerMax - newPowerMin);
+                var expandP = Math.ceil((diffP / 2) / 5) * 5;
+                newPowerMin = Math.max(newPowerMin - expandP, 0);
+                newPowerMax += expandP;
+                // readjust if over-expanded
+                if (newPowerMax - newPowerMin > 10 && newPowerMin > 0) {
+                    if (newPowerMax - newPowerMin >= 15) {
+                        newPowerMax -= 5;
+                    }
+                } else if (newPowerMin === 0 && newPowerMax < 10) {
+                    newPowerMax = 10;
+                }
             }
-            
+
             chart.options.scales.y1.min = newPowerMin;
             chart.options.scales.y1.max = newPowerMax;
-            
+
+            // Calculate dynamic step size for Power
+            var newPowerRange = newPowerMax - newPowerMin;
+            var powerStepSize = 5;
+            if (newPowerRange >= 50) powerStepSize = 10;
+            else powerStepSize = 5;
+            chart.options.scales.y1.ticks.stepSize = powerStepSize;
+
             console.log('Auto-scaled power axis to:', newPowerMin.toFixed(1), 'to', newPowerMax.toFixed(1), 'W');
         }
-        
+
         // Force chart to update with new scales
         chart.update('none');
     }
@@ -322,25 +365,25 @@
     // Fallback: Create some sample data if no parent data is available
     function createSampleData() {
         var t = 0;
-        setInterval(function() {
+        setInterval(function () {
             if (!chart) return;
-            
+
             t += 0.25;
             chart.data.labels.push(t.toFixed(1));
-            
+
             // Add sample temperature data
             for (var i = 0; i < 8; i++) {
                 var temp = 25 + Math.sin(t + i) * 2 + (Math.random() - 0.5) * 0.5;
                 chart.data.datasets[i].data.push(temp);
             }
-            
+
             // Add sample heater data
             chart.data.datasets[8].data.push(30 + Math.sin(t) * 5);
             chart.data.datasets[9].data.push(28 + Math.cos(t) * 3);
-            
+
             // Add sample power data
             chart.data.datasets[10].data.push(50 + Math.sin(t * 0.5) * 10);
-            
+
             // Keep only last maxPoints
             if (chart.data.labels.length > maxPoints) {
                 chart.data.labels.shift();
@@ -348,7 +391,7 @@
                     chart.data.datasets[j].data.shift();
                 }
             }
-            
+
             chart.update('none');
         }, 250);
     }

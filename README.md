@@ -4,10 +4,10 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 
 ## 📥 Download & Install
 
-**Latest Release: [v1.2.6](https://github.com/MuhammdAbdullah/Heat-Transfer/releases/latest)**
+**Latest Release: [v1.2.8](https://github.com/MuhammdAbdullah/Heat-Transfer/releases/latest)**
 
 1. Go to [Releases](https://github.com/MuhammdAbdullah/Heat-Transfer/releases)
-2. Download `Heat Transfer App Setup 1.2.6.exe` (Windows)
+2. Download `Heat Transfer App Setup 1.2.8.exe` (Windows)
 3. Run the installer and follow the setup wizard
 4. The app will automatically check for updates when you start it
 
@@ -306,9 +306,13 @@ All dependencies are included in `package.json` and will be installed with `npm 
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history and changes.
 
-**Current Version**: 1.2.6
+**Current Version**: 1.2.8
 
 ### Recent Updates
+- **Smart Chart Scaling**: Dynamic Y-axis step sizes and bounds for cleaner temperature (multiples of 5) and power (multiples of 5) visualization.
+- **Improved UI Legibility**: Cleanly distributed X-axis ticks that prevent dates/times from overlapping or bunching up during long data collection sessions.
+- **Process Management**: Automatically closes all child tabs/windows (admin, charts, labs, curriculum) when the main application window is closed to prevent hanging background tasks.
+- **Hardware Accuracy**: Corrected sensor assignments in the front-end for Radial and Linear heaters to accurately match device pinouts.
 - **Complete Multilingual Support**: All 5 lab sheets now fully translated in 6 languages (English, French, German, Spanish, Dutch, Arabic)
 - **Language Persistence**: Language selection from curriculum page is saved and applied to all lab sheets
 - **Graph Auto-Clear**: Graphs automatically clear when hardware device reconnects after disconnection

@@ -49,14 +49,14 @@ function createSplashScreen() {
 
   // Load splash screen HTML
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
-  
+
   // Show splash screen immediately and track start time
   splashWindow.show();
   splashStartTime = Date.now();
-  
+
   // Center the splash screen
   splashWindow.center();
-  
+
   return splashWindow;
 }
 
@@ -82,7 +82,7 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     // Check if this is the simulation window (needs specific size)
     const isSimulationWindow = url.includes('simulation.html');
-    
+
     // Default window options for most windows
     let windowOptions = {
       width: 1500,
@@ -95,7 +95,7 @@ function createWindow() {
         contextIsolation: true
       }
     };
-    
+
     // Special configuration for simulation window (maximized)
     if (isSimulationWindow) {
       windowOptions = {
@@ -110,13 +110,13 @@ function createWindow() {
         }
       };
     }
-    
+
     return {
       action: 'allow',
       overrideBrowserWindowOptions: windowOptions
     };
   });
-  
+
   // Maximize simulation window when it's created
   mainWindow.webContents.on('did-create-window', (childWindow, details) => {
     if (details.url && details.url.includes('simulation.html')) {
@@ -128,11 +128,11 @@ function createWindow() {
 
   // Show window when ready (with minimum splash screen display time)
   const minSplashTime = 3000; // Show splash for at least 3 seconds
-  
+
   mainWindow.once('ready-to-show', () => {
     const elapsedTime = Date.now() - splashStartTime;
     const remainingTime = Math.max(0, minSplashTime - elapsedTime);
-    
+
     // Wait for remaining time before showing main window
     setTimeout(() => {
       if (splashWindow && !splashWindow.isDestroyed()) {
@@ -149,12 +149,12 @@ function createWindow() {
   mainWindow.on('close', async (event) => {
     // Prevent immediate closing to allow safety commands to complete
     event.preventDefault();
-    
+
     // Safety: Send shutdown commands before window closes
     try {
       if (serialPort && serialPort.isOpen) {
         console.log('Safety: Sending shutdown commands before window close...');
-        
+
         // 1. Fan speed 0
         const fanBytes = [0x3A, 0x46, 0x00, 0x3B, 0x0A]; // :F0;\n
         console.log('Sending fan stop bytes:', fanBytes);
@@ -165,10 +165,10 @@ function createWindow() {
           });
         });
         console.log('Fan stop command sent');
-        
+
         // Delay between commands
         await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         // 2. Left cooler value 1 (turn on cooler)
         const coolerBytes = [0x3A, 0x50, 0x01, 0x3B, 0x0A]; // :P1;\n
         console.log('Sending cooler on bytes:', coolerBytes);
@@ -179,10 +179,10 @@ function createWindow() {
           });
         });
         console.log('Cooler on command sent');
-        
+
         // Delay between commands
         await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         // 3. Heater temperature to 20°C
         const heaterTempBytes = [0x3A, 0x54, 0x14, 0x3B, 0x0A]; // :T20;\n
         console.log('Sending heater temp 20°C bytes:', heaterTempBytes);
@@ -193,10 +193,10 @@ function createWindow() {
           });
         });
         console.log('Heater temp 20°C command sent');
-        
+
         // Delay between commands
         await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         // 4. Heater off
         const heaterOffBytes = [0x3A, 0x48, 0x00, 0x3B, 0x0A]; // :H0;\n
         console.log('Sending heater off bytes:', heaterOffBytes);
@@ -207,7 +207,7 @@ function createWindow() {
           });
         });
         console.log('Heater off command sent');
-        
+
         console.log('All safety shutdown commands sent successfully');
       } else {
         console.log('Serial port not available during window close');
@@ -215,13 +215,24 @@ function createWindow() {
     } catch (error) {
       console.error('Error sending safety shutdown commands:', error);
     }
-    
+
     // Now allow the window to close
     mainWindow.destroy();
   });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+
+    // Close all other windows when main window closes
+    const allWindows = BrowserWindow.getAllWindows();
+    allWindows.forEach(win => {
+      if (win && !win.isDestroyed()) {
+        win.destroy();
+      }
+    });
+
+    // Force quit the app
+    app.quit();
   });
 
   return mainWindow;
@@ -285,24 +296,24 @@ function sendBootloaderProgressToAllWindows(progressData) {
 // Auto-updater event handlers
 autoUpdater.on('checking-for-update', () => {
   console.log('[UPDATE] Checking for updates...');
-  sendUpdateStatusToAllWindows({ 
-    status: 'checking', 
-    message: 'Checking for updates...' 
+  sendUpdateStatusToAllWindows({
+    status: 'checking',
+    message: 'Checking for updates...'
   });
 });
 
 autoUpdater.on('update-available', (info) => {
   console.log('[UPDATE] Update available:', info.version);
-  
+
   // Send to all windows
-  sendUpdateStatusToAllWindows({ 
-    status: 'available', 
+  sendUpdateStatusToAllWindows({
+    status: 'available',
     version: info.version,
     releaseDate: info.releaseDate,
     releaseNotes: info.releaseNotes,
     message: `Version ${info.version} is available!`
   });
-  
+
   // Show update dialog to user (use main window or first available window)
   const targetWindow = mainWindow && !mainWindow.isDestroyed() ? mainWindow : BrowserWindow.getAllWindows()[0];
   if (targetWindow) {
@@ -318,9 +329,9 @@ autoUpdater.on('update-available', (info) => {
       if (result.response === 0) {
         // User clicked "Yes" - download update
         autoUpdater.downloadUpdate();
-        sendUpdateStatusToAllWindows({ 
-          status: 'downloading', 
-          message: 'Downloading update...' 
+        sendUpdateStatusToAllWindows({
+          status: 'downloading',
+          message: 'Downloading update...'
         });
       }
     });
@@ -329,8 +340,8 @@ autoUpdater.on('update-available', (info) => {
 
 autoUpdater.on('update-not-available', (info) => {
   console.log('[UPDATE] Update not available. Current version is latest.');
-  sendUpdateStatusToAllWindows({ 
-    status: 'not-available', 
+  sendUpdateStatusToAllWindows({
+    status: 'not-available',
     message: 'You are using the latest version.',
     currentVersion: app.getVersion()
   });
@@ -338,17 +349,17 @@ autoUpdater.on('update-not-available', (info) => {
 
 autoUpdater.on('error', (err) => {
   console.error('[UPDATE] Error in auto-updater:', err);
-  
+
   // Provide user-friendly error message
   let errorMessage = 'Error checking for updates: ' + err.message;
-  
+
   // If it's looking for local files (common with portable apps), give helpful message
   if (err.message && (err.message.includes('app-update.yml') || err.message.includes('ENOENT'))) {
     errorMessage = 'Auto-updates not supported for portable version. Please download the latest version from GitHub releases.';
   }
-  
-  sendUpdateStatusToAllWindows({ 
-    status: 'error', 
+
+  sendUpdateStatusToAllWindows({
+    status: 'error',
     message: errorMessage,
     githubUrl: 'https://github.com/MuhammdAbdullah/Heat-Transfer/releases'
   });
@@ -358,10 +369,10 @@ autoUpdater.on('download-progress', (progressObj) => {
   const percent = Math.round(progressObj.percent);
   const message = `Downloading: ${percent}% (${Math.round(progressObj.bytesPerSecond / 1024)} KB/s)`;
   console.log('[UPDATE]', message);
-  
+
   // Send progress to all windows
-  sendUpdateStatusToAllWindows({ 
-    status: 'downloading', 
+  sendUpdateStatusToAllWindows({
+    status: 'downloading',
     percent: percent,
     bytesPerSecond: progressObj.bytesPerSecond,
     transferred: progressObj.transferred,
@@ -372,14 +383,14 @@ autoUpdater.on('download-progress', (progressObj) => {
 
 autoUpdater.on('update-downloaded', (info) => {
   console.log('[UPDATE] Update downloaded');
-  
+
   // Send to all windows
-  sendUpdateStatusToAllWindows({ 
-    status: 'downloaded', 
+  sendUpdateStatusToAllWindows({
+    status: 'downloaded',
     version: info.version,
     message: 'Update downloaded successfully! Ready to install.'
   });
-  
+
   // Show dialog asking user to restart (use main window or first available window)
   const targetWindow = mainWindow && !mainWindow.isDestroyed() ? mainWindow : BrowserWindow.getAllWindows()[0];
   if (targetWindow) {
@@ -410,7 +421,7 @@ app.on('browser-window-created', (event, window) => {
 app.whenReady().then(() => {
   // Create splash screen first
   createSplashScreen();
-  
+
   // Create main window
   createWindow();
 
@@ -448,7 +459,7 @@ app.on('window-all-closed', () => {
     // Clean up monitoring
     stopPortPolling();
     stopConnectionMonitoring();
-    
+
     app.quit();
   }
 });
@@ -457,16 +468,16 @@ app.on('window-all-closed', () => {
 async function autoConnectToTargetDevice() {
   try {
     const ports = await getPortsWithFallback();
-    const targetPort = ports.find(port => 
-      port.vendorId && port.productId && 
-      port.vendorId.toUpperCase() === TARGET_VENDOR_ID && 
+    const targetPort = ports.find(port =>
+      port.vendorId && port.productId &&
+      port.vendorId.toUpperCase() === TARGET_VENDOR_ID &&
       port.productId.toUpperCase() === TARGET_PRODUCT_ID
     );
 
     if (targetPort) {
       console.log(`[AUTO] Matching device found (VID: ${targetPort.vendorId} PID: ${targetPort.productId}) on ${targetPort.path}`);
       console.log(`[AUTO/IPC] connect requested: ${targetPort.path} 115200`);
-      
+
       const result = await connectSerial(targetPort.path, 115200);
       if (result.success) {
         console.log(`[AUTO] Successfully connected to ${targetPort.path}`);
@@ -588,12 +599,12 @@ async function connectSerial(portPath, baudRate) {
     serialPort.on('data', (data) => {
       lastDataTime = Date.now(); // Update last data time
       rxBuffer = Buffer.concat([rxBuffer, data]);
-      
+
       // Send raw data to renderer
       if (mainWindow) {
         mainWindow.webContents.send('data-chunk', data.toString('hex'));
       }
-      
+
       // Process complete packets (for normal data)
       processRxBuffer();
     });
@@ -615,7 +626,7 @@ async function connectSerial(portPath, baudRate) {
     // Update connection state
     isConnected = true;
     lastDataTime = Date.now();
-    
+
     // Send connection status to all windows
     sendConnectionStatusToAllWindows({ connected: true, port: portPath, baudRate: baudRate });
 
@@ -634,12 +645,12 @@ function processRxBuffer() {
     if (rxBuffer[0] === 0x11 && rxBuffer[1] === 0x11 && rxBuffer[2] === 0x11) {
       const fanSpeedPacket = rxBuffer.slice(0, 4);
       console.log('4-byte fan speed packet received:', fanSpeedPacket.toString('hex'));
-      
+
       // Send to renderer
       if (mainWindow) {
         mainWindow.webContents.send('data-received', fanSpeedPacket);
       }
-      
+
       // Remove the 4-byte packet from buffer
       rxBuffer = rxBuffer.slice(4);
       continue;
@@ -648,12 +659,12 @@ function processRxBuffer() {
     else if (rxBuffer[0] === 0x22 && rxBuffer[1] === 0x22 && rxBuffer[2] === 0x22) {
       const heaterModePacket = rxBuffer.slice(0, 4);
       console.log('4-byte heater mode packet received:', heaterModePacket.toString('hex'));
-      
+
       // Send to renderer
       if (mainWindow) {
         mainWindow.webContents.send('data-received', heaterModePacket);
       }
-      
+
       // Remove the 4-byte packet from buffer
       rxBuffer = rxBuffer.slice(4);
       continue;
@@ -662,12 +673,12 @@ function processRxBuffer() {
     else if (rxBuffer[0] === 0x33 && rxBuffer[1] === 0x33 && rxBuffer[2] === 0x33) {
       const heaterTempPacket = rxBuffer.slice(0, 4);
       console.log('4-byte heater temperature packet received:', heaterTempPacket.toString('hex'));
-      
+
       // Send to renderer
       if (mainWindow) {
         mainWindow.webContents.send('data-received', heaterTempPacket);
       }
-      
+
       // Remove the 4-byte packet from buffer
       rxBuffer = rxBuffer.slice(4);
       continue;
@@ -676,12 +687,12 @@ function processRxBuffer() {
     else if (rxBuffer[0] === 0x44 && rxBuffer[1] === 0x44 && rxBuffer[2] === 0x44) {
       const coolerStatePacket = rxBuffer.slice(0, 4);
       console.log('4-byte cooler state packet received:', coolerStatePacket.toString('hex'));
-      
+
       // Send to renderer
       if (mainWindow) {
         mainWindow.webContents.send('data-received', coolerStatePacket);
       }
-      
+
       // Remove the 4-byte packet from buffer
       rxBuffer = rxBuffer.slice(4);
       continue;
@@ -690,7 +701,7 @@ function processRxBuffer() {
       break;
     }
   }
-  
+
   // Look for complete 56-byte packets with proper headers and footers
   while (rxBuffer.length >= 56) {
     // Find sync header 0x55 0x55
@@ -701,23 +712,23 @@ function processRxBuffer() {
         break;
       }
     }
-    
+
     if (startIdx < 0) {
       // No header found; discard all but last byte to avoid unbounded growth
       rxBuffer = rxBuffer.slice(rxBuffer.length - 1);
       break;
     }
-    
+
     // If not enough bytes after header for a full 56-byte frame, wait for more
     if (rxBuffer.length < startIdx + 56) {
       // Keep buffer from header onwards
       rxBuffer = rxBuffer.slice(startIdx);
       break;
     }
-    
+
     // Candidate frame
     const frame = rxBuffer.slice(startIdx, startIdx + 56);
-    
+
     // Validate footer 0xAA 0xAA at bytes 54..55
     if (frame[54] === 0xAA && frame[55] === 0xAA) {
       // Send binary data to renderer
@@ -740,13 +751,13 @@ function startPortPolling() {
   if (portsPollIntervalId) {
     clearInterval(portsPollIntervalId);
   }
-  
+
   portsPollIntervalId = setInterval(async () => {
     try {
       const currentPorts = await getPortsWithFallback();
       const currentPaths = currentPorts.map(p => p.path).sort();
       const lastPaths = lastKnownPorts.map(p => p.path).sort();
-      
+
       // Check if port list changed
       if (JSON.stringify(currentPaths) !== JSON.stringify(lastPaths)) {
         console.log('[PORT POLL] Port list changed');
@@ -754,14 +765,14 @@ function startPortPolling() {
         if (mainWindow) {
           mainWindow.webContents.send('ports-update', currentPorts);
         }
-        
+
         // Check for target device hot-plug (normal mode)
-        const targetPort = currentPorts.find(port => 
-          port.vendorId && port.productId && 
-          port.vendorId.toUpperCase() === TARGET_VENDOR_ID && 
+        const targetPort = currentPorts.find(port =>
+          port.vendorId && port.productId &&
+          port.vendorId.toUpperCase() === TARGET_VENDOR_ID &&
           port.productId.toUpperCase() === TARGET_PRODUCT_ID
         );
-        
+
         if (targetPort && !isConnected) {
           console.log('[HOT-PLUG] Target device detected, attempting auto-connect');
           const result = await connectSerial(targetPort.path, 115200);
@@ -797,12 +808,12 @@ function startConnectionMonitoring() {
   if (connectionMonitorIntervalId) {
     clearInterval(connectionMonitorIntervalId);
   }
-  
+
   connectionMonitorIntervalId = setInterval(async () => {
     if (!isConnected) {
       return; // Not connected, nothing to monitor
     }
-    
+
     // Handle Serial Port monitoring
     if (serialPort) {
       // Check if port is still open
@@ -831,90 +842,90 @@ function processBootloaderResponse(data) {
   // USB HID sends fixed 64-byte packets with zero padding after EOT
   // Find the actual data by looking for EOT and trimming padding
   // Each USB packet contains exactly ONE complete frame
-  
+
   // Trim trailing zeros (padding) from the incoming data
   let trimmedLength = data.length;
   while (trimmedLength > 0 && data[trimmedLength - 1] === 0x00) {
     trimmedLength--;
   }
-  
+
   // If the last non-zero byte is EOT, include it
   if (trimmedLength > 0 && trimmedLength < data.length) {
     // Keep the actual frame data only
     data = data.slice(0, trimmedLength);
   }
-  
+
   // Clear previous buffer and use fresh data for each USB packet
   // USB HID always sends complete frames in one packet
   bootloaderRxBuffer = data;
-  
+
   console.log(`[BOOTLOADER] Processing response data: ${bootloaderRxBuffer.toString('hex')} (${bootloaderRxBuffer.length} bytes)`);
-  
+
   // Process frames - device may send with or without SOH
   while (bootloaderRxBuffer.length > 0) {
     // Find EOT (0x04) - end of frame marker (not escaped)
     let eotIndex = -1;
     let escape = false;
-    
+
     for (let i = 0; i < bootloaderRxBuffer.length; i++) {
       const byte = bootloaderRxBuffer[i];
-      
+
       if (byte === DLE && !escape) {
         escape = true;
         continue;
       }
-      
+
       if (byte === EOT && !escape) {
         eotIndex = i;
         break;
       }
-      
+
       escape = false;
     }
-    
+
     if (eotIndex < 0) {
       // No EOT found yet, wait for more data
       break;
     }
-    
+
     // Check if frame starts with SOH
     let frameStart = 0;
     if (bootloaderRxBuffer[0] === SOH) {
       frameStart = 1; // Skip SOH
     }
-    
+
     // Need at least: CMD(1) + CRC(2) + EOT(1) = 4 bytes minimum (after SOH if present)
     if (eotIndex - frameStart < 3) {
       // Frame too short, discard and continue
       bootloaderRxBuffer = bootloaderRxBuffer.slice(eotIndex + 1);
       continue;
     }
-    
+
     // Decode the frame data (handle DLE escaping)
     const decodedData = [];
     escape = false;
-    
+
     for (let i = frameStart; i < eotIndex; i++) {
       const byte = bootloaderRxBuffer[i];
-      
+
       if (byte === DLE && !escape) {
         // Escape character - next byte is data, not control
         escape = true;
         continue;
       }
-      
+
       if (byte === SOH && !escape) {
         // Start of new frame (not escaped) - restart decoding from here
         decodedData.length = 0;
         escape = false;
         continue;
       }
-      
+
       // This byte is data (either regular data or escaped special byte)
       decodedData.push(byte);
       escape = false;
     }
-    
+
     // We have a complete frame, decodedData contains: CMD + DATA + CRC(2)
     if (decodedData.length < 3) {
       // Frame too short (need at least CMD + CRC)
@@ -922,24 +933,24 @@ function processBootloaderResponse(data) {
       bootloaderRxBuffer = bootloaderRxBuffer.slice(eotIndex + 1);
       continue;
     }
-    
+
     const cmd = decodedData[0];
     const frameData = decodedData.slice(1, decodedData.length - 2); // DATA portion
     const crcReceived = decodedData[decodedData.length - 2] | (decodedData[decodedData.length - 1] << 8);
-    
+
     // Calculate CRC for received data (CMD + DATA) - same as C code
     const crcPayload = Buffer.from([cmd, ...frameData]);
     const crcCalculated = calculateBootloaderCRC(crcPayload);
-    
+
     console.log(`[BOOTLOADER] Frame: CMD=0x${cmd.toString(16)}, DATA=${Buffer.from(frameData).toString('hex') || '(empty)'}, CRC_recv=0x${crcReceived.toString(16).padStart(4, '0')}, CRC_calc=0x${crcCalculated.toString(16).padStart(4, '0')}`);
-    
+
     if (crcCalculated === crcReceived) {
       const responseData = Buffer.from(frameData);
       console.log(`[BOOTLOADER] ✓ Valid response received for command ${cmd}, data length: ${responseData.length}`);
       if (responseData.length > 0) {
         console.log(`[BOOTLOADER] Response data: ${responseData.toString('hex')}`);
       }
-      
+
       // Store response data and resolve waiting promise
       bootloaderResponseData = { cmd, data: responseData, success: true, responseData };
       if (bootloaderResponsePromise && bootloaderResponsePromise.resolve) {
@@ -959,7 +970,7 @@ function processBootloaderResponse(data) {
       } else {
         console.log(`[BOOTLOADER] ⚠ No promise waiting for command ${cmd} response`);
       }
-      
+
       // For PROGRAM_FLASH responses, we need to continue sending more batches
       if (cmd === PROGRAM_FLASH) {
         if (typeof global.bootloaderProgramContinue === 'function') {
@@ -979,7 +990,7 @@ function processBootloaderResponse(data) {
         bootloaderResponsePromise = null;
       }
     }
-    
+
     // Remove processed frame from buffer
     bootloaderRxBuffer = bootloaderRxBuffer.slice(eotIndex + 1);
   }
@@ -1015,12 +1026,12 @@ ipcMain.handle('disconnect-from-port', async () => {
       });
       serialPort = null;
     }
-    
+
     // Update connection state
     isConnected = false;
-    
+
     sendConnectionStatusToAllWindows({ connected: false });
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error disconnecting from port:', error);
@@ -1051,16 +1062,16 @@ ipcMain.handle('send-fan-speed', async (event, value) => {
   }
 });
 
-// Send heater temperature: format ':T<value>;\n' value 20..70
+// Send heater temperature: format ':T<value>;\n' value 20..110
 ipcMain.handle('send-heater-temp', async (event, value) => {
   try {
-    const v = Math.max(20, Math.min(70, parseInt(value)));
+    const v = Math.max(20, Math.min(110, parseInt(value)));
     if (!serialPort || !serialPort.isOpen) {
       return { success: false, error: 'Not connected' };
     }
     // Build byte array: [0x3A, 0x54, value_byte, 0x3B, 0x0A]
     const bytes = [0x3A, 0x54]; // ':' and 'T'
-    bytes.push(v); // value as single byte (20-70)
+    bytes.push(v); // value as single byte (20-110)
     bytes.push(0x3B, 0x0A); // ';' and '\n'
     const payload = Buffer.from(bytes);
     await new Promise((resolve, reject) => {
@@ -1121,7 +1132,7 @@ ipcMain.handle('send-pid-value', async (event, type, value) => {
     if (!serialPort || !serialPort.isOpen) {
       return { success: false, error: 'Not connected' };
     }
-    
+
     // Determine command letter based on type
     let commandLetter;
     if (type === 'P') {
@@ -1133,7 +1144,7 @@ ipcMain.handle('send-pid-value', async (event, type, value) => {
     } else {
       return { success: false, error: 'Invalid PID type' };
     }
-    
+
     // Parse value as float
     let floatValue;
     if (typeof value === 'string') {
@@ -1150,23 +1161,23 @@ ipcMain.handle('send-pid-value', async (event, type, value) => {
         return { success: false, error: 'Invalid value format - must be a number' };
       }
     }
-    
+
     // Create a buffer to hold the float value (4 bytes)
     const floatBuffer = Buffer.allocUnsafe(4);
     floatBuffer.writeFloatLE(floatValue, 0); // Write float as little-endian (4 bytes)
-    
+
     // Build byte array: [0x3A, commandLetter, float_byte1, float_byte2, float_byte3, float_byte4, 0x3B, 0x0A]
     const bytes = [0x3A, commandLetter]; // ':' and command letter (X, Y, or Z)
     bytes.push(floatBuffer[0], floatBuffer[1], floatBuffer[2], floatBuffer[3]); // 4 bytes of float value
     bytes.push(0x3B, 0x0A); // ';' and '\n'
     const payload = Buffer.from(bytes);
-    
+
     await new Promise((resolve, reject) => {
       serialPort.write(payload, (err) => {
         if (err) reject(err); else resolve();
       });
     });
-    
+
     console.log(`PID ${type} value sent: ${floatValue} (4-byte float: ${floatBuffer.toString('hex')})`);
     return { success: true };
   } catch (e) {
@@ -1235,19 +1246,19 @@ const crcTable = [
 function calculateBootloaderCRC(data) {
   let crc = 0;
   let i;
-  
+
   for (let idx = 0; idx < data.length; idx++) {
     const byte = data[idx];
-    
+
     // Process high nibble
     i = ((crc >> 12) ^ (byte >> 4)) & 0x0F;
     crc = (crcTable[i] ^ (crc << 4)) & 0xFFFF;
-    
+
     // Process low nibble
     i = ((crc >> 12) ^ (byte & 0x0F)) & 0x0F;
     crc = (crcTable[i] ^ (crc << 4)) & 0xFFFF;
   }
-  
+
   return crc & 0xFFFF;
 }
 
@@ -1257,21 +1268,21 @@ function buildBootloaderFrame(cmd, data = Buffer.alloc(0)) {
   // First, build the payload (CMD + DATA) and calculate CRC
   const payload = Buffer.concat([Buffer.from([cmd]), data]);
   const crc = calculateBootloaderCRC(payload);
-  
+
   // Add CRC bytes to payload
   const payloadWithCrc = Buffer.concat([
-    payload, 
+    payload,
     Buffer.from([crc & 0xFF, (crc >> 8) & 0xFF])
   ]);
-  
+
   // Now build the frame with escaping (matching C code exactly)
   // Worst case: every byte needs escaping, so frame could be 2x payload + 2 (SOH + EOT)
   const frame = Buffer.alloc(2 + payloadWithCrc.length * 2);
   let offset = 0;
-  
+
   // SOH: Start of header (not escaped)
   frame[offset++] = SOH;
-  
+
   // Insert DLE escape character before SOH, EOT, and DLE in the data
   for (let i = 0; i < payloadWithCrc.length; i++) {
     const byte = payloadWithCrc[i];
@@ -1280,10 +1291,10 @@ function buildBootloaderFrame(cmd, data = Buffer.alloc(0)) {
     }
     frame[offset++] = byte;
   }
-  
+
   // EOT: End of transmission (not escaped)
   frame[offset++] = EOT;
-  
+
   // Return only the used portion of the buffer
   return frame.slice(0, offset);
 }
@@ -1295,47 +1306,47 @@ function buildBootloaderFrame(cmd, data = Buffer.alloc(0)) {
 function parseHexFile(hexContent) {
   const lines = hexContent.split('\n').filter(line => line.trim().length > 0);
   const records = [];
-  
+
   for (const line of lines) {
     if (line[0] !== ':') continue; // Skip invalid lines
-    
+
     // Convert the entire hex record (after ':') to bytes
     // Format: length(1) + address(2) + type(1) + data(N) + checksum(1)
     const hexData = line.substr(1).trim(); // Remove ':' and whitespace
     const matches = hexData.match(/.{1,2}/g);
     if (!matches) continue;
-    
+
     const recordBytes = Buffer.from(matches.map(b => parseInt(b, 16)));
-    
+
     if (recordBytes.length < 5) continue; // Invalid record (minimum: length + addr + type + checksum)
-    
+
     const byteCount = recordBytes[0];
     const address = (recordBytes[1] << 8) | recordBytes[2];
     const recordType = recordBytes[3];
-    
+
     // Record type 0x01 = End of File - stop parsing
     if (recordType === 0x01) {
       console.log(`[BOOTLOADER] Hex file parsing complete: ${records.length} records`);
       break;
     }
-    
+
     // Include ALL record types for bootloader (not just data records!)
     // Type 0x00 = Data Record
     // Type 0x02 = Extended Segment Address Record (sets upper 16 bits of address)
     // Type 0x04 = Extended Linear Address Record (sets upper 16 bits of address)
     // The bootloader needs these address records to know WHERE to write data!
-    
+
     // Extract data bytes (if any)
     const dataBytes = byteCount > 0 ? recordBytes.slice(4, 4 + byteCount) : Buffer.alloc(0);
-    
+
     // Store record for bootloader
-    records.push({ 
-      address, 
+    records.push({
+      address,
       rawRecord: recordBytes, // Raw hex record bytes sent to bootloader
       data: dataBytes,        // Just the data portion
-      type: recordType 
+      type: recordType
     });
-    
+
     // Log extended address records for debugging
     if (recordType === 0x02) {
       const extSegAddr = ((dataBytes[0] << 8) | dataBytes[1]) << 4;
@@ -1345,7 +1356,7 @@ function parseHexFile(hexContent) {
       console.log(`[BOOTLOADER] Extended Linear Address: 0x${extLinAddr.toString(16).padStart(8, '0')}`);
     }
   }
-  
+
   console.log(`[BOOTLOADER] Parsed ${records.length} hex records (including address records)`);
   return records;
 }
@@ -1357,7 +1368,7 @@ function calculateFlashCRCFromHexFile(hexContent) {
   // Initialize with pattern 0x00FFFFFF (every 4th byte is 0x00, others are 0xFF)
   const FLASH_SIZE = 5 * 1024 * 1024; // 5 MB
   const virtualFlash = Buffer.alloc(FLASH_SIZE);
-  
+
   // Fill with pattern: 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, ...
   for (let i = 0; i < FLASH_SIZE; i++) {
     if ((i + 1) % 4 === 0) {
@@ -1366,18 +1377,18 @@ function calculateFlashCRCFromHexFile(hexContent) {
       virtualFlash[i] = 0xFF;
     }
   }
-  
+
   // Parse hex file and write to virtual flash
   const lines = hexContent.split('\n').filter(line => line.trim().length > 0);
-  
+
   let extLinAddress = 0;  // Extended linear address (record type 04)
   let extSegAddress = 0;  // Extended segment address (record type 02)
   let minAddress = 0xFFFFFFFF;
   let maxAddress = 0;
-  
+
   for (const line of lines) {
     if (line[0] !== ':') continue;
-    
+
     // Parse hex record: :LLAAAATT[DD...]CC
     const hexData = line.substr(1);
     const bytes = [];
@@ -1387,19 +1398,19 @@ function calculateFlashCRCFromHexFile(hexContent) {
         bytes.push(parseInt(byteStr, 16));
       }
     }
-    
+
     if (bytes.length < 5) continue;
-    
+
     const recDataLen = bytes[0];
     const recAddress = (bytes[1] << 8) | bytes[2];
     const recType = bytes[3];
     const data = bytes.slice(4, 4 + recDataLen);
-    
+
     switch (recType) {
       case 0x00: // DATA_RECORD
         // Calculate full address
         let progAddress = (recAddress + extLinAddress + extSegAddress) & 0xFFFFFFFF;
-        
+
         // Make sure we are not writing boot sector
         if (progAddress < BOOT_SECTOR_BEGIN) {
           // Update max/min addresses
@@ -1409,24 +1420,24 @@ function calculateFlashCRCFromHexFile(hexContent) {
           if (minAddress > progAddress) {
             minAddress = progAddress;
           }
-          
+
           // Write to virtual flash
           for (let i = 0; i < data.length && (progAddress + i) < FLASH_SIZE; i++) {
             virtualFlash[progAddress + i] = data[i];
           }
         }
         break;
-        
+
       case 0x02: // EXT_SEG_ADRS_RECORD
         extSegAddress = ((data[0] << 16) & 0x00FF0000) | ((data[1] << 8) & 0x0000FF00);
         extLinAddress = 0;
         break;
-        
+
       case 0x04: // EXT_LIN_ADRS_RECORD
         extLinAddress = ((data[0] << 24) & 0xFF000000) | ((data[1] << 16) & 0x00FF0000);
         extSegAddress = 0;
         break;
-        
+
       case 0x01: // END_OF_FILE_RECORD
       default:
         extSegAddress = 0;
@@ -1434,35 +1445,35 @@ function calculateFlashCRCFromHexFile(hexContent) {
         break;
     }
   }
-  
+
   // Align addresses to 4-byte boundary (matching C code)
   minAddress -= minAddress % 4;
   maxAddress += maxAddress % 4;
-  
+
   // Calculate program length and start address (matching C code)
   const progLen = maxAddress - minAddress;
   const startAddress = Math.floor(minAddress / 2); // C code divides by 2
-  
+
   // Calculate CRC16 over the virtual flash region
   const flashRegion = virtualFlash.slice(minAddress, minAddress + progLen);
   const crc = calculateBootloaderCRC(flashRegion);
-  
+
   console.log(`[BOOTLOADER] Flash verification:`);
   console.log(`[BOOTLOADER]   MinAddress=0x${minAddress.toString(16)}, MaxAddress=0x${maxAddress.toString(16)}`);
   console.log(`[BOOTLOADER]   StartAddress=0x${startAddress.toString(16)} (MinAddress/2)`);
   console.log(`[BOOTLOADER]   Length=${progLen} bytes (0x${progLen.toString(16)})`);
   console.log(`[BOOTLOADER]   Calculated CRC=0x${crc.toString(16).padStart(4, '0')}`);
-  
+
   // Log first few bytes of virtual flash to verify data
   const sampleStart = minAddress;
   const sampleBytes = virtualFlash.slice(sampleStart, Math.min(sampleStart + 32, sampleStart + progLen));
   console.log(`[BOOTLOADER]   First 32 bytes at 0x${sampleStart.toString(16)}: ${sampleBytes.toString('hex')}`);
-  
+
   // Store for use in READ_CRC command
   bootloaderFlashStartAddress = startAddress;
   bootloaderFlashLength = progLen;
   bootloaderExpectedCRC = crc;
-  
+
   return { startAddress, progLen, crc };
 }
 
@@ -1486,53 +1497,53 @@ async function sendBootloaderCommand(cmd, data = Buffer.alloc(0), retries = 3, d
   // Check if connected via USB HID or Serial Port
   const isUsbHid = usbHidDevice !== null;
   const isSerial = serialPort && serialPort.isOpen;
-  
+
   if (!isUsbHid && !isSerial) {
     throw new Error('Not connected - please connect via COM or USB');
   }
-  
+
   const frame = buildBootloaderFrame(cmd, data);
-  
+
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       console.log(`[BOOTLOADER] Sending command ${cmd}, attempt ${attempt}/${retries} via ${isUsbHid ? 'USB HID' : 'Serial'}`);
-      
+
       if (isUsbHid) {
         // Send via USB HID - matching C code's WriteUSBDevice() function
         // C code sends data in MULTIPLE 64-byte USB packets if frame is larger than 64 bytes
         // Each packet: UsbReport[0] = 0 (report ID), UsbReport[1..64] = data, padded with 0xFF
         const USB_BUFFER_SIZE = 64;
-        
+
         try {
           // Check if device is still connected before writing
           if (!usbHidDevice) {
             throw new Error('USB HID device not connected');
           }
-          
+
           // Send the frame in chunks of 64 bytes (matching C code's while loop)
           let bytesRemaining = frame.length;
           let frameOffset = 0;
           let packetCount = 0;
-          
+
           while (bytesRemaining > 0) {
             // Create a new HID packet for each chunk
             const hidPacket = Buffer.alloc(USB_BUFFER_SIZE + 1); // 65 bytes total
             hidPacket.fill(0xFF); // Fill with 0xFF like C code does
             hidPacket[0] = 0; // Report ID at position 0
-            
+
             // Copy up to 64 bytes of frame data starting at position 1
             const bytesToCopy = Math.min(bytesRemaining, USB_BUFFER_SIZE);
             frame.copy(hidPacket, 1, frameOffset, frameOffset + bytesToCopy);
-            
+
             // Convert buffer to array of numbers for node-hid
             const packetArray = Array.from(hidPacket);
             usbHidDevice.write(packetArray);
-            
+
             frameOffset += USB_BUFFER_SIZE;
             bytesRemaining -= USB_BUFFER_SIZE;
             packetCount++;
           }
-          
+
           // Log packet info
           if (cmd !== PROGRAM_FLASH) {
             console.log(`[BOOTLOADER] USB HID sent ${packetCount} packet(s) for ${frame.length} bytes frame`);
@@ -1560,14 +1571,14 @@ async function sendBootloaderCommand(cmd, data = Buffer.alloc(0), retries = 3, d
           });
         });
       }
-      
+
       // For PROGRAM_FLASH, don't wait for response (non-blocking like C code)
       // But we still log that it was sent
       if (cmd === PROGRAM_FLASH) {
         console.log(`[BOOTLOADER] PROGRAM_FLASH command sent (${data.length} bytes of hex data)`);
         return { success: true };
       }
-      
+
       // Wait for response for other commands
       // For USB HID, responses are handled asynchronously via the 'data' event
       // For Serial, responses are in rxBuffer
@@ -1579,11 +1590,11 @@ async function sendBootloaderCommand(cmd, data = Buffer.alloc(0), retries = 3, d
           reject: null,
           expectedCmd: cmd  // Track which command we're waiting for
         };
-        
+
         const responsePromise = new Promise((resolve, reject) => {
           bootloaderResponsePromise.resolve = resolve;
           bootloaderResponsePromise.reject = reject;
-          
+
           // Set timeout - increase significantly for READ_CRC which may take longer to calculate
           const timeoutMs = (cmd === READ_CRC) ? delayMs + 10000 : delayMs + 2000; // 10 seconds for READ_CRC
           const timeoutId = setTimeout(() => {
@@ -1593,15 +1604,15 @@ async function sendBootloaderCommand(cmd, data = Buffer.alloc(0), retries = 3, d
               reject(new Error('Timeout waiting for response'));
             }
           }, timeoutMs);
-          
+
           // Store timeout ID so we can clear it if response arrives
           if (bootloaderResponsePromise) {
             bootloaderResponsePromise.timeoutId = timeoutId;
           }
         });
-        
+
         console.log(`[BOOTLOADER] Command ${cmd} sent via USB HID, waiting for response...`);
-        
+
         try {
           const response = await responsePromise;
           if (response && response.success) {
@@ -1620,7 +1631,7 @@ async function sendBootloaderCommand(cmd, data = Buffer.alloc(0), retries = 3, d
         // TODO: Parse response from rxBuffer for serial port
         return { success: true };
       }
-      
+
     } catch (error) {
       console.error(`[BOOTLOADER] Command ${cmd} attempt ${attempt} failed:`, error);
       if (attempt === retries) {
@@ -1641,21 +1652,21 @@ ipcMain.handle('send-bootloader', async (event, value) => {
     if (!serialPort || !serialPort.isOpen) {
       return { success: false, error: 'Not connected' };
     }
-    
+
     // Build byte array: [0x3A, 0x4B, value_byte, 0x3B, 0x0A]
     // This sends ':K1;\n' to enter bootloader mode
     const bytes = [0x3A, 0x4B]; // ':' and 'K'
     bytes.push(parseInt(value)); // value as single byte (0 or 1)
     bytes.push(0x3B, 0x0A); // ';' and '\n'
     const payload = Buffer.from(bytes);
-    
+
     await new Promise((resolve, reject) => {
       serialPort.write(payload, (err) => {
         if (err) reject(err);
         else resolve();
       });
     });
-    
+
     console.log('Bootloader command sent:', payload.toString('hex'));
     return { success: true };
   } catch (error) {
@@ -1669,26 +1680,26 @@ ipcMain.handle('connect-to-bootloader-usb', async (event, vid, pid) => {
   try {
     // Parse VID and PID (handle both hex strings like "0x12BF" and numbers)
     let vendorId, productId;
-    
+
     if (typeof vid === 'string') {
       // Remove 0x prefix if present and convert to number
       vendorId = parseInt(vid.replace(/^0x/i, ''), 16);
     } else {
       vendorId = parseInt(vid);
     }
-    
+
     if (typeof pid === 'string') {
       // Remove 0x prefix if present and convert to number
       productId = parseInt(pid.replace(/^0x/i, ''), 16);
     } else {
       productId = parseInt(pid);
     }
-    
+
     // Validate VID and PID
     if (isNaN(vendorId) || isNaN(productId)) {
       return { success: false, error: 'Invalid VID or PID format' };
     }
-    
+
     // Close existing USB HID device if open
     if (usbHidDevice) {
       try {
@@ -1698,27 +1709,27 @@ ipcMain.handle('connect-to-bootloader-usb', async (event, vid, pid) => {
       }
       usbHidDevice = null;
     }
-    
+
     // Get list of all HID devices
     const devices = HID.devices();
-    
+
     // Find device matching VID and PID
-    const deviceInfo = devices.find(device => 
+    const deviceInfo = devices.find(device =>
       device.vendorId === vendorId && device.productId === productId
     );
-    
+
     if (!deviceInfo) {
-      return { 
-        success: false, 
-        error: `USB HID device with VID=0x${vendorId.toString(16).toUpperCase().padStart(4, '0')} and PID=0x${productId.toString(16).toUpperCase().padStart(4, '0')} not found` 
+      return {
+        success: false,
+        error: `USB HID device with VID=0x${vendorId.toString(16).toUpperCase().padStart(4, '0')} and PID=0x${productId.toString(16).toUpperCase().padStart(4, '0')} not found`
       };
     }
-    
+
     // Open the USB HID device
     try {
       usbHidDevice = new HID.HID(vendorId, productId);
       console.log(`[USB HID] Successfully connected to device VID=0x${vendorId.toString(16).toUpperCase().padStart(4, '0')} PID=0x${productId.toString(16).toUpperCase().padStart(4, '0')}`);
-      
+
       // Set up USB HID data handler for receiving bootloader responses
       // node-hid returns data as Buffer, first byte is report ID (skip it)
       usbHidDevice.on('data', (data) => {
@@ -1736,7 +1747,7 @@ ipcMain.handle('connect-to-bootloader-usb', async (event, vid, pid) => {
           console.log(`[USB HID] Received empty data`);
         }
       });
-      
+
       usbHidDevice.on('error', (error) => {
         // If device disconnected (e.g., after jumping to app), this is expected
         if (error.message.includes('could not read') || error.message.includes('not connected')) {
@@ -1747,14 +1758,14 @@ ipcMain.handle('connect-to-bootloader-usb', async (event, vid, pid) => {
         usbHidDevice = null; // Clear the device reference
         sendConnectionStatusToAllWindows({ connected: false, error: error.message });
       });
-      
+
       // Send connection status to all windows
-      sendConnectionStatusToAllWindows({ 
-        connected: true, 
+      sendConnectionStatusToAllWindows({
+        connected: true,
         port: `USB HID (VID:0x${vendorId.toString(16).toUpperCase().padStart(4, '0')} PID:0x${productId.toString(16).toUpperCase().padStart(4, '0')})`,
-        isBootloader: true 
+        isBootloader: true
       });
-      
+
       return { success: true };
     } catch (error) {
       console.error('[USB HID] Error opening device:', error);
@@ -1782,26 +1793,26 @@ ipcMain.handle('bootloader-read-info', async (event) => {
 ipcMain.handle('bootloader-erase-flash', async (event) => {
   try {
     console.log('[BOOTLOADER] Erasing flash...');
-    
+
     // Send progress: erasing started
     sendBootloaderProgressToAllWindows({ step: 'erase', progress: 0, label: 'Erasing flash...' });
-    
+
     const result = await sendBootloaderCommand(ERASE_FLASH, Buffer.alloc(0), 3, 5000);
-    
+
     if (!result.success) {
       sendBootloaderProgressToAllWindows({ step: 'erase', progress: 0, label: 'Erase failed!' });
       bootloaderEraseProgVerify = false; // Reset flag on error
       return { success: false, error: result.error || 'Erase failed' };
     }
-    
+
     // Send progress: erase complete
     sendBootloaderProgressToAllWindows({ step: 'erase', progress: 100, label: 'Erase completed!' });
-    
+
     console.log('[BOOTLOADER] ✓ Flash erased successfully');
-    
+
     // Note: Automatic sequencing is handled by the UI's eraseProgramVerify function
     // which calls the handlers sequentially (Erase -> Program -> Verify)
-    
+
     return { success: true };
   } catch (error) {
     console.error('[BOOTLOADER] Erase failed:', error);
@@ -1818,36 +1829,36 @@ ipcMain.handle('bootloader-program-flash', async (event) => {
       console.log('[BOOTLOADER] ERROR: No hex file loaded - bootloaderHexRecords.length = 0');
       return { success: false, error: 'No hex file loaded' };
     }
-    
+
     console.log(`[BOOTLOADER] Starting programming: ${bootloaderHexRecords.length} hex records to program`);
-    
+
     // Send initial progress
     sendBootloaderProgressToAllWindows({ step: 'program', progress: 0, label: 'Starting programming...' });
-    
+
     // C code sends up to 10 hex records per PROGRAM_FLASH command
     // Each record is the raw hex record bytes: [length, addr_high, addr_low, type, data..., checksum]
     const RECORDS_PER_COMMAND = 10;
     const totalBatches = Math.ceil(bootloaderHexRecords.length / RECORDS_PER_COMMAND);
-    
+
     // Group records into batches of 10 (like C code does)
     for (let i = 0; i < bootloaderHexRecords.length; i += RECORDS_PER_COMMAND) {
       const batch = bootloaderHexRecords.slice(i, i + RECORDS_PER_COMMAND);
       const batchNumber = Math.floor(i / RECORDS_PER_COMMAND) + 1;
-      
+
       // Calculate and send progress
       const progressPercent = Math.round((batchNumber / totalBatches) * 100);
-      sendBootloaderProgressToAllWindows({ 
-        step: 'program', 
-        progress: progressPercent, 
-        label: `Programming ${batchNumber}/${totalBatches}...` 
+      sendBootloaderProgressToAllWindows({
+        step: 'program',
+        progress: progressPercent,
+        label: `Programming ${batchNumber}/${totalBatches}...`
       });
-      
+
       console.log(`[BOOTLOADER] Programming batch ${batchNumber}/${totalBatches} (${batch.length} records)`);
-      
+
       // Build command data: all hex record bytes (CMD byte is added by buildBootloaderFrame)
       const commandData = Buffer.alloc(1000); // Large enough buffer
       let offset = 0;
-      
+
       // Add all hex records in this batch
       for (const record of batch) {
         if (record.rawRecord) {
@@ -1862,7 +1873,7 @@ ipcMain.handle('bootloader-program-flash', async (event) => {
           const addrLow = record.address & 0xFF;
           const type = record.type || 0x00;
           const checksum = 0; // Will be calculated by hex file parser
-          
+
           commandData[offset++] = length;
           commandData[offset++] = addrHigh;
           commandData[offset++] = addrLow;
@@ -1872,7 +1883,7 @@ ipcMain.handle('bootloader-program-flash', async (event) => {
           commandData[offset++] = checksum;
         }
       }
-      
+
       // Send the command with all records in this batch
       const actualData = commandData.slice(0, offset);
       console.log(`[BOOTLOADER] Sending PROGRAM_FLASH batch ${batchNumber}/${totalBatches} with ${actualData.length} bytes of hex data`);
@@ -1883,7 +1894,7 @@ ipcMain.handle('bootloader-program-flash', async (event) => {
         console.error(`[BOOTLOADER] ✗ PROGRAM_FLASH batch ${batchNumber}/${totalBatches} failed:`, error);
         throw error; // Re-throw to stop programming
       }
-      
+
       // Wait between batches to allow device to process
       // Increase delay significantly to ensure device can process each batch
       if (i + RECORDS_PER_COMMAND < bootloaderHexRecords.length) {
@@ -1891,12 +1902,12 @@ ipcMain.handle('bootloader-program-flash', async (event) => {
         await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay between batches
       }
     }
-    
+
     console.log(`[BOOTLOADER] Programming completed: ${bootloaderHexRecords.length} records programmed`);
-    
+
     // Send final progress
     sendBootloaderProgressToAllWindows({ step: 'program', progress: 100, label: 'Programming completed!' });
-    
+
     if (bootloaderEraseProgVerify) {
       // Automatically start verification after programming
       // Wait longer for programming to complete before verifying
@@ -1905,7 +1916,7 @@ ipcMain.handle('bootloader-program-flash', async (event) => {
         await sendBootloaderCommand(READ_CRC, Buffer.alloc(0), 5, 10000);
       }, 2000); // Wait 2 seconds for programming to complete
     }
-    
+
     return { success: true };
   } catch (error) {
     console.error('[BOOTLOADER] Program failed:', error);
@@ -1917,48 +1928,48 @@ ipcMain.handle('bootloader-program-flash', async (event) => {
 ipcMain.handle('bootloader-read-crc', async (event) => {
   try {
     console.log('[BOOTLOADER] Reading CRC from device...');
-    
+
     // Send progress: verify started
     sendBootloaderProgressToAllWindows({ step: 'verify', progress: 0, label: 'Verifying flash...' });
-    
+
     // Build READ_CRC command data (matching C code exactly)
     // Data format: StartAddress (4 bytes LE) + Length (4 bytes LE) + CRC (2 bytes LE)
     const crcCommandData = Buffer.alloc(10);
-    
+
     // StartAddress (4 bytes, little-endian) - from hex file parsing
     crcCommandData[0] = bootloaderFlashStartAddress & 0xFF;
     crcCommandData[1] = (bootloaderFlashStartAddress >> 8) & 0xFF;
     crcCommandData[2] = (bootloaderFlashStartAddress >> 16) & 0xFF;
     crcCommandData[3] = (bootloaderFlashStartAddress >> 24) & 0xFF;
-    
+
     // Length (4 bytes, little-endian)
     crcCommandData[4] = bootloaderFlashLength & 0xFF;
     crcCommandData[5] = (bootloaderFlashLength >> 8) & 0xFF;
     crcCommandData[6] = (bootloaderFlashLength >> 16) & 0xFF;
     crcCommandData[7] = (bootloaderFlashLength >> 24) & 0xFF;
-    
+
     // Expected CRC (2 bytes, little-endian)
     crcCommandData[8] = bootloaderExpectedCRC & 0xFF;
     crcCommandData[9] = (bootloaderExpectedCRC >> 8) & 0xFF;
-    
+
     console.log(`[BOOTLOADER] Sending READ_CRC with: StartAddr=0x${bootloaderFlashStartAddress.toString(16)}, Len=${bootloaderFlashLength}, CRC=0x${bootloaderExpectedCRC.toString(16).padStart(4, '0')}`);
     console.log(`[BOOTLOADER] READ_CRC command data: ${crcCommandData.toString('hex')}`);
-    
+
     // Send READ_CRC with the proper data (5 retries, 8 second delay)
     const result = await sendBootloaderCommand(READ_CRC, crcCommandData, 5, 8000);
-    
+
     if (!result.success) {
       bootloaderEraseProgVerify = false;
       return { success: false, error: result.error || 'Failed to read CRC' };
     }
-    
+
     // Parse CRC from response
     // Response format: CRC_LOW (1 byte) + CRC_HIGH (1 byte)
     // The C code handler reads: crc = ((RxData[1] << 8) | RxData[0])
     let crcMatch = false;
     if (result.responseData) {
       console.log(`[BOOTLOADER] READ_CRC response data: ${result.responseData.toString('hex')} (${result.responseData.length} bytes)`);
-      
+
       let crcReceived;
       if (result.responseData.length >= 2) {
         // CRC bytes: low byte first, then high byte
@@ -1968,13 +1979,13 @@ ipcMain.handle('bootloader-read-crc', async (event) => {
         bootloaderEraseProgVerify = false;
         return { success: false, error: 'Invalid response data length' };
       }
-      
+
       const crcExpected = bootloaderExpectedCRC;
-      
+
       console.log(`[BOOTLOADER] CRC received: 0x${crcReceived.toString(16).padStart(4, '0')}, expected: 0x${crcExpected.toString(16).padStart(4, '0')}`);
-      
+
       crcMatch = (crcReceived === crcExpected);
-      
+
       if (crcMatch) {
         console.log('[BOOTLOADER] ✓ CRC verification successful - firmware matches');
         sendBootloaderProgressToAllWindows({ step: 'verify', progress: 100, label: 'Verification successful!' });
@@ -1986,7 +1997,7 @@ ipcMain.handle('bootloader-read-crc', async (event) => {
       console.log('[BOOTLOADER] ⚠ No response data received');
       sendBootloaderProgressToAllWindows({ step: 'verify', progress: 0, label: 'No response data received' });
     }
-    
+
     bootloaderEraseProgVerify = false; // Reset flag
     return { success: true, crcMatch };
   } catch (error) {
@@ -2022,9 +2033,9 @@ ipcMain.handle('bootloader-erase-program-verify', async (event) => {
     if (bootloaderHexRecords.length === 0) {
       return { success: false, error: 'No hex file loaded' };
     }
-    
+
     bootloaderEraseProgVerify = true;
-    
+
     // Start with erase - rest is automatic
     const result = await sendBootloaderCommand(ERASE_FLASH, Buffer.alloc(0), 3, 5000);
     return { success: true };
@@ -2039,16 +2050,16 @@ ipcMain.handle('bootloader-erase-program-verify', async (event) => {
 ipcMain.handle('load-hex-file', async (event, filePath) => {
   try {
     const hexContent = await fs.readFile(filePath, 'utf8');
-    
+
     // Parse hex file for programming
     bootloaderHexRecords = parseHexFile(hexContent);
-    
+
     // Calculate flash verification data (StartAddress, Length, CRC) - matching C code
     const flashInfo = calculateFlashCRCFromHexFile(hexContent);
-    
+
     console.log(`[BOOTLOADER] Loaded ${bootloaderHexRecords.length} hex records`);
     console.log(`[BOOTLOADER] Flash info: StartAddress=0x${flashInfo.startAddress.toString(16)}, Length=${flashInfo.progLen}, CRC=0x${flashInfo.crc.toString(16).padStart(4, '0')}`);
-    
+
     return { success: true, recordCount: bootloaderHexRecords.length };
   } catch (error) {
     console.error('[BOOTLOADER] Load hex file failed:', error);
@@ -2078,22 +2089,22 @@ ipcMain.handle('upload-hex-file', async (event, fileContent) => {
 ipcMain.handle('check-for-updates', async () => {
   try {
     if (!app.isPackaged) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: 'Update checking is only available in the packaged application.',
         isDev: true
       };
     }
-    
+
     // For electron-updater v6+, GitHub provider is read from package.json
     // No need to setFeedURL - it automatically uses GitHub from package.json publish config
     // But ensure it's configured correctly
     console.log('[UPDATE] Manual update check requested (using GitHub provider from package.json)');
-    
+
     // Use checkForUpdatesAndNotify - this works better with GitHub releases
     const result = await autoUpdater.checkForUpdatesAndNotify();
-    return { 
-      success: true, 
+    return {
+      success: true,
       currentVersion: app.getVersion(),
       message: 'Checking for updates...'
     };
@@ -2104,9 +2115,9 @@ ipcMain.handle('check-for-updates', async () => {
     if (error.message && (error.message.includes('app-update.yml') || error.message.includes('ENOENT'))) {
       errorMessage = 'Auto-updates not supported for portable version. Please download the latest version from: https://github.com/MuhammdAbdullah/Heat-Transfer/releases';
     }
-    return { 
-      success: false, 
-      error: errorMessage 
+    return {
+      success: false,
+      error: errorMessage
     };
   }
 });
@@ -2128,7 +2139,7 @@ ipcMain.handle('open-admin-panel', async () => {
       adminWindow.focus();
       return { success: true, alreadyOpen: true };
     }
-    
+
     // Create new admin window
     adminWindow = new BrowserWindow({
       width: 1200,
@@ -2205,7 +2216,7 @@ ipcMain.handle('open-graph-window', async () => {
     // Show window when ready
     graphWindow.once('ready-to-show', () => {
       graphWindow.show();
-      
+
       // Set up data communication after window is ready
       setTimeout(() => {
         if (mainWindow && mainWindow.webContents) {
