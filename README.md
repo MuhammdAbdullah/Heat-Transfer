@@ -4,10 +4,10 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 
 ## 📥 Download & Install
 
-**Latest Release: [v1.2.8](https://github.com/MuhammdAbdullah/Heat-Transfer/releases/latest)**
+**Latest Release: [v1.3.1](https://github.com/MuhammdAbdullah/Heat-Transfer/releases/latest)**
 
 1. Go to [Releases](https://github.com/MuhammdAbdullah/Heat-Transfer/releases)
-2. Download `Heat Transfer App Setup 1.2.8.exe` (Windows)
+2. Download `Heat Transfer App Setup 1.3.1.exe` (Windows)
 3. Run the installer and follow the setup wizard
 4. The app will automatically check for updates when you start it
 
@@ -306,7 +306,7 @@ All dependencies are included in `package.json` and will be installed with `npm 
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history and changes.
 
-**Current Version**: 1.2.8
+**Current Version**: 1.3.1
 
 ### Recent Updates
 - **Smart Chart Scaling**: Dynamic Y-axis step sizes and bounds for cleaner temperature (multiples of 5) and power (multiples of 5) visualization.
