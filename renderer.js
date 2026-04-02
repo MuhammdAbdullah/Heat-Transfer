@@ -1,5 +1,5 @@
 // --- Plotly graph state ---
-var chartData = { time: [], series: Array.from({ length: 12 }, function () { return []; }), enabled: Array.from({ length: 12 }, function () { return true; }) };
+var chartData = { time: [], series: Array.from({ length: 12 }, function() { return []; }), enabled: Array.from({ length: 12 }, function() { return true; }) };
 window.sharedTemperatures = {
     t1: 0,
     t2: 0,
@@ -21,13 +21,15 @@ var plotlyConfig = null;
 var chartInitialized = false;
 var popInitialized = false;
 var chartDivRef = null;
-var chartJsRef = null;
+var chartJsRef = null; // Chart 1: Temperature vs Time (T1-T7)
 
 // --- Temperature vs Distance graph state ---
 var distanceChartData = { samples: [] }; // Each sample is an array of 8 {x: distance, y: temperature} points in order T1-T8
-var distanceChartJsRef = null;
-var lastTemperatureValues = Array.from({ length: 8 }, function () { return null; }); // Store last T1-T8 values
+var distanceChartJsRef = null; // Chart 2: Temperature vs Distance
+var powerChartJsRef = null; // Chart 3: Power vs Time
+var lastTemperatureValues = Array.from({ length: 8 }, function() { return null; }); // Store last T1-T8 values
 
+// Chart 1: Temperature vs Time (T1-T7 only)
 function initChart() {
     // Initialize Chart.js chart if canvas exists
     var canvas = document.getElementById('testChart');
@@ -36,10 +38,12 @@ function initChart() {
         var themeColors = getChartThemeColors();
         canvas.style.background = themeColors.background;
         canvas.style.borderColor = themeColors.border;
-        var colors = ['#ff4d4f', '#40a9ff', '#73d13d', '#fa8c16', '#b37feb', '#36cfc9', '#f759ab', '#9254de', '#faad14', '#1f7a8c', '#ff0000', '#ff007a'];
-        var labels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target Temp'];
+        
+        // Only T1-T7 colors and labels
+        var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab'];
+        var labels = ['T1','T2','T3','T4','T5','T6','T7'];
         var datasets = [];
-        for (var i = 0; i < 12; i++) {
+        for (var i = 0; i < 7; i++) {
             datasets.push({
                 label: labels[i],
                 data: [],
@@ -47,8 +51,7 @@ function initChart() {
                 backgroundColor: colors[i],
                 borderWidth: 2,
                 pointRadius: 2,
-                tension: 0.2,
-                yAxisID: i === 10 ? 'y2' : 'y'
+                tension: 0.2
             });
         }
         chartJsRef = new Chart(ctx, {
@@ -61,12 +64,9 @@ function initChart() {
                 animation: false,
                 scales: {
                     x: {
+                        title: { display: true, text: 'Time (s)', color: themeColors.text },
                         grid: { color: themeColors.grid },
-                        ticks: {
-                            color: themeColors.text,
-                            maxRotation: 0,
-                            maxTicksLimit: 10
-                        }
+                        ticks: { color: themeColors.text }
                     },
                     y: {
                         type: 'linear',
@@ -74,42 +74,98 @@ function initChart() {
                         title: { display: true, text: 'Temperature (°C)', color: themeColors.text },
                         grid: { color: themeColors.grid },
                         ticks: { color: themeColors.text }
+                    }
+                },
+                plugins: { legend: { position: 'right', labels: { color: themeColors.text } } }
+            }
+        });
+        updateChartTheme();
+    }
+}
+
+// Chart 3: Power vs Time
+function initPowerChart() {
+    var canvas = document.getElementById('thirdChart');
+    if (canvas && window.Chart && !powerChartJsRef) {
+        var ctx = canvas.getContext('2d');
+        var themeColors = getChartThemeColors();
+        canvas.style.background = themeColors.background;
+        canvas.style.borderColor = themeColors.border;
+        
+        // Power dataset
+        var datasets = [{
+            label: 'Power',
+            data: [],
+            borderColor: '#ff0000',
+            backgroundColor: '#ff0000',
+            borderWidth: 2,
+            pointRadius: 2,
+            tension: 0.2
+        }];
+        
+        powerChartJsRef = new Chart(ctx, {
+            type: 'line',
+            data: { labels: [], datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'nearest', intersect: false },
+                animation: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time (s)', color: themeColors.text },
+                        grid: { color: themeColors.grid },
+                        ticks: { color: themeColors.text }
                     },
-                    y2: {
+                    y: {
                         type: 'linear',
-                        position: 'right',
-                        grid: { drawOnChartArea: false, color: themeColors.grid },
+                        position: 'left',
                         title: { display: true, text: 'Power (W)', color: themeColors.text },
+                        grid: { color: themeColors.grid },
                         ticks: { color: themeColors.text }
                     }
                 },
                 plugins: { legend: { position: 'right', labels: { color: themeColors.text } } }
             }
         });
-
-        // Handle window resize for responsive chart
-        window.addEventListener('resize', function () {
-            if (chartJsRef) {
-                chartJsRef.resize();
-            }
-            // Also resize distance chart if it exists
-            if (distanceChartJsRef) {
-                distanceChartJsRef.resize();
-            }
-            // Resize live chart if it exists
-            if (window.liveChartRef) {
-                window.liveChartRef.resize();
-            }
-        });
         updateChartTheme();
     }
+}
 
+// Handle window resize for all charts (only add once)
+if (!window.chartResizeHandlerAdded) {
+    window.addEventListener('resize', function() {
+        if (chartJsRef) {
+            chartJsRef.resize();
+        }
+        if (distanceChartJsRef) {
+            distanceChartJsRef.resize();
+        }
+        if (powerChartJsRef) {
+            powerChartJsRef.resize();
+        }
+        if (window.liveChartRef) {
+            window.liveChartRef.resize();
+        }
+        // Redraw radial connector lines on resize
+        var radialHeater = document.getElementById('radialHeater');
+        if (radialHeater && radialHeater.style.display !== 'none') {
+            setTimeout(function() {
+                drawRadialConnectorLines();
+            }, 100);
+        }
+    });
+    window.chartResizeHandlerAdded = true;
+}
+
+// Initialize Plotly chart (legacy support)
+function initPlotlyChart() {
     var chartDiv = document.getElementById('tempChart');
     if (!chartDiv) { return; }
     chartDivRef = chartDiv;
 
     // Define colors for each series (same as original)
-    var colors = ['#ff4d4f', '#40a9ff', '#73d13d', '#fa8c16', '#b37feb', '#36cfc9', '#f759ab', '#9254de', '#faad14', '#1f7a8c', '#ff0000', '#ff007a'];
+	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
     var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target Temp'];
 
     // Create initial empty traces
@@ -179,7 +235,7 @@ function initChart() {
     var closeBtn = document.getElementById('closeOverlay');
     var popDiv = document.getElementById('tempChartPop');
     if (overlay && popDiv) {
-        chartDiv.addEventListener('click', function () {
+		chartDiv.addEventListener('click', function(){ 
             overlay.className = '';
             // Copy the main plot to popout with current data
             var PlotlyRef = window.Plotly;
@@ -196,14 +252,14 @@ function initChart() {
             }
             redrawChart();
         });
-        if (closeBtn) closeBtn.addEventListener('click', function () { overlay.className = 'overlay-hidden'; });
+		if (closeBtn) closeBtn.addEventListener('click', function(){ overlay.className = 'overlay-hidden'; });
     }
 
     hoverInfoEl = document.getElementById('hoverInfo');
     var pauseEl = document.getElementById('pauseGraph');
 
     // Set up hover event
-    chartDiv.on('plotly_hover', function (data) {
+    chartDiv.on('plotly_hover', function(data) {
         if (hoverInfoEl && data.points.length > 0) {
             var point = data.points[0];
             var time = point.x;
@@ -213,120 +269,9 @@ function initChart() {
         }
     });
 
-    chartDiv.on('plotly_unhover', function () {
+    chartDiv.on('plotly_unhover', function() {
         if (hoverInfoEl) hoverInfoEl.textContent = 'Hover for details…';
     });
-}
-
-function autoScaleChartJs(chart) {
-    if (!chart || !chart.data || !chart.options || !chart.options.scales) return;
-    var tempValues = [];
-    var powerValues = [];
-    var visibleTempDatasets = 0;
-    var visiblePowerDatasets = 0;
-
-    for (var i = 0; i < chart.data.datasets.length; i++) {
-        var dataset = chart.data.datasets[i];
-        try {
-            var meta = chart.getDatasetMeta(i);
-            if (!meta.hidden && !dataset.hidden) {
-                var isPower = (dataset.yAxisID === 'y2' || dataset.label === 'Power');
-                for (var j = 0; j < dataset.data.length; j++) {
-                    var val = dataset.data[j];
-                    if (val !== null && val !== undefined && !isNaN(val)) {
-                        if (isPower) {
-                            powerValues.push(val);
-                            visiblePowerDatasets++;
-                        } else {
-                            tempValues.push(val);
-                            visibleTempDatasets++;
-                        }
-                    }
-                }
-            }
-        } catch (e) {
-            // ignore if meta fails
-        }
-    }
-
-    if (tempValues.length > 0 && visibleTempDatasets > 0 && chart.options.scales.y) {
-        var tempMin = Math.min.apply(null, tempValues);
-        var tempMax = Math.max.apply(null, tempValues);
-        var tempRange = tempMax - tempMin;
-        var tempPadding = Math.max(tempRange * 0.15, 5);
-        var newTempMin = tempMin - tempPadding;
-        var newTempMax = tempMax + tempPadding;
-
-        // Round to multiples of 5
-        newTempMin = Math.floor(newTempMin / 5) * 5;
-        newTempMax = Math.ceil(newTempMax / 5) * 5;
-
-        // Ensure minimum 20 degree range
-        if (newTempMax - newTempMin < 20) {
-            var diff = 20 - (newTempMax - newTempMin);
-            // adjust equally if diff is multiple of 10, else roughly equal
-            var expand = Math.ceil((diff / 2) / 5) * 5;
-            newTempMin -= expand;
-            newTempMax += expand;
-            // readjust if over-expanded
-            if (newTempMax - newTempMin > 20) {
-                if (newTempMax - newTempMin >= 30) {
-                    newTempMax -= 5;
-                }
-            }
-        }
-
-        chart.options.scales.y.min = newTempMin;
-        chart.options.scales.y.max = newTempMax;
-
-        // Calculate dynamic step size for Temperature
-        var newTempRange = newTempMax - newTempMin;
-        var tempStepSize = 5;
-        if (newTempRange > 100) tempStepSize = 25;
-        else if (newTempRange >= 50) tempStepSize = 10;
-        else tempStepSize = 5;
-        chart.options.scales.y.ticks.stepSize = tempStepSize;
-    }
-
-    var powerAxis = chart.options.scales.y2 ? 'y2' : (chart.options.scales.y1 ? 'y1' : null);
-    if (powerValues.length > 0 && visiblePowerDatasets > 0 && powerAxis && chart.options.scales[powerAxis]) {
-        var powerMin = Math.min.apply(null, powerValues);
-        var powerMax = Math.max.apply(null, powerValues);
-        var powerRange = powerMax - powerMin;
-        var powerPadding = Math.max(powerRange * 0.15, 5);
-        var newPowerMin = Math.max(powerMin - powerPadding, 0); // Power can't be negative
-        var newPowerMax = powerMax + powerPadding;
-
-        // Round to multiples of 5
-        newPowerMin = Math.max(Math.floor(newPowerMin / 5) * 5, 0);
-        newPowerMax = Math.ceil(newPowerMax / 5) * 5;
-
-        // Ensure minimum 10 W range
-        if (newPowerMax - newPowerMin < 10) {
-            var diffP = 10 - (newPowerMax - newPowerMin);
-            var expandP = Math.ceil((diffP / 2) / 5) * 5;
-            newPowerMin = Math.max(newPowerMin - expandP, 0);
-            newPowerMax += expandP;
-            // readjust if over-expanded
-            if (newPowerMax - newPowerMin > 10 && newPowerMin > 0) {
-                if (newPowerMax - newPowerMin >= 15) {
-                    newPowerMax -= 5;
-                }
-            } else if (newPowerMin === 0 && newPowerMax < 10) {
-                newPowerMax = 10;
-            }
-        }
-
-        chart.options.scales[powerAxis].min = newPowerMin;
-        chart.options.scales[powerAxis].max = newPowerMax;
-
-        // Calculate dynamic step size for Power
-        var newPowerRange = newPowerMax - newPowerMin;
-        var powerStepSize = 5;
-        if (newPowerRange >= 50) powerStepSize = 10;
-        else powerStepSize = 5;
-        chart.options.scales[powerAxis].ticks.stepSize = powerStepSize;
-    }
 }
 
 function addPoint(timeSec, valuesArray13) {
@@ -394,16 +339,15 @@ function addPoint(timeSec, valuesArray13) {
             if (chartDisplayMode === 'limited' && lc.data.labels.length > maxPoints) {
                 lc.data.labels.shift();
             }
-            autoScaleChartJs(lc);
             lc.update('none');
         }
     } catch (e) { /* ignore */ }
-    // Push into Chart.js if present
+    // Update Chart 1: Temperature vs Time (T1-T7 only)
     try {
         if (chartJsRef) {
             chartJsRef.data.labels.push(timeSec.toFixed(1));
-            // Only add first 12 values to chart (exclude air speed)
-            for (var d = 0; d < 12; d++) {
+            // Only add T1-T7 (indices 0-6)
+            for (var d = 0; d < 7; d++) {
                 chartJsRef.data.datasets[d].data.push(valuesArray13[d]);
                 // Only limit points if in 'limited' mode
                 if (chartDisplayMode === 'limited' && chartJsRef.data.datasets[d].data.length > maxPoints) {
@@ -413,8 +357,24 @@ function addPoint(timeSec, valuesArray13) {
             if (chartDisplayMode === 'limited' && chartJsRef.data.labels.length > maxPoints) {
                 chartJsRef.data.labels.shift();
             }
-            autoScaleChartJs(chartJsRef);
             chartJsRef.update('none');
+        }
+    } catch (e) { /* ignore */ }
+    
+    // Update Chart 3: Power vs Time
+    try {
+        if (powerChartJsRef) {
+            powerChartJsRef.data.labels.push(timeSec.toFixed(1));
+            // Add Power data (index 10)
+            powerChartJsRef.data.datasets[0].data.push(valuesArray13[10]);
+            // Only limit points if in 'limited' mode
+            if (chartDisplayMode === 'limited' && powerChartJsRef.data.datasets[0].data.length > maxPoints) {
+                powerChartJsRef.data.datasets[0].data.shift();
+            }
+            if (chartDisplayMode === 'limited' && powerChartJsRef.data.labels.length > maxPoints) {
+                powerChartJsRef.data.labels.shift();
+            }
+            powerChartJsRef.update('none');
         }
     } catch (e) { /* ignore */ }
     // Push directly into Plotly for smooth real-time drawing
@@ -444,7 +404,7 @@ function redrawChart() {
     if (chartData.time.length === 0) return;
 
     // Define colors for each series (same as original)
-    var colors = ['#ff4d4f', '#40a9ff', '#73d13d', '#fa8c16', '#b37feb', '#36cfc9', '#f759ab', '#9254de', '#faad14', '#1f7a8c', '#ff0000', '#ff007a'];
+	var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
     var seriesNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target Temp'];
 
     // Create traces with current data
@@ -511,16 +471,14 @@ function redrawChart() {
     // Compute reasonable ranges; add 5% headroom
     var yRange = null, y2Range = null;
     if (isFinite(minY) && isFinite(maxY)) {
-        var span = Math.max(20, maxY - minY);
+        var span = Math.max(1e-6, maxY - minY);
         var pad = span * 0.05;
-        var center = (minY + maxY) / 2;
-        yRange = [center - span / 2 - pad, center + span / 2 + pad];
+        yRange = [minY - pad, maxY + pad];
     }
     if (isFinite(minY2) && isFinite(maxY2)) {
-        var span2 = Math.max(10, maxY2 - minY2);
+        var span2 = Math.max(1e-6, maxY2 - minY2);
         var pad2 = span2 * 0.05;
-        var center2 = (minY2 + maxY2) / 2;
-        y2Range = [center2 - span2 / 2 - pad2, center2 + span2 / 2 + pad2];
+        y2Range = [minY2 - pad2, maxY2 + pad2];
     }
     try {
         var relayoutObj = { 'xaxis.autorange': true };
@@ -540,7 +498,7 @@ function redrawChart() {
             popInitialized = true;
         } else {
             PlotlyRef.react(popDiv, traces, plotlyLayout, plotlyConfig);
-            try { PlotlyRef.relayout(popDiv, { 'xaxis.autorange': true, 'yaxis.autorange': true, 'yaxis2.autorange': true }); } catch (e) { }
+            try { PlotlyRef.relayout(popDiv, { 'xaxis.autorange': true, 'yaxis.autorange': true, 'yaxis2.autorange': true }); } catch (e) {}
         }
     }
 
@@ -560,7 +518,7 @@ function initDistanceChart() {
     canvas.style.background = themeColors.background;
     canvas.style.borderColor = themeColors.border;
 
-    // Create a single dataset that will connect all points T1->T2->T3->...->T8
+	// Create a single dataset that will connect all points T1->T2->T3->...->T8
     var datasets = [{
         label: 'Temperature vs Distance',
         data: [],
@@ -650,12 +608,12 @@ function initDistanceChart() {
                 },
                 tooltip: {
                     callbacks: {
-                        title: function (context) {
+						title: function(context) {
                             var pointIndex = context[0].dataIndex;
-                            var sensorIndex = pointIndex % 8;
+							var sensorIndex = pointIndex % 8;
                             return 'T' + (sensorIndex + 1);
                         },
-                        label: function (context) {
+						label: function(context) {
                             return 'Distance: ' + context.parsed.x.toFixed(2) + ', Temperature: ' + context.parsed.y.toFixed(2) + '°C';
                         }
                     }
@@ -670,11 +628,11 @@ function initDistanceChart() {
 
 // Update distance chart in real-time (called automatically every second)
 function updateDistanceChartRealTime() {
-    // Get distance values from input boxes
+	// Get distance values from input boxes
     var distances = [];
     var allValid = true;
 
-    for (var i = 1; i <= 8; i++) {
+	for (var i = 1; i <= 8; i++) {
         var input = document.getElementById('distanceT' + i);
         if (input && input.value !== '') {
             var distance = parseFloat(input.value);
@@ -690,13 +648,13 @@ function updateDistanceChartRealTime() {
         }
     }
 
-    if (!allValid || distances.length !== 8) {
+	if (!allValid || distances.length !== 8) {
         return; // Skip if not all distances are valid
     }
 
-    // Check if we have temperature values
+	// Check if we have temperature values
     var hasTemps = false;
-    for (var i = 0; i < 8; i++) {
+	for (var i = 0; i < 8; i++) {
         if (lastTemperatureValues[i] !== null) {
             hasTemps = true;
             break;
@@ -707,10 +665,10 @@ function updateDistanceChartRealTime() {
         return; // Skip if no temperature data
     }
 
-    // Create a sample with all 8 points in order (T1->T2->T3->...->T8)
+	// Create a sample with all 8 points in order (T1->T2->T3->...->T8)
     // Skip points where distance is zero - connect directly to next valid point
     var sample = [];
-    for (var i = 0; i < 8; i++) {
+	for (var i = 0; i < 8; i++) {
         if (lastTemperatureValues[i] !== null) {
             // Only add point if distance is not zero
             if (distances[i] !== 0) {
@@ -745,7 +703,7 @@ function redrawDistanceChart() {
     }
 
     // Build a single data array that connects all samples
-    // Each sample is 8 points (T1->T2->T3->...->T8), and we connect them all
+	// Each sample is 8 points (T1->T2->T3->...->T8), and we connect them all
     var allDataPoints = [];
 
     for (var sampleIdx = 0; sampleIdx < distanceChartData.samples.length; sampleIdx++) {
@@ -786,7 +744,7 @@ function formatTimeHmsMs(totalSeconds) {
 }
 
 // Hook up checkbox toggles
-document.addEventListener('change', function (evt) {
+document.addEventListener('change', function(evt) {
     var target = evt.target;
     if (target && target.matches && target.matches('#seriesToggles input[type="checkbox"]')) {
         var idx = parseInt(target.getAttribute('data-series'), 10);
@@ -851,13 +809,13 @@ function addToLog(message) {
 function ensureElectronAPI() {
     if (!window.electronAPI) {
         window.electronAPI = {
-            getAvailablePorts: async function () { return []; },
-            connectToPort: async function () { return { success: false, error: 'electronAPI unavailable' }; },
-            disconnectFromPort: async function () { return { success: true }; },
-            onDataReceived: function () { },
-            onConnectionStatus: function () { },
-            onPortsUpdate: function () { },
-            removeAllListeners: function () { }
+			getAvailablePorts: async function() { return []; },
+			connectToPort: async function() { return { success: false, error: 'electronAPI unavailable' }; },
+			disconnectFromPort: async function() { return { success: true }; },
+			onDataReceived: function() {},
+			onConnectionStatus: function() {},
+			onPortsUpdate: function() {},
+			removeAllListeners: function() {}
         };
         return false; // Return false to indicate API was missing
     }
@@ -923,8 +881,8 @@ async function openWebSerial(port) {
 }
 
 async function closeWebSerial() {
-    try { if (webSerialReader) { await webSerialReader.cancel(); } } catch { }
-    try { if (webSerialPort) { await webSerialPort.close(); } } catch { }
+    try { if (webSerialReader) { await webSerialReader.cancel(); } } catch {}
+    try { if (webSerialPort) { await webSerialPort.close(); } } catch {}
     webSerialReader = null; webSerialPort = null;
 }
 
@@ -1137,7 +1095,7 @@ function handlePortsUpdateFromMain(event, ports) {
             option.textContent = port.path + ' - ' + manufacturer + ' (SN: ' + serialNumber + ')';
             comPortSelect.appendChild(option);
         }
-        if (previousSelection && ports.some(function (p) { return p.path === previousSelection; })) {
+	if (previousSelection && ports.some(function(p) { return p.path === previousSelection; })) {
             comPortSelect.value = previousSelection;
             return;
         }
@@ -1201,7 +1159,7 @@ async function disconnectFromPort() {
 
 function handleIncomingData(data) {
     console.log('Data received:', data); // Debug log
-    var dataArray = (function (d) {
+	var dataArray = (function(d) {
         // Convert incoming data to a plain array of bytes in a safe, simple way
         try {
             if (Array.isArray(d)) {
@@ -1295,7 +1253,7 @@ function handleIncomingData(data) {
 
     // Check for heater temperature data - format: [0x33, 0x33, 0x33, temp] (exactly 4 bytes)
     if (dataArray.length === 4 && dataArray[0] === 0x33 && dataArray[1] === 0x33 && dataArray[2] === 0x33) {
-        var heaterTemp = dataArray[3]; // Heater temperature value (20-120°C)
+		var heaterTemp = dataArray[3]; // Heater temperature value (20-70°C)
 
         // Debug: Print the received data
         var hexString = dataArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
@@ -1303,13 +1261,13 @@ function handleIncomingData(data) {
         addToLog('DEBUG: Heater temperature value: ' + heaterTemp);
         addToLog('DEBUG: About to call updateHeaterSliderFromHardware with temp: ' + heaterTemp);
 
-        // Validate heater temperature range (20-120°C)
-        if (heaterTemp >= 20 && heaterTemp <= 120) {
+		// Validate heater temperature range (20-70°C)
+		if (heaterTemp >= 20 && heaterTemp <= 70) {
             addToLog('DEBUG: Heater temperature is valid, calling updateHeaterSliderFromHardware...');
             updateHeaterSliderFromHardware(heaterTemp);
             addToLog('Heater temperature received from hardware: ' + heaterTemp + '°C');
         } else {
-            addToLog('Invalid heater temperature value: ' + heaterTemp + ' (expected 20-120)');
+			addToLog('Invalid heater temperature value: ' + heaterTemp + ' (expected 20-70)');
         }
         return; // Exit early since this is a 4-byte packet
     }
@@ -1340,7 +1298,7 @@ function handleIncomingData(data) {
         if (dataArray[0] === 0x55 && dataArray[1] === 0x55) {
             if (dataArray[54] === 0xAA && dataArray[55] === 0xAA) {
                 // We are receiving valid frames; ensure UI shows ONLINE
-                try { updateConnectionStatus(true); } catch (e) { }
+                try { updateConnectionStatus(true); } catch (e) {}
                 packetCount += 1;
                 if (packetCountDisplay) packetCountDisplay.textContent = String(packetCount);
                 if (lastUpdateDisplay) lastUpdateDisplay.textContent = new Date().toLocaleTimeString();
@@ -1445,8 +1403,8 @@ function updateHeaterButtonsFromHardware(mode) {
 
 // Function to update heater slider when receiving data from hardware
 function updateHeaterSliderFromHardware(temperature) {
-    // Ensure heater temperature is within valid range (20-120°C)
-    temperature = Math.max(20, Math.min(120, temperature));
+    // Ensure heater temperature is within valid range (20-70°C)
+    temperature = Math.max(20, Math.min(70, temperature));
 
     addToLog('DEBUG: Updating heater slider to: ' + temperature + '°C');
     addToLog('DEBUG: heaterTempInput element found: ' + (heaterTempInput ? 'YES' : 'NO'));
@@ -1630,7 +1588,7 @@ function displayRawData(dataArray) {
 
 // Helper function to convert RGB to hex color
 function rgbToHex(r, g, b) {
-    return '#' + [r, g, b].map(function (x) {
+	return '#' + [r, g, b].map(function(x) {
         var hex = Math.round(x).toString(16);
         return hex.length === 1 ? '0' + hex : hex;
     }).join('');
@@ -1736,15 +1694,15 @@ function parseAndDisplayData(dataArray) {
             // Validate temperature: if > 200 or < -10, set to 0.00
             heaterLeftTemp = validateTemperature(rawHeaterLeftTemp);
             console.log('Radial Heater temp:', heaterLeftTemp);
-            var heaterRightEl = document.getElementById('heaterRightTile');
-            console.log('Radial Heater element found:', !!heaterRightEl);
-            if (heaterRightEl) {
-                heaterRightEl.textContent = 'Radial Heater: ' + heaterLeftTemp.toFixed(2) + '°C';
+			var heaterLeftEl = document.getElementById('heaterLeftTile');
+			console.log('Radial Heater element found:', !!heaterLeftEl);
+			if (heaterLeftEl) {
+				heaterLeftEl.textContent = 'Radial Heater: ' + heaterLeftTemp.toFixed(2) + '°C';
                 // Keep text white, add border glow: Blue at 1.0°C, Red at 75°C
                 var color = getTemperatureColor(heaterLeftTemp);
-                heaterRightEl.style.color = '#ffffff';
-                heaterRightEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
-                console.log('Updated radial heater tile:', heaterRightEl.textContent);
+				heaterLeftEl.style.color = '#ffffff';
+				heaterLeftEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
+				console.log('Updated radial heater tile:', heaterLeftEl.textContent);
             }
 
             // Linear Heater (bytes 40-43)
@@ -1756,15 +1714,15 @@ function parseAndDisplayData(dataArray) {
             // Validate temperature: if > 200 or < -10, set to 0.00
             heaterRightTemp = validateTemperature(rawHeaterRightTemp);
             console.log('Linear Heater temp:', heaterRightTemp);
-            var heaterLeftEl = document.getElementById('heaterLeftTile');
-            console.log('Linear Heater element found:', !!heaterLeftEl);
-            if (heaterLeftEl) {
-                heaterLeftEl.textContent = 'Linear Heater: ' + heaterRightTemp.toFixed(2) + '°C';
+			var heaterRightEl = document.getElementById('heaterRightTile');
+			console.log('Linear Heater element found:', !!heaterRightEl);
+			if (heaterRightEl) {
+				heaterRightEl.textContent = 'Linear Heater: ' + heaterRightTemp.toFixed(2) + '°C';
                 // Keep text white, add border glow: Blue at 1.0°C, Red at 75°C
                 var color = getTemperatureColor(heaterRightTemp);
-                heaterLeftEl.style.color = '#ffffff';
-                heaterLeftEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
-                console.log('Updated linear heater tile:', heaterLeftEl.textContent);
+				heaterRightEl.style.color = '#ffffff';
+				heaterRightEl.style.boxShadow = '0 0 10px ' + color + ', 0 0 20px ' + color;
+				console.log('Updated linear heater tile:', heaterRightEl.textContent);
             }
 
             // Update button text with temperatures
@@ -1888,10 +1846,10 @@ function parseAndDisplayData(dataArray) {
             var pdv = new DataView(pbuf);
             pdv.setUint8(0, p0); pdv.setUint8(1, p1); pdv.setUint8(2, p2); pdv.setUint8(3, p3);
             var power = pdv.getFloat32(0, true);
-            parsedInfo += 'Power: ' + power.toFixed(2) + ' W\n';
+			parsedInfo += 'Power: ' + power.toFixed(1) + ' W\n';
             var powerEl = document.getElementById('powerTile');
             if (powerEl) {
-                powerEl.textContent = 'Power: ' + power.toFixed(2) + ' W';
+				powerEl.textContent = 'Power: ' + power.toFixed(1) + ' W';
                 // Keep text white, add border glow: Green at 0W, Red at 36W
                 var color = getPowerColor(power);
                 powerEl.style.color = '#ffffff';
@@ -2012,7 +1970,7 @@ function stopCsvSaving() {
         row += (typeof data.heaterR === 'number' && isFinite(data.heaterR) ? data.heaterR.toFixed(1) : '') + ',';
 
         // Add power
-        row += (typeof data.power === 'number' && isFinite(data.power) ? data.power.toFixed(2) : '') + ',';
+        row += (typeof data.power === 'number' && isFinite(data.power) ? data.power.toFixed(1) : '') + ',';
 
         // Add target
         row += (typeof data.target === 'number' && isFinite(data.target) ? data.target.toFixed(1) : '') + ',';
@@ -2101,6 +2059,8 @@ function applyLayout(layoutKey) {
 
 function updateChartTheme() {
     var colors = getChartThemeColors();
+    
+    // Update Chart 1: Temperature vs Time
     var canvas = document.getElementById('testChart');
     if (canvas) {
         canvas.style.background = colors.background;
@@ -2108,23 +2068,37 @@ function updateChartTheme() {
     }
     if (chartJsRef) {
         try {
-            if (chartJsRef.data && chartJsRef.data.datasets && chartJsRef.data.datasets.length > 10) {
-                // Power line is always pure red for visibility
-                chartJsRef.data.datasets[10].borderColor = '#ff0000';
-                chartJsRef.data.datasets[10].backgroundColor = '#ff0000';
-            }
             chartJsRef.options.scales.x.grid.color = colors.grid;
             chartJsRef.options.scales.x.ticks.color = colors.text;
+            chartJsRef.options.scales.x.title.color = colors.text;
             chartJsRef.options.scales.y.grid.color = colors.grid;
             chartJsRef.options.scales.y.ticks.color = colors.text;
             chartJsRef.options.scales.y.title.color = colors.text;
-            chartJsRef.options.scales.y2.grid.color = colors.grid;
-            chartJsRef.options.scales.y2.ticks.color = colors.text;
-            chartJsRef.options.scales.y2.title.color = colors.text;
             if (chartJsRef.options.plugins && chartJsRef.options.plugins.legend && chartJsRef.options.plugins.legend.labels) {
                 chartJsRef.options.plugins.legend.labels.color = colors.text;
             }
             chartJsRef.update('none');
+        } catch (e) { /* ignore */ }
+    }
+    
+    // Update Chart 3: Power vs Time
+    var powerCanvas = document.getElementById('thirdChart');
+    if (powerCanvas) {
+        powerCanvas.style.background = colors.background;
+        powerCanvas.style.borderColor = colors.border;
+    }
+    if (powerChartJsRef) {
+        try {
+            powerChartJsRef.options.scales.x.grid.color = colors.grid;
+            powerChartJsRef.options.scales.x.ticks.color = colors.text;
+            powerChartJsRef.options.scales.x.title.color = colors.text;
+            powerChartJsRef.options.scales.y.grid.color = colors.grid;
+            powerChartJsRef.options.scales.y.ticks.color = colors.text;
+            powerChartJsRef.options.scales.y.title.color = colors.text;
+            if (powerChartJsRef.options.plugins && powerChartJsRef.options.plugins.legend && powerChartJsRef.options.plugins.legend.labels) {
+                powerChartJsRef.options.plugins.legend.labels.color = colors.text;
+            }
+            powerChartJsRef.update('none');
         } catch (e) { /* ignore */ }
     }
     if (window.liveChartRef) {
@@ -2187,12 +2161,12 @@ function updateChartTheme() {
     }
 }
 function setupDataListeners() {
-    window.electronAPI.onDataReceived(function (event, data) {
+	window.electronAPI.onDataReceived(function(event, data) {
         handleIncomingData(data);
     });
     // Also display raw incoming chunks for debugging when framing fails
     if (window.electronAPI.onDataChunk) {
-        window.electronAPI.onDataChunk(function (event, chunk) {
+    window.electronAPI.onDataChunk(function(event, chunk) {
             try {
                 var arr = (chunk instanceof Uint8Array) ? Array.from(chunk) : (Array.isArray(chunk) ? chunk.slice() : Array.from(new Uint8Array(chunk)));
                 // Show last ~128 bytes of raw stream in Raw Data panel if no valid packet shown yet
@@ -2209,7 +2183,7 @@ function setupDataListeners() {
             }
         });
     }
-    window.electronAPI.onConnectionStatus(function (event, status) {
+	window.electronAPI.onConnectionStatus(function(event, status) {
         if (status.connected) {
             updateConnectionStatus(true, status.port);
         } else {
@@ -2225,7 +2199,7 @@ if (connectBtn) connectBtn.addEventListener('click', connectToPort);
 if (disconnectBtn) disconnectBtn.addEventListener('click', disconnectFromPort);
 if (refreshPortsBtn) refreshPortsBtn.addEventListener('click', refreshComPorts);
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     // Check if electronAPI is available and create fallback if needed
     var apiAvailable = ensureElectronAPI();
 
@@ -2243,18 +2217,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize charts (Chart.js)
     initChart();
 
-    // Initialize distance chart - wait for Chart.js to be available
-    function tryInitDistanceChart(attempts) {
+    // Initialize distance chart and power chart - wait for Chart.js to be available
+    function tryInitCharts(attempts) {
         if (window.Chart) {
             initDistanceChart();
+            initPowerChart();
         } else if (attempts < 20) {
             // Try again after 100ms if Chart.js isn't loaded yet
-            setTimeout(function () {
-                tryInitDistanceChart(attempts + 1);
+			setTimeout(function() {
+                tryInitCharts(attempts + 1);
             }, 100);
         }
     }
-    tryInitDistanceChart(0);
+    tryInitCharts(0);
 
     setupDataListeners();
 
@@ -2267,7 +2242,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     if (clearDataBtn) {
-        clearDataBtn.addEventListener('click', function () {
+        clearDataBtn.addEventListener('click', function() {
             // Clear all chart data
             chartData.time = [];
             for (var i = 0; i < 12; i++) {
@@ -2291,6 +2266,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 chartJsRef.update('none');
             }
 
+            if (powerChartJsRef) {
+                powerChartJsRef.data.labels = [];
+                powerChartJsRef.data.datasets[0].data = [];
+                powerChartJsRef.update('none');
+            }
+
             redrawChart();
             addToLog('All chart data cleared');
         });
@@ -2299,7 +2280,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handle chart display mode dropdown
     var chartDisplayModeSelect = document.getElementById('chartDisplayMode');
     if (chartDisplayModeSelect) {
-        chartDisplayModeSelect.addEventListener('change', function () {
+        chartDisplayModeSelect.addEventListener('change', function() {
             var newMode = this.value;
             if (newMode !== chartDisplayMode) {
                 chartDisplayMode = newMode;
@@ -2328,6 +2309,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     chartJsRef.update('none');
                 }
 
+                if (powerChartJsRef) {
+                    powerChartJsRef.data.labels = [];
+                    powerChartJsRef.data.datasets[0].data = [];
+                    powerChartJsRef.update('none');
+                }
+
                 // Clear Plotly chart
                 if (chartInitialized && window.Plotly && chartDivRef) {
                     try {
@@ -2342,13 +2329,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     if (startCsvBtn) {
-        startCsvBtn.addEventListener('click', function () {
+        startCsvBtn.addEventListener('click', function() {
             startCsvSaving();
         });
     }
 
     if (stopCsvBtn) {
-        stopCsvBtn.addEventListener('click', function () {
+        stopCsvBtn.addEventListener('click', function() {
             stopCsvSaving();
         });
     }
@@ -2407,16 +2394,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Apply resize function to all distance inputs
     for (var i = 1; i <= 8; i++) {
-        (function (index) {
+        (function(index) {
             var distanceInput = document.getElementById('distanceT' + index);
             if (distanceInput) {
                 // Resize function wrapper
-                var resizeHandler = function () {
+                var resizeHandler = function() {
                     resizeDistanceInput(distanceInput);
                 };
 
                 // Resize on input change (as user types) - use requestAnimationFrame for better performance
-                distanceInput.addEventListener('input', function () {
+                distanceInput.addEventListener('input', function() {
                     requestAnimationFrame(resizeHandler);
                 });
 
@@ -2430,7 +2417,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 distanceInput.addEventListener('blur', resizeHandler);
 
                 // Initial resize after a short delay to ensure DOM is ready
-                setTimeout(function () {
+                setTimeout(function() {
                     resizeDistanceInput(distanceInput);
                 }, 200);
             }
@@ -2445,8 +2432,8 @@ document.addEventListener('DOMContentLoaded', function () {
             var themeColors = getChartThemeColors();
             testCanvas.style.background = themeColors.background;
             testCanvas.style.borderColor = themeColors.border;
-            var colors = ['#ff4d4f', '#40a9ff', '#73d13d', '#fa8c16', '#b37feb', '#36cfc9', '#f759ab', '#9254de', '#faad14', '#1f7a8c', '#ff0000', '#ff007a'];
-            var labels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target'];
+            var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
+            var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target'];
             var ds = [];
             for (var i = 0; i < 12; i++) {
                 ds.push({ label: labels[i], data: [], borderColor: colors[i], backgroundColor: colors[i], pointRadius: 0, borderWidth: 2, tension: 0.2, yAxisID: i === 10 ? 'y2' : 'y' });
@@ -2462,11 +2449,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     scales: {
                         x: {
                             grid: { color: themeColors.grid },
-                            ticks: {
-                                color: themeColors.text,
-                                maxRotation: 0,
-                                maxTicksLimit: 10
-                            }
+							ticks: { color: themeColors.text }
                         },
                         y: {
                             type: 'linear',
@@ -2501,7 +2484,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Admin panel functionality
     if (adminBtn) {
-        adminBtn.addEventListener('click', function () {
+        adminBtn.addEventListener('click', function() {
             openAdminPanel();
         });
     }
@@ -2518,7 +2501,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listener for the dedicated "Open Graph" button
     const openGraphBtn = document.getElementById('openGraphBtn');
     if (openGraphBtn) {
-        openGraphBtn.addEventListener('click', function () {
+        openGraphBtn.addEventListener('click', function() {
             // Check if window is already open
             if (graphWindow && !graphWindow.closed) {
                 // Window is open - close it first
@@ -2526,7 +2509,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 graphWindow = null;
                 addToLog('Graph window closed.');
                 // Small delay before reopening to ensure it's fully closed
-                setTimeout(function () {
+                setTimeout(function() {
                     openGraphWindow();
                 }, 100);
             } else {
@@ -2539,7 +2522,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listener for the "Print Graph" button (Time Chart)
     const printChartBtn = document.getElementById('printChartBtn');
     if (printChartBtn) {
-        printChartBtn.addEventListener('click', function () {
+        printChartBtn.addEventListener('click', function() {
             printChart();
         });
     }
@@ -2547,7 +2530,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listener for the "Print Graph" button (Distance Chart)
     const printDistanceChartBtn = document.getElementById('printDistanceChartBtn');
     if (printDistanceChartBtn) {
-        printDistanceChartBtn.addEventListener('click', function () {
+        printDistanceChartBtn.addEventListener('click', function() {
             printDistanceChart();
         });
     }
@@ -2667,8 +2650,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     var themeColors = getChartThemeColors();
                     testCanvas.style.background = themeColors.background;
                     testCanvas.style.borderColor = themeColors.border;
-                    var colors = ['#ff4d4f', '#40a9ff', '#73d13d', '#fa8c16', '#b37feb', '#36cfc9', '#f759ab', '#9254de', '#faad14', '#1f7a8c', '#ff0000', '#ff007a'];
-                    var labels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target'];
+                    var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
+                    var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target'];
                     var ds = [];
                     for (var i = 0; i < 12; i++) {
                         ds.push({ label: labels[i], data: [], borderColor: colors[i], backgroundColor: colors[i], pointRadius: 0, borderWidth: 2, tension: 0.2, yAxisID: i === 10 ? 'y2' : 'y' });
@@ -2754,7 +2737,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chart.update('none');
 
         // Wait for chart to fully render, then export
-        setTimeout(function () {
+        setTimeout(function() {
             try {
                 // Check if canvas has content
                 if (canvas.width === 0 || canvas.height === 0) {
@@ -2807,21 +2790,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 iframeDoc.close();
 
                 // Wait for image to load before printing
-                setTimeout(function () {
+                setTimeout(function() {
                     var img = iframeDoc.getElementById('chartImage');
                     if (img && img.complete) {
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
-                        setTimeout(function () {
+                        setTimeout(function() {
                             if (iframe.parentNode) {
                                 document.body.removeChild(iframe);
                             }
                         }, 500);
                     } else if (img) {
-                        img.onload = function () {
+                        img.onload = function() {
                             iframe.contentWindow.focus();
                             iframe.contentWindow.print();
-                            setTimeout(function () {
+                            setTimeout(function() {
                                 if (iframe.parentNode) {
                                     document.body.removeChild(iframe);
                                 }
@@ -2881,7 +2864,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chart.update('none');
 
         // Wait for chart to fully render, then export
-        setTimeout(function () {
+        setTimeout(function() {
             try {
                 // Check if canvas has content
                 if (canvas.width === 0 || canvas.height === 0) {
@@ -2934,21 +2917,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 iframeDoc.close();
 
                 // Wait for image to load before printing
-                setTimeout(function () {
+                setTimeout(function() {
                     var img = iframeDoc.getElementById('chartImage');
                     if (img && img.complete) {
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
-                        setTimeout(function () {
+                        setTimeout(function() {
                             if (iframe.parentNode) {
                                 document.body.removeChild(iframe);
                             }
                         }, 500);
                     } else if (img) {
-                        img.onload = function () {
+                        img.onload = function() {
                             iframe.contentWindow.focus();
                             iframe.contentWindow.print();
-                            setTimeout(function () {
+                            setTimeout(function() {
                                 if (iframe.parentNode) {
                                     document.body.removeChild(iframe);
                                 }
@@ -2974,8 +2957,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     var themeColors = getChartThemeColors();
                     testCanvas.style.background = themeColors.background;
                     testCanvas.style.borderColor = themeColors.border;
-                    var colors = ['#ff4d4f', '#40a9ff', '#73d13d', '#fa8c16', '#b37feb', '#36cfc9', '#f759ab', '#9254de', '#faad14', '#1f7a8c', '#ff0000', '#ff007a'];
-                    var labels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'Radial Heater', 'Linear Heater', 'Power', 'Target'];
+                    var colors = ['#ff4d4f','#40a9ff','#73d13d','#fa8c16','#b37feb','#36cfc9','#f759ab','#9254de','#faad14','#1f7a8c','#ff0000','#ff007a'];
+                    var labels = ['T1','T2','T3','T4','T5','T6','T7','T8','Radial Heater','Linear Heater','Power','Target'];
                     var ds = [];
                     for (var i = 0; i < 12; i++) {
                         ds.push({ label: labels[i], data: [], borderColor: colors[i], backgroundColor: colors[i], pointRadius: 0, borderWidth: 2, tension: 0.2, yAxisID: i === 10 ? 'y2' : 'y' });
@@ -3097,7 +3080,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Wait for charts to fully render, then convert canvases to images
-        setTimeout(function () {
+        setTimeout(function() {
             try {
                 var timeImageData = null;
                 var distanceImageData = null;
@@ -3209,10 +3192,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 iframeDoc.write('</body></html>');
                 iframeDoc.close();
 
-                iframe.onload = function () {
-                    setTimeout(function () {
+                iframe.onload = function() {
+                    setTimeout(function() {
                         iframe.contentWindow.focus();
-                        setTimeout(function () {
+                        setTimeout(function() {
                             document.body.removeChild(iframe);
                         }, 1000);
                     }, 200);
@@ -3225,7 +3208,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Add keyboard shortcut Ctrl+P to print both charts
-    document.addEventListener('keydown', function (event) {
+    document.addEventListener('keydown', function(event) {
         // Check if Ctrl+P is pressed (or Cmd+P on Mac)
         if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
             // Prevent the default browser print behavior
@@ -3242,13 +3225,13 @@ document.addEventListener('DOMContentLoaded', function () {
         applyTheme('dark');
         applyLayout(savedLayout);
         var layoutSel = document.getElementById('layoutSelect');
-        if (layoutSel) layoutSel.addEventListener('change', function () { applyLayout(layoutSel.value); localStorage.setItem('appLayout', layoutSel.value); });
+		if (layoutSel) layoutSel.addEventListener('change', function(){ applyLayout(layoutSel.value); localStorage.setItem('appLayout', layoutSel.value); });
     } catch (e) { /* ignore */ }
 
     // Simulation window button (no chart data changes)
     var simulateBtn = document.getElementById('simulateBtn');
     if (simulateBtn) {
-        simulateBtn.addEventListener('click', function () {
+        simulateBtn.addEventListener('click', function() {
             // Check if window is already open
             if (simulationWindow && !simulationWindow.closed) {
                 // Window is open - close it first
@@ -3256,7 +3239,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 simulationWindow = null;
                 addToLog('Simulation window closed.');
                 // Small delay before reopening to ensure it's fully closed
-                setTimeout(function () {
+                setTimeout(function() {
                     openSimulationWindow();
                 }, 100);
             } else {
@@ -3273,7 +3256,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (simulationWindow) {
             simulationWindow.focus();
             // Track when window is closed
-            var checkClosed = setInterval(function () {
+            var checkClosed = setInterval(function() {
                 if (simulationWindow.closed) {
                     clearInterval(checkClosed);
                     simulationWindow = null;
@@ -3286,7 +3269,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Curriculum button - opens Curriculum menu
     var curriculumBtn = document.getElementById('curriculumBtn');
     if (curriculumBtn) {
-        curriculumBtn.addEventListener('click', function () {
+        curriculumBtn.addEventListener('click', function() {
             // Check if window is already open
             if (curriculumWindow && !curriculumWindow.closed) {
                 // Window is open - close it first
@@ -3294,7 +3277,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 curriculumWindow = null;
                 addToLog('Curriculum window closed.');
                 // Small delay before reopening to ensure it's fully closed
-                setTimeout(function () {
+                setTimeout(function() {
                     openCurriculumWindow();
                 }, 100);
             } else {
@@ -3311,7 +3294,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (curriculumWindow) {
             curriculumWindow.focus();
             // Track when window is closed
-            var checkClosed = setInterval(function () {
+            var checkClosed = setInterval(function() {
                 if (curriculumWindow.closed) {
                     clearInterval(checkClosed);
                     curriculumWindow = null;
@@ -3379,21 +3362,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Sync button sizes on load with multiple attempts to ensure it works
-    setTimeout(function () {
+    setTimeout(function() {
         syncPrintButtonSizes();
     }, 100);
-    setTimeout(function () {
+    setTimeout(function() {
         syncPrintButtonSizes();
     }, 500);
-    setTimeout(function () {
+    setTimeout(function() {
         syncPrintButtonSizes();
     }, 1000);
 
     // Add resize event listener with debouncing for better performance
     var resizeTimeout;
-    window.addEventListener('resize', function () {
+    window.addEventListener('resize', function() {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function () {
+        resizeTimeout = setTimeout(function() {
             handleWindowResize();
             syncPrintButtonSizes(); // Sync button sizes after resize
         }, 100);
@@ -3440,7 +3423,7 @@ if (fanSpeedInput) {
         }
     }
 
-    fanSpeedInput.addEventListener('input', function () {
+    fanSpeedInput.addEventListener('input', function() {
         var percentage = parseInt(fanSpeedInput.value, 10);
         if (fanSpeedDisplay) fanSpeedDisplay.value = percentage;
         updateSliderFill(fanSpeedInput.value);
@@ -3482,7 +3465,7 @@ if (fanSpeedInput) {
             }
         }
 
-        fanSpeedDisplay.addEventListener('input', function () {
+        fanSpeedDisplay.addEventListener('input', function() {
             var value = parseInt(fanSpeedDisplay.value, 10);
             if (!isNaN(value)) {
                 // Clamp value to valid range
@@ -3502,7 +3485,7 @@ if (fanSpeedInput) {
         fanSpeedDisplay.addEventListener('blur', validateAndSendFanSpeed);
 
         // Send data when user presses Enter
-        fanSpeedDisplay.addEventListener('keydown', function (event) {
+        fanSpeedDisplay.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' || event.keyCode === 13) {
                 event.preventDefault();
                 validateAndSendFanSpeed();
@@ -3512,7 +3495,7 @@ if (fanSpeedInput) {
     }
 
     // Fan slider hover tooltip
-    fanSpeedInput.addEventListener('mousemove', function (e) {
+    fanSpeedInput.addEventListener('mousemove', function(e) {
         if (fanTooltip) {
             var rect = fanSpeedInput.getBoundingClientRect();
             var percentage = Math.round(((e.clientX - rect.left) / rect.width) * 100);
@@ -3522,7 +3505,7 @@ if (fanSpeedInput) {
         }
     });
 
-    fanSpeedInput.addEventListener('change', async function () {
+    fanSpeedInput.addEventListener('change', async function() {
         try {
             var v = parseInt(fanSpeedInput.value, 10);
             // Update button states when slider changes
@@ -3551,8 +3534,8 @@ if (fanSpeedInput) {
 if (heaterTempInput && heaterTempValue) {
     function updateHeaterSliderFill(value) {
         var temp = parseInt(value, 10);
-        // Convert temperature range (20-120) to percentage (0-100)
-        var tempPercentage = ((temp - 20) / (120 - 20)) * 100;
+        // Convert temperature range (20-70) to percentage (0-100)
+        var tempPercentage = ((temp - 20) / (70 - 20)) * 100;
         var fillElement = document.getElementById('heaterSliderFill');
         if (fillElement) {
             fillElement.style.setProperty('--fill-percent', tempPercentage + '%');
@@ -3573,7 +3556,7 @@ if (heaterTempInput && heaterTempValue) {
 
             // Calculate the center position of the thumb
             var maxPosition = sliderWidth - thumbWidth;
-            var tempPercentage = ((temp - 20) / (120 - 20)) * 100;
+            var tempPercentage = ((temp - 20) / (70 - 20)) * 100;
             var thumbCenterPosition = (tempPercentage / 100) * maxPosition + thumbRadius;
 
             // Position the heater icon at the center of the thumb
@@ -3581,7 +3564,7 @@ if (heaterTempInput && heaterTempValue) {
         }
     }
 
-    heaterTempInput.addEventListener('input', function () {
+    heaterTempInput.addEventListener('input', function() {
         var temp = parseInt(heaterTempInput.value, 10);
         if (heaterTempValue) heaterTempValue.value = temp;
         updateHeaterSliderFill(heaterTempInput.value);
@@ -3600,7 +3583,7 @@ if (heaterTempInput && heaterTempValue) {
                 }
             } else {
                 // Clamp value to valid range
-                value = Math.max(20, Math.min(120, value));
+                value = Math.max(20, Math.min(70, value));
                 heaterTempValue.value = value;
                 // Update slider and send to hardware
                 if (heaterTempInput) {
@@ -3620,16 +3603,26 @@ if (heaterTempInput && heaterTempValue) {
             }
         }
 
-        heaterTempValue.addEventListener('input', function () {
-            // Allow user to type freely without updating slider
-            // Slider will update only when user presses Enter or clicks outside
+        heaterTempValue.addEventListener('input', function() {
+            var value = parseInt(heaterTempValue.value, 10);
+            if (!isNaN(value)) {
+                // Clamp value to valid range
+                value = Math.max(20, Math.min(70, value));
+                heaterTempValue.value = value;
+                // Update slider
+                if (heaterTempInput) {
+                    heaterTempInput.value = value;
+                    updateHeaterSliderFill(value);
+                    updateHeaterIcon(value);
+                }
+            }
         });
 
         // Send data when user clicks outside (blur)
         heaterTempValue.addEventListener('blur', validateAndSendHeaterTemp);
 
         // Send data when user presses Enter
-        heaterTempValue.addEventListener('keydown', function (event) {
+        heaterTempValue.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' || event.keyCode === 13) {
                 event.preventDefault();
                 validateAndSendHeaterTemp();
@@ -3639,17 +3632,17 @@ if (heaterTempInput && heaterTempValue) {
     }
 
     // Heater slider hover tooltip
-    heaterTempInput.addEventListener('mousemove', function (e) {
+    heaterTempInput.addEventListener('mousemove', function(e) {
         if (heaterTooltip) {
             var rect = heaterTempInput.getBoundingClientRect();
             var temp = Math.round(20 + ((e.clientX - rect.left) / rect.width) * 50);
-            temp = Math.max(20, Math.min(120, temp));
+            temp = Math.max(20, Math.min(70, temp));
             heaterTooltip.textContent = temp + '°C';
             heaterTooltip.style.left = e.clientX - rect.left + 'px';
         }
     });
 
-    heaterTempInput.addEventListener('change', async function () {
+    heaterTempInput.addEventListener('change', async function() {
         try {
             var v = parseInt(heaterTempInput.value, 10);
             var result = await window.electronAPI.sendHeaterTemp(v);
@@ -3689,12 +3682,12 @@ function updateHeaterButtons() {
     }
     if (heaterLeftBtn) {
         heaterLeftBtn.classList.remove('active');
-        heaterLeftBtn.textContent = 'Linear Heater';
+        heaterLeftBtn.textContent = 'Radial Heater ' + heaterLeftTemp.toFixed(1) + '°C';
         addToLog('DEBUG: Removed active class from heaterLeftBtn, set text: ' + heaterLeftBtn.textContent);
     }
     if (heaterRightBtn) {
         heaterRightBtn.classList.remove('active');
-        heaterRightBtn.textContent = 'Radial Heater';
+        heaterRightBtn.textContent = 'Linear Heater ' + heaterRightTemp.toFixed(1) + '°C';
         addToLog('DEBUG: Removed active class from heaterRightBtn, set text: ' + heaterRightBtn.textContent);
     }
 
@@ -3757,20 +3750,29 @@ async function setCoolerMode(enabled) {
 }
 
 if (heaterOffBtn) {
-    heaterOffBtn.addEventListener('click', function () {
+    heaterOffBtn.addEventListener('click', function() {
         setHeaterMode(0);
+        // Hide both visualizations when heater is off
+        var linearHeater = document.getElementById('linearHeater');
+        var radialHeater = document.getElementById('radialHeater');
+        if (linearHeater) linearHeater.style.display = 'none';
+        if (radialHeater) radialHeater.style.display = 'none';
     });
 }
 
 if (heaterLeftBtn) {
-    heaterLeftBtn.addEventListener('click', function () {
+    heaterLeftBtn.addEventListener('click', function() {
         setHeaterMode(1);
+        // Show Linear Heater visualization
+        showLinearHeater();
     });
 }
 
 if (heaterRightBtn) {
-    heaterRightBtn.addEventListener('click', function () {
+    heaterRightBtn.addEventListener('click', function() {
         setHeaterMode(2);
+        // Show Radial Heater visualization
+        showRadialHeater();
     });
 }
 
@@ -3778,12 +3780,16 @@ if (coolerBtn) {
     // Initialize button text based on current state
     coolerBtn.textContent = coolerEnabled ? 'Cooler Off' : 'Cooler On';
 
-    coolerBtn.addEventListener('click', function () {
+    coolerBtn.addEventListener('click', function() {
         // Toggle cooler state
         var newState = !coolerEnabled;
         setCoolerMode(newState);
     });
 }
+
+// TODO: Add CSS radial wind speed logic here
+// The radial-wind-overlay div (id="radial-wind-overlay") should be controlled here
+// to show particle effects based on fan speed
 
 // Fan speed button functions
 async function setFanSpeed(speed) {
@@ -3825,19 +3831,19 @@ async function setFanSpeed(speed) {
 
 // Fan button event listeners
 if (fanOffBtn) {
-    fanOffBtn.addEventListener('click', function () {
+    fanOffBtn.addEventListener('click', function() {
         setFanSpeed(0);
     });
 }
 
 if (fan50Btn) {
-    fan50Btn.addEventListener('click', function () {
+    fan50Btn.addEventListener('click', function() {
         setFanSpeed(50);
     });
 }
 
 if (fan100Btn) {
-    fan100Btn.addEventListener('click', function () {
+    fan100Btn.addEventListener('click', function() {
         setFanSpeed(100);
     });
 }
@@ -3904,7 +3910,7 @@ function openGraphWindow() {
     if (graphWindow) {
         graphWindow.focus();
         // Track when window is closed
-        var checkClosed = setInterval(function () {
+        var checkClosed = setInterval(function() {
             if (graphWindow.closed) {
                 clearInterval(checkClosed);
                 graphWindow = null;
@@ -3914,7 +3920,7 @@ function openGraphWindow() {
         addToLog('Graph window opened');
 
         // Wait for the window to load, then share data
-        graphWindow.addEventListener('load', function () {
+        graphWindow.addEventListener('load', function() {
             setupGraphCommunication(graphWindow);
         });
     } else {
@@ -3931,7 +3937,7 @@ function setupGraphCommunication(windowRef) {
         windowRef.currentHeaterValue = currentHeaterValue;
 
         // Set up periodic data updates
-        setInterval(function () {
+        setInterval(function() {
             if (graphWindow && !graphWindow.closed) {
                 graphWindow.chartData = chartData;
                 // Update the current heater value from the slider
@@ -3951,7 +3957,7 @@ function setupAdminCommunication(adminWindow) {
 
     // Forward logs to admin panel
     const originalAddToLog = addToLog;
-    addToLog = function (message, type = 'info') {
+    addToLog = function(message, type = 'info') {
         originalAddToLog(message, type);
 
         // Also send to admin panel if it's open
@@ -3962,7 +3968,7 @@ function setupAdminCommunication(adminWindow) {
 
     // Forward raw data to admin panel
     const originalAddRawData = addRawData;
-    addRawData = function (data) {
+    addRawData = function(data) {
         originalAddRawData(data);
 
         // Also send to admin panel if it's open
@@ -4017,12 +4023,259 @@ function clearAllGraphs() {
     console.log('All graphs cleared after hardware device reconnected');
 }
 
-window.addEventListener('beforeunload', function () {
+window.addEventListener('beforeunload', function() {
     if (isConnected) {
-        window.electronAPI.disconnectFromPort().catch(function (error) {
+		window.electronAPI.disconnectFromPort().catch(function(error) {
             console.log('Error during disconnect:', error);
         });
     }
 });
+
+// Function to convert temperature to color (20°C = blue, 100°C = red)
+function temperatureToColor(temp) {
+    // Clamp temperature between 20 and 100
+    var clampedTemp = Math.max(20, Math.min(100, temp));
+    
+    // Normalize to 0-1 range (20°C = 0, 100°C = 1)
+    var normalized = (clampedTemp - 20) / 80;
+    
+    // Interpolate between blue (0,0,255) and red (255,0,0)
+    var red = Math.round(normalized * 255);
+    var green = 0;
+    var blue = Math.round((1 - normalized) * 255);
+    
+    // Return RGB color string
+    return 'rgb(' + red + ', ' + green + ', ' + blue + ')';
+}
+
+// Function to convert RGB color to hex format for CSS gradient
+function rgbToHex(rgb) {
+    // Extract RGB values from "rgb(r, g, b)" string
+    var match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (!match) return '#0000ff'; // Default to blue if parsing fails
+    
+    var r = parseInt(match[1]);
+    var g = parseInt(match[2]);
+    var b = parseInt(match[3]);
+    
+    // Convert to hex
+    var hex = '#' + 
+        ('0' + r.toString(16)).slice(-2) +
+        ('0' + g.toString(16)).slice(-2) +
+        ('0' + b.toString(16)).slice(-2);
+    
+    return hex;
+}
+
+// Function to update linear heater visualization colors
+function updateLinearColors(t1, t2, t3, t4, t5, t6, t7) {
+    // Array of temperature values
+    var temps = [t1, t2, t3, t4, t5, t6, t7];
+    
+    // Update each zone
+    for (var i = 0; i < 7; i++) {
+        var zoneId = 'linearZone' + (i + 1);
+        var zoneElement = document.getElementById(zoneId);
+        
+        if (zoneElement) {
+            var temp = temps[i];
+            
+            // Handle invalid or missing temperature values
+            if (typeof temp !== 'number' || !isFinite(temp)) {
+                temp = 20; // Default to 20°C (blue)
+            }
+            
+            // Update background color based on temperature
+            var color = temperatureToColor(temp);
+            zoneElement.style.backgroundColor = color;
+            
+            // Update temperature text
+            var tempSpan = zoneElement.querySelector('.zone-temp');
+            if (tempSpan) {
+                tempSpan.textContent = temp.toFixed(1) + '°C';
+            }
+        }
+    }
+}
+
+// Function to draw connecting lines from donut to labels
+function drawRadialConnectorLines() {
+    var svgElement = document.getElementById('radialConnectorLines');
+    var containerElement = document.getElementById('radialContainer');
+    var donutElement = document.getElementById('radialDonut');
+    
+    if (!svgElement || !containerElement || !donutElement) return;
+    
+    // Clear existing paths and circles
+    svgElement.innerHTML = '';
+    
+    // Get donut dimensions and position
+    var donutRect = donutElement.getBoundingClientRect();
+    var containerRect = containerElement.getBoundingClientRect();
+    
+    // Calculate donut center (cx, cy) relative to container
+    var cx = donutRect.left - containerRect.left + donutRect.width / 2;
+    var cy = donutRect.top - containerRect.top + donutRect.height / 2;
+    
+    // Calculate total radius R (outer radius of donut)
+    var R = donutRect.width / 2;
+    var donutOuterRadius = R;
+    
+    // Calculate 7 radii: T1 just outside hole (0.21 * R), T7 just inside outer edge (0.93 * R)
+    // Space the remaining 5 radii evenly between them
+    var radii = [];
+    var minRadius = 0.21; // T1 - just outside the 15% hole
+    var maxRadius = 0.93; // T7 - just inside outer edge
+    var step = (maxRadius - minRadius) / 6; // 6 steps between 7 points
+    
+    for (var r = 0; r < 7; r++) {
+        var radiusPercent = minRadius + (step * r);
+        radii.push(radiusPercent * R);
+    }
+    
+    // 45-degree angle in top-right quadrant (π/4 radians)
+    var angle = Math.PI / 4;
+    var cos45 = Math.cos(angle);
+    var sin45 = Math.sin(angle);
+    
+    // Calculate single bendX point outside the loop - sits just to the right of outer donut edge
+    var bendX = cx + donutOuterRadius + 40;
+    
+    // Label IDs (T7 at top, T1 at bottom)
+    // radii[0] = T1 (innermost) maps to radialLabel1 (bottom)
+    // radii[6] = T7 (outermost) maps to radialLabel7 (top)
+    var labelIds = ['radialLabel1', 'radialLabel2', 'radialLabel3', 'radialLabel4', 'radialLabel5', 'radialLabel6', 'radialLabel7'];
+    
+    // Draw lines and markers for each temperature zone
+    for (var i = 0; i < 7; i++) {
+        var radius = radii[i];
+        
+        // Calculate start point at 45-degree angle in top-right quadrant
+        var startX = cx + radius * cos45;
+        var startY = cy - radius * sin45; // Negative because Y increases downward
+        
+        // Get label element to find its position
+        // i=0 is T1 (innermost) → radialLabel1 (bottom)
+        // i=6 is T7 (outermost) → radialLabel7 (top)
+        var labelElement = document.getElementById(labelIds[i]);
+        if (!labelElement) continue;
+        
+        var labelRect = labelElement.getBoundingClientRect();
+        var textX = labelRect.left - containerRect.left;
+        var textY = labelRect.top - containerRect.top + labelRect.height / 2;
+        
+        // Create polyline with 3 points:
+        // Point 1: (startX, startY) - center of white sensor dot
+        // Point 2: (bendX, startY) - horizontal extension keeping Y the same (parallel lines)
+        // Point 3: (textX, textY) - vertical center of text label
+        var polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        var points = startX + ',' + startY + ' ' + bendX + ',' + startY + ' ' + textX + ',' + textY;
+        polyline.setAttribute('points', points);
+        polyline.setAttribute('stroke', 'white');
+        polyline.setAttribute('stroke-width', '1');
+        polyline.setAttribute('fill', 'none');
+        
+        svgElement.appendChild(polyline);
+        
+        // Add white circle marker at start point
+        var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', startX);
+        circle.setAttribute('cy', startY);
+        circle.setAttribute('r', '3');
+        circle.setAttribute('fill', 'white');
+        circle.setAttribute('stroke', 'none');
+        
+        svgElement.appendChild(circle);
+    }
+}
+
+// Function to update radial heater visualization colors
+function updateRadialColors(t1, t2, t3, t4, t5, t6, t7) {
+    // Array of temperature values (T1 innermost, T7 outermost)
+    var temps = [t1, t2, t3, t4, t5, t6, t7];
+    
+    // Get the radial donut container
+    var donutElement = document.getElementById('radialDonut');
+    if (!donutElement) return;
+    
+    // Convert temperatures to colors
+    var colors = [];
+    for (var i = 0; i < 7; i++) {
+        var temp = temps[i];
+        
+        // Handle invalid or missing temperature values
+        if (typeof temp !== 'number' || !isFinite(temp)) {
+            temp = 20; // Default to 20°C (blue)
+        }
+        
+        // Convert temperature to RGB color, then to hex
+        var rgbColor = temperatureToColor(temp);
+        var hexColor = rgbToHex(rgbColor);
+        colors.push(hexColor);
+    }
+    
+    // Create radial gradient with exact structure:
+    // transparent 0% to 15% (donut hole)
+    // ColorT1 at 15%, ColorT2 at 29%, ColorT3 at 43%, ColorT4 at 57%, ColorT5 at 71%, ColorT6 at 85%, ColorT7 at 100%
+    var gradient = 'radial-gradient(circle, ' +
+        'transparent 0%, transparent 15%, ' +
+        colors[0] + ' 15%, ' +  // T1
+        colors[1] + ' 29%, ' +  // T2
+        colors[2] + ' 43%, ' +  // T3
+        colors[3] + ' 57%, ' +  // T4
+        colors[4] + ' 71%, ' +  // T5
+        colors[5] + ' 85%, ' +  // T6
+        colors[6] + ' 100%)';   // T7
+    
+    // Apply gradient to donut container
+    donutElement.style.background = gradient;
+    
+    // Update temperature labels
+    var labelIds = ['radialLabel1', 'radialLabel2', 'radialLabel3', 'radialLabel4', 'radialLabel5', 'radialLabel6', 'radialLabel7'];
+    for (var j = 0; j < 7; j++) {
+        var labelElement = document.getElementById(labelIds[j]);
+        if (labelElement) {
+            var temp = temps[j];
+            if (typeof temp !== 'number' || !isFinite(temp)) {
+                temp = 20;
+            }
+            labelElement.textContent = 'T' + (j + 1) + ': ' + temp.toFixed(1) + '°C';
+        }
+    }
+    
+    // Draw connecting lines after a short delay to ensure layout is complete
+    setTimeout(function() {
+        drawRadialConnectorLines();
+    }, 10);
+}
+
+// Function to toggle between Linear and Radial heater views
+function showLinearHeater() {
+    var linearHeater = document.getElementById('linearHeater');
+    var radialHeater = document.getElementById('radialHeater');
+    
+    if (linearHeater) {
+        linearHeater.style.display = 'flex';
+    }
+    if (radialHeater) {
+        radialHeater.style.display = 'none';
+    }
+}
+
+function showRadialHeater() {
+    var linearHeater = document.getElementById('linearHeater');
+    var radialHeater = document.getElementById('radialHeater');
+    
+    if (linearHeater) {
+        linearHeater.style.display = 'none';
+    }
+    if (radialHeater) {
+        radialHeater.style.display = 'flex';
+        // Draw connecting lines after showing (with delay to ensure layout)
+        setTimeout(function() {
+            drawRadialConnectorLines();
+        }, 100);
+    }
+}
 
 
