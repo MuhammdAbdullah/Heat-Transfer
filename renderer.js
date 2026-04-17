@@ -971,12 +971,14 @@ function setSafeValuesOffline() {
     heaterMode = 0;
     updateHeaterButtons();
 
-    // Turn cooler on (for safety cooling)
+    // Keep cooler off at startup
+    coolerEnabled = false;
     if (coolerBtn) {
-        coolerBtn.classList.add('active');
+        coolerBtn.classList.remove('active');
+        coolerBtn.textContent = 'Cooler Off';
     }
 
-    addToLog('Safe values set: Fan=0%, Heater=20°C, Heater=OFF, Cooler=ON');
+    addToLog('Safe values set: Fan=0%, Heater=20°C, Heater=OFF, Cooler=OFF');
 }
 
 // Safety function: Send shutdown commands when hardware reconnects (only if system was unsafe)
@@ -1295,7 +1297,7 @@ function handleIncomingData(data) {
 
     // Check for heater temperature data - format: [0x33, 0x33, 0x33, temp] (exactly 4 bytes)
     if (dataArray.length === 4 && dataArray[0] === 0x33 && dataArray[1] === 0x33 && dataArray[2] === 0x33) {
-        var heaterTemp = dataArray[3]; // Heater temperature value (20-120°C)
+        var heaterTemp = dataArray[3]; // Heater temperature value (20-70°C)
 
         // Debug: Print the received data
         var hexString = dataArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ');
@@ -1303,13 +1305,13 @@ function handleIncomingData(data) {
         addToLog('DEBUG: Heater temperature value: ' + heaterTemp);
         addToLog('DEBUG: About to call updateHeaterSliderFromHardware with temp: ' + heaterTemp);
 
-        // Validate heater temperature range (20-120°C)
-        if (heaterTemp >= 20 && heaterTemp <= 120) {
+        // Validate heater temperature range (20-70°C)
+        if (heaterTemp >= 20 && heaterTemp <= 70) {
             addToLog('DEBUG: Heater temperature is valid, calling updateHeaterSliderFromHardware...');
             updateHeaterSliderFromHardware(heaterTemp);
             addToLog('Heater temperature received from hardware: ' + heaterTemp + '°C');
         } else {
-            addToLog('Invalid heater temperature value: ' + heaterTemp + ' (expected 20-120)');
+            addToLog('Invalid heater temperature value: ' + heaterTemp + ' (expected 20-70)');
         }
         return; // Exit early since this is a 4-byte packet
     }
@@ -1445,8 +1447,8 @@ function updateHeaterButtonsFromHardware(mode) {
 
 // Function to update heater slider when receiving data from hardware
 function updateHeaterSliderFromHardware(temperature) {
-    // Ensure heater temperature is within valid range (20-120°C)
-    temperature = Math.max(20, Math.min(120, temperature));
+    // Ensure heater temperature is within valid range (20-70°C)
+    temperature = Math.max(20, Math.min(70, temperature));
 
     addToLog('DEBUG: Updating heater slider to: ' + temperature + '°C');
     addToLog('DEBUG: heaterTempInput element found: ' + (heaterTempInput ? 'YES' : 'NO'));
@@ -1491,14 +1493,14 @@ function updateCoolerButtonFromHardware(state) {
     // Update the cooler button state
     if (coolerBtn) {
         if (state === 1) {
-            // Cooler is ON - button should say "Cooler Off" (to turn it off)
+            // Cooler is ON
             coolerBtn.classList.add('active');
-            coolerBtn.textContent = 'Cooler Off';
+            coolerBtn.textContent = 'Cooler On';
             addToLog('DEBUG: Added active class to coolerBtn (ON)');
         } else {
-            // Cooler is OFF - button should say "Cooler On" (to turn it on)
+            // Cooler is OFF
             coolerBtn.classList.remove('active');
-            coolerBtn.textContent = 'Cooler On';
+            coolerBtn.textContent = 'Cooler Off';
             addToLog('DEBUG: Removed active class from coolerBtn (OFF)');
         }
 
@@ -3551,8 +3553,8 @@ if (fanSpeedInput) {
 if (heaterTempInput && heaterTempValue) {
     function updateHeaterSliderFill(value) {
         var temp = parseInt(value, 10);
-        // Convert temperature range (20-120) to percentage (0-100)
-        var tempPercentage = ((temp - 20) / (120 - 20)) * 100;
+        // Convert temperature range (20-70) to percentage (0-100)
+        var tempPercentage = ((temp - 20) / (70 - 20)) * 100;
         var fillElement = document.getElementById('heaterSliderFill');
         if (fillElement) {
             fillElement.style.setProperty('--fill-percent', tempPercentage + '%');
@@ -3573,7 +3575,7 @@ if (heaterTempInput && heaterTempValue) {
 
             // Calculate the center position of the thumb
             var maxPosition = sliderWidth - thumbWidth;
-            var tempPercentage = ((temp - 20) / (120 - 20)) * 100;
+            var tempPercentage = ((temp - 20) / (70 - 20)) * 100;
             var thumbCenterPosition = (tempPercentage / 100) * maxPosition + thumbRadius;
 
             // Position the heater icon at the center of the thumb
@@ -3600,7 +3602,7 @@ if (heaterTempInput && heaterTempValue) {
                 }
             } else {
                 // Clamp value to valid range
-                value = Math.max(20, Math.min(120, value));
+                value = Math.max(20, Math.min(70, value));
                 heaterTempValue.value = value;
                 // Update slider and send to hardware
                 if (heaterTempInput) {
@@ -3643,7 +3645,7 @@ if (heaterTempInput && heaterTempValue) {
         if (heaterTooltip) {
             var rect = heaterTempInput.getBoundingClientRect();
             var temp = Math.round(20 + ((e.clientX - rect.left) / rect.width) * 50);
-            temp = Math.max(20, Math.min(120, temp));
+            temp = Math.max(20, Math.min(70, temp));
             heaterTooltip.textContent = temp + '°C';
             heaterTooltip.style.left = e.clientX - rect.left + 'px';
         }
@@ -3740,13 +3742,13 @@ async function setCoolerMode(enabled) {
             // Update button text and style
             if (coolerBtn) {
                 if (enabled) {
-                    // Cooler is ON - button should say "Cooler Off" (to turn it off)
+                    // Cooler is ON
                     coolerBtn.classList.add('active');
-                    coolerBtn.textContent = 'Cooler Off';
-                } else {
-                    // Cooler is OFF - button should say "Cooler On" (to turn it on)
-                    coolerBtn.classList.remove('active');
                     coolerBtn.textContent = 'Cooler On';
+                } else {
+                    // Cooler is OFF
+                    coolerBtn.classList.remove('active');
+                    coolerBtn.textContent = 'Cooler Off';
                 }
             }
             addToLog('Cooler set to: ' + (enabled ? 'ON' : 'OFF'));
@@ -3776,7 +3778,7 @@ if (heaterRightBtn) {
 
 if (coolerBtn) {
     // Initialize button text based on current state
-    coolerBtn.textContent = coolerEnabled ? 'Cooler Off' : 'Cooler On';
+    coolerBtn.textContent = coolerEnabled ? 'Cooler On' : 'Cooler Off';
 
     coolerBtn.addEventListener('click', function () {
         // Toggle cooler state

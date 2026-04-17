@@ -283,7 +283,7 @@ if (fanSpeedInput && fanSpeedValue) {
 if (heaterTempInput && heaterTempValue) {
     function updateHeaterSliderFill(value) {
         var temp = parseInt(value, 10);
-        var tempPercentage = ((temp - 20) / (120 - 20)) * 100;
+        var tempPercentage = ((temp - 20) / (70 - 20)) * 100;
         var fillElement = document.getElementById('heaterSliderFill');
         if (fillElement) {
             fillElement.style.setProperty('--fill-percent', tempPercentage + '%');
@@ -301,7 +301,7 @@ if (heaterTempInput && heaterTempValue) {
             var thumbWidth = 24;
             var thumbRadius = thumbWidth / 2;
             var maxPosition = sliderWidth - thumbWidth;
-            var tempPercentage = ((temp - 20) / (120 - 20)) * 100;
+            var tempPercentage = ((temp - 20) / (70 - 20)) * 100;
             var thumbCenterPosition = (tempPercentage / 100) * maxPosition + thumbRadius;
             heaterIcon.style.left = thumbCenterPosition + 'px';
         }
