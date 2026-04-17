@@ -81,7 +81,8 @@
     "buildDependenciesFromSource": false,
     "win": {
       "target": "nsis",
-      "icon": "icon.ico"
+      "icon": "icon.ico",
+      "artifactName": "Heat-Transfer-App-Setup-${version}.${ext}"
     }
   }
 }

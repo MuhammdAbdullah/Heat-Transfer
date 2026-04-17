@@ -1,8 +1,8 @@
 version: 1.3.2
 files:
-  - url: "Heat Transfer App Setup 1.3.2.exe"
+  - url: Heat-Transfer-App-Setup-1.3.2.exe
     sha512: zZXdpsMPi5c/zdhNGPXncUQlyTxFfQcDmEtoF/d//h9sfDjEPpKK5lDhjSseQr+5hBD/k518SWIXUmAEVAAzrQ==
     size: 122319847
-path: "Heat Transfer App Setup 1.3.2.exe"
+path: Heat-Transfer-App-Setup-1.3.2.exe
 sha512: zZXdpsMPi5c/zdhNGPXncUQlyTxFfQcDmEtoF/d//h9sfDjEPpKK5lDhjSseQr+5hBD/k518SWIXUmAEVAAzrQ==
 releaseDate: '2026-04-17T09:52:15.393Z'
