@@ -13,6 +13,8 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 
 ## ✨ Features
 
+> **Visualize feature note**: The `Visualize` option is available in version `1.3.1`. It is planned to be removed in the next release.
+
 ### 🔌 Device Communication
 - **COM Port Communication**: Automatic connection to serial devices (VID: 0x12BF, PID: 0x010C)
 - **Auto-Connect**: Automatically detects and connects to target device on startup
@@ -193,9 +195,10 @@ The app also handles 4-byte control packets:
 2. **Select Language** - Choose your preferred language from the language selector at the top of the curriculum page (English, French, German, Spanish, Dutch, or Arabic)
 3. **Select Lab** - Choose from Lab 1-5 from the curriculum menu
 4. **Follow Instructions** - Complete lab experiments with guided instructions in your selected language
-5. **View Simulations** - Click "▶️ Visualize" to see interactive simulations
+5. **View Simulations** - Click "▶️ Visualize" to see interactive simulations (available in version 1.3.1)
 
 **Note**: Your language preference is saved and automatically applied to all lab sheets. The language selector is only available on the curriculum page, not on individual lab sheets.
+**Planned change**: The `Visualize` option is planned to be removed in the next release.
 
 ## 🔧 Troubleshooting
 
