@@ -113,6 +113,26 @@ The app also handles 4-byte control packets:
 - Heater Temperature: `[0x33, 0x33, 0x33, temperature]`
 - Cooler State: `[0x44, 0x44, 0x44, state]`
 
+### Snapshot CSV Columns
+
+When you click `Snapshot`, the app appends exactly one row to the snapshot CSV file with these columns:
+
+- `date`: Date in `YYYY-MM-DD` format
+- `time`: Time in `HH:MM:SS` format
+- `timestamp_iso`: Full ISO timestamp (example: `2026-04-29T12:00:00.000Z`)
+- `T1` to `T8`: Current 8 sensor temperatures
+- `radial_heater_temp`: Current radial heater temperature
+- `linear_heater_temp`: Current linear heater temperature
+- `power_w`: Current power in watts
+- `air_speed_mps`: Current air speed in meters/second
+- `fan_percent`: Current fan value in percent
+- `heater_off`: `true` when heater is off, otherwise `false`
+- `heater_mode`: `Off`, `Linear`, or `Radial`
+- `heater_slider_value`: Current heater slider setpoint
+- `cooler_state`: `On` or `Off`
+
+All numeric values in Snapshot CSV are saved with **3 decimal places**.
+
 ## 🚀 Installation
 
 ### For End Users (Recommended):
