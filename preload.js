@@ -89,6 +89,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // File operations
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
   writeFile: (filePath, content) => ipcRenderer.invoke('write-file', filePath, content),
+  getSnapshotSavePath: () => ipcRenderer.invoke('get-snapshot-save-path'),
+  setSnapshotSavePath: (filePath) => ipcRenderer.invoke('set-snapshot-save-path', filePath),
+  appendSnapshotCsvRow: (filePath, csvHeader, csvRow) => ipcRenderer.invoke('append-snapshot-csv-row', filePath, csvHeader, csvRow),
   
   // Window operations
   openGraphWindow: () => ipcRenderer.invoke('open-graph-window'),

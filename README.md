@@ -45,6 +45,9 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 - **Graph Window**: Pop-out graph window for better visualization
 - **Print Support**: Print graphs directly from the application
 - **Data Export**: CSV export with Start/Stop saving controls, 3-decimal precision, and timestamped default filenames to avoid accidental overwrite
+- **Snapshot CSV Capture**: One-click `Snapshot` button saves a single moment of live data (T1-T8, heaters, power, air speed, fan %, heater mode, heater slider, cooler state) with date/time timestamp
+- **Remembered Snapshot Path**: Snapshot asks save location only on first use, then reuses the same CSV path and appends rows automatically
+- **Snapshot Toast Feedback**: A small bottom-right popup confirms snapshot success or shows an error
 - **Auto-Clear on Reconnect**: Graphs automatically clear when hardware device disconnects and reconnects, ensuring fresh data collection
 
 ### 🎓 Educational Features
@@ -156,7 +159,8 @@ The app also handles 4-byte control packets:
 3. **Control devices** - Use sliders and buttons to control fan, heater, and cooler
 4. **View graphs** - Watch live data visualization in the charts section
 5. **Export data** - Click "Start Saving" to begin CSV export with a suggested filename like `Heat Transfer Data YYYY-MM-DD HH-MM-SS.csv` (you can still rename it)
-6. **Device reconnection** - If your device disconnects and reconnects, graphs will automatically clear and restart data collection
+6. **Take instant snapshot** - Click `Snapshot` to append one timestamped row to `snapshot_data.csv` (first click asks where to save, next clicks reuse that path)
+7. **Device reconnection** - If your device disconnects and reconnects, graphs will automatically clear and restart data collection
 
 ### Admin Panel
 

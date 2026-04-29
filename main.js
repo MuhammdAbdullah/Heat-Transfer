@@ -1200,6 +1200,89 @@ ipcMain.handle('write-file', async (event, filePath, content) => {
   }
 });
 
+async function readAppSettings() {
+  try {
+    const settingsPath = path.join(app.getPath('userData'), 'app-settings.json');
+    const fileContent = await fs.readFile(settingsPath, 'utf8');
+    const parsed = JSON.parse(fileContent);
+    if (parsed && typeof parsed === 'object') {
+      return parsed;
+    }
+    return {};
+  } catch (error) {
+    return {};
+  }
+}
+
+async function writeAppSettings(settingsObject) {
+  const settingsPath = path.join(app.getPath('userData'), 'app-settings.json');
+  const safeSettings = settingsObject && typeof settingsObject === 'object' ? settingsObject : {};
+  await fs.writeFile(settingsPath, JSON.stringify(safeSettings, null, 2), 'utf8');
+}
+
+ipcMain.handle('get-snapshot-save-path', async () => {
+  try {
+    const settings = await readAppSettings();
+    const savedPath = settings.snapshotCsvPath;
+    if (typeof savedPath === 'string' && savedPath.trim() !== '') {
+      return { success: true, filePath: savedPath };
+    }
+    return { success: true, filePath: null };
+  } catch (error) {
+    return { success: false, error: error.message, filePath: null };
+  }
+});
+
+ipcMain.handle('set-snapshot-save-path', async (event, filePath) => {
+  try {
+    if (typeof filePath !== 'string' || filePath.trim() === '') {
+      return { success: false, error: 'Invalid file path' };
+    }
+    const settings = await readAppSettings();
+    settings.snapshotCsvPath = filePath;
+    await writeAppSettings(settings);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('append-snapshot-csv-row', async (event, filePath, csvHeader, csvRow) => {
+  try {
+    if (typeof filePath !== 'string' || filePath.trim() === '') {
+      return { success: false, error: 'Invalid file path' };
+    }
+    if (typeof csvHeader !== 'string' || typeof csvRow !== 'string') {
+      return { success: false, error: 'Invalid CSV content' };
+    }
+
+    let fileAlreadyExists = true;
+    try {
+      await fs.access(filePath);
+    } catch (error) {
+      fileAlreadyExists = false;
+    }
+
+    if (!fileAlreadyExists) {
+      await fs.writeFile(filePath, csvHeader + '\n' + csvRow + '\n', 'utf8');
+      return { success: true, wroteHeader: true };
+    }
+
+    const existingContent = await fs.readFile(filePath, 'utf8');
+    const fileIsEmpty = existingContent.trim().length === 0;
+
+    if (fileIsEmpty) {
+      await fs.writeFile(filePath, csvHeader + '\n' + csvRow + '\n', 'utf8');
+      return { success: true, wroteHeader: true };
+    }
+
+    await fs.appendFile(filePath, csvRow + '\n', 'utf8');
+    return { success: true, wroteHeader: false };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 // ============================================================================
 // BOOTLOADER PROTOCOL IMPLEMENTATION
 // ============================================================================

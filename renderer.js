@@ -817,6 +817,9 @@ var curriculumWindow = null; // Track curriculum window reference
 var graphWindow = null; // Track graph window reference
 var heaterLeftTemp = 0; // Store left heater temperature
 var heaterRightTemp = 0; // Store right heater temperature
+var currentPowerWatts = NaN; // Store latest power value for snapshot
+var currentAirSpeedMps = NaN; // Store latest air speed value for snapshot
+var snapshotSavePath = null; // Remembered snapshot CSV path
 var safetyCommandsSent = false; // Track if safety commands were sent after reconnection
 var wasInUnsafeState = false; // Track if system was in unsafe state when disconnected
 
@@ -824,6 +827,40 @@ function addToLog(message) {
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = '[' + timestamp + '] ' + message + '\n';
     console.log(logEntry.trim());
+}
+
+function showSnapshotToast(message, isError) {
+    var existingToast = document.getElementById('snapshotToast');
+    if (existingToast && existingToast.parentNode) {
+        existingToast.parentNode.removeChild(existingToast);
+    }
+
+    var toast = document.createElement('div');
+    toast.id = 'snapshotToast';
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.right = '20px';
+    toast.style.bottom = '20px';
+    toast.style.padding = '10px 14px';
+    toast.style.borderRadius = '8px';
+    toast.style.background = isError ? '#ff4d4f' : '#2ed573';
+    toast.style.color = '#ffffff';
+    toast.style.fontWeight = 'bold';
+    toast.style.fontSize = '14px';
+    toast.style.zIndex = '99999';
+    toast.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.35)';
+    toast.style.opacity = '1';
+    toast.style.transition = 'opacity 0.3s ease';
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+        toast.style.opacity = '0';
+        setTimeout(function () {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 1800);
 }
 
 // Create a safe fallback for electronAPI if it doesn't exist
@@ -835,6 +872,9 @@ function ensureElectronAPI() {
             connectToPort: async function () { return { success: false, error: 'electronAPI unavailable' }; },
             disconnectFromPort: async function () { return { success: true }; },
             sendCalibrationC: async function () { return { success: false, error: 'electronAPI unavailable' }; },
+            getSnapshotSavePath: async function () { return { success: false, filePath: null }; },
+            setSnapshotSavePath: async function () { return { success: false, error: 'electronAPI unavailable' }; },
+            appendSnapshotCsvRow: async function () { return { success: false, error: 'electronAPI unavailable' }; },
             onDataReceived: function () { },
             onConnectionStatus: function () { },
             onPortsUpdate: function () { },
@@ -1871,6 +1911,7 @@ function parseAndDisplayData(dataArray) {
             var pdv = new DataView(pbuf);
             pdv.setUint8(0, p0); pdv.setUint8(1, p1); pdv.setUint8(2, p2); pdv.setUint8(3, p3);
             var power = pdv.getFloat32(0, true);
+            currentPowerWatts = power;
             parsedInfo += 'Power: ' + power.toFixed(2) + ' W\n';
             var powerEl = document.getElementById('powerTile');
             if (powerEl) {
@@ -1889,6 +1930,7 @@ function parseAndDisplayData(dataArray) {
             var adv = new DataView(abuf);
             adv.setUint8(0, a0); adv.setUint8(1, a1); adv.setUint8(2, a2); adv.setUint8(3, a3);
             var airSpeed = adv.getFloat32(0, true);
+            currentAirSpeedMps = airSpeed;
             parsedInfo += 'Air Speed: ' + airSpeed.toFixed(2) + ' m/s\n';
             var airSpeedEl = document.getElementById('airSpeedTile');
             if (airSpeedEl) {
@@ -1971,6 +2013,141 @@ function startCsvSaving() {
         startCsvBtn.style.display = 'none'; // Hide start button
         stopCsvBtn.style.display = 'inline-block'; // Show stop button
         addToLog('CSV saving started - will download when stopped');
+    }
+}
+
+function formatSnapshotNumber(value) {
+    if (typeof value !== 'number' || !isFinite(value)) {
+        return '';
+    }
+    return value.toFixed(3);
+}
+
+function getHeaterModeText(mode) {
+    if (mode === 1) {
+        return 'Linear';
+    }
+    if (mode === 2) {
+        return 'Radial';
+    }
+    return 'Off';
+}
+
+async function getSnapshotPath() {
+    if (snapshotSavePath && snapshotSavePath.trim() !== '') {
+        return snapshotSavePath;
+    }
+
+    if (!window.electronAPI || !window.electronAPI.getSnapshotSavePath) {
+        return null;
+    }
+
+    try {
+        var savedPathResult = await window.electronAPI.getSnapshotSavePath();
+        if (savedPathResult && savedPathResult.success && savedPathResult.filePath) {
+            snapshotSavePath = savedPathResult.filePath;
+            return snapshotSavePath;
+        }
+    } catch (error) {
+        addToLog('Could not load saved snapshot path: ' + error.message);
+    }
+
+    return null;
+}
+
+async function chooseSnapshotPath() {
+    if (!window.electronAPI || !window.electronAPI.showSaveDialog) {
+        addToLog('Save dialog is not available.');
+        return null;
+    }
+
+    var dialogResult = await window.electronAPI.showSaveDialog({
+        title: 'Choose Snapshot CSV File',
+        defaultPath: 'snapshot_data.csv',
+        filters: [
+            { name: 'CSV Files', extensions: ['csv'] },
+            { name: 'All Files', extensions: ['*'] }
+        ]
+    });
+
+    if (!dialogResult || dialogResult.canceled || !dialogResult.filePath) {
+        return null;
+    }
+
+    snapshotSavePath = dialogResult.filePath;
+    if (window.electronAPI.setSnapshotSavePath) {
+        var setPathResult = await window.electronAPI.setSnapshotSavePath(snapshotSavePath);
+        if (!setPathResult || !setPathResult.success) {
+            addToLog('Could not save snapshot path. You may be asked again next time.');
+        }
+    }
+
+    return snapshotSavePath;
+}
+
+async function saveSnapshotCsvRow() {
+    try {
+        var pathToUse = await getSnapshotPath();
+        if (!pathToUse) {
+            pathToUse = await chooseSnapshotPath();
+        }
+
+        if (!pathToUse) {
+            addToLog('Snapshot cancelled by user.');
+            return;
+        }
+
+        var now = new Date();
+        var isoTimestamp = now.toISOString();
+        var dateText = isoTimestamp.slice(0, 10);
+        var timeText = now.toTimeString().slice(0, 8);
+
+        var fanPercentValue = fanSpeedInput ? parseFloat(fanSpeedInput.value) : NaN;
+        var heaterSliderValue = heaterTempInput ? parseFloat(heaterTempInput.value) : NaN;
+        var heaterModeText = getHeaterModeText(heaterMode);
+        var heaterIsOff = heaterMode === 0 ? 'true' : 'false';
+        var coolerState = coolerEnabled ? 'On' : 'Off';
+
+        var csvHeader = 'date,time,timestamp_iso,T1,T2,T3,T4,T5,T6,T7,T8,radial_heater_temp,linear_heater_temp,power_w,air_speed_mps,fan_percent,heater_off,heater_mode,heater_slider_value,cooler_state';
+        var csvRow = [
+            dateText,
+            timeText,
+            isoTimestamp,
+            formatSnapshotNumber(lastTemperatureValues[0]),
+            formatSnapshotNumber(lastTemperatureValues[1]),
+            formatSnapshotNumber(lastTemperatureValues[2]),
+            formatSnapshotNumber(lastTemperatureValues[3]),
+            formatSnapshotNumber(lastTemperatureValues[4]),
+            formatSnapshotNumber(lastTemperatureValues[5]),
+            formatSnapshotNumber(lastTemperatureValues[6]),
+            formatSnapshotNumber(lastTemperatureValues[7]),
+            formatSnapshotNumber(heaterLeftTemp),
+            formatSnapshotNumber(heaterRightTemp),
+            formatSnapshotNumber(currentPowerWatts),
+            formatSnapshotNumber(currentAirSpeedMps),
+            formatSnapshotNumber(fanPercentValue),
+            heaterIsOff,
+            heaterModeText,
+            formatSnapshotNumber(heaterSliderValue),
+            coolerState
+        ].join(',');
+
+        if (!window.electronAPI || !window.electronAPI.appendSnapshotCsvRow) {
+            addToLog('Snapshot save is not available.');
+            return;
+        }
+
+        var appendResult = await window.electronAPI.appendSnapshotCsvRow(pathToUse, csvHeader, csvRow);
+        if (appendResult && appendResult.success) {
+            addToLog('Snapshot saved to: ' + pathToUse);
+            showSnapshotToast('Snapshot saved');
+        } else {
+            addToLog('Snapshot save failed: ' + (appendResult && appendResult.error ? appendResult.error : 'Unknown error'));
+            showSnapshotToast('Snapshot save failed', true);
+        }
+    } catch (error) {
+        addToLog('Snapshot save error: ' + error.message);
+        showSnapshotToast('Snapshot save error', true);
     }
 }
 
@@ -2254,6 +2431,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var clearDataBtn = document.getElementById('clearDataBtn');
     var startCsvBtn = document.getElementById('startCsvBtn');
     var stopCsvBtn = document.getElementById('stopCsvBtn');
+    var snapshotBtn = document.getElementById('snapshotBtn');
     var captureDistanceBtn = document.getElementById('captureDistanceBtn');
 
 
@@ -2342,6 +2520,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (stopCsvBtn) {
         stopCsvBtn.addEventListener('click', function () {
             stopCsvSaving();
+        });
+    }
+
+    if (snapshotBtn) {
+        snapshotBtn.addEventListener('click', function () {
+            saveSnapshotCsvRow();
         });
     }
 
