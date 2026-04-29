@@ -43,6 +43,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setHeaterMode: (mode) => ipcRenderer.invoke('set-heater-mode', mode),
   // Cooler control
   sendCooler: (value) => ipcRenderer.invoke('send-cooler', value),
+  // Calibration control
+  sendCalibrationC: () => ipcRenderer.invoke('send-calibration-c'),
   
   // PID control
   sendPIDValue: (type, value) => ipcRenderer.invoke('send-pid-value', type, value),

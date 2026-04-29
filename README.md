@@ -44,7 +44,7 @@ A comprehensive Electron.js desktop application for real-time heat transfer data
 - **Chart Display Modes**: Choose between Limited Points (Last 50) or All Data Points
 - **Graph Window**: Pop-out graph window for better visualization
 - **Print Support**: Print graphs directly from the application
-- **Data Export**: CSV export functionality with Start/Stop saving controls
+- **Data Export**: CSV export with Start/Stop saving controls, 3-decimal precision, and timestamped default filenames to avoid accidental overwrite
 - **Auto-Clear on Reconnect**: Graphs automatically clear when hardware device disconnects and reconnects, ensuring fresh data collection
 
 ### 🎓 Educational Features
@@ -155,7 +155,7 @@ The app also handles 4-byte control packets:
 2. **Monitor temperatures** - View real-time temperature readings from all sensors
 3. **Control devices** - Use sliders and buttons to control fan, heater, and cooler
 4. **View graphs** - Watch live data visualization in the charts section
-5. **Export data** - Click "Start Saving" to begin CSV export
+5. **Export data** - Click "Start Saving" to begin CSV export with a suggested filename like `Heat Transfer Data YYYY-MM-DD HH-MM-SS.csv` (you can still rename it)
 6. **Device reconnection** - If your device disconnects and reconnects, graphs will automatically clear and restart data collection
 
 ### Admin Panel
@@ -249,7 +249,6 @@ Heat Transfer App/
 ├── index.html           # Main user interface
 ├── admin.html           # Admin panel interface
 ├── chart.html           # Graph window interface
-├── simulation.html       # Simulation interface
 ├── curriculum.html       # Curriculum viewer
 ├── lab1.html            # Lab 1 experiment
 ├── lab2.html            # Lab 2 experiment

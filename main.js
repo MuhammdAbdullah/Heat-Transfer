@@ -80,11 +80,8 @@ function createWindow() {
 
   // Handle child windows opened with window.open() (Curriculum, Lab windows, etc.)
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Check if this is the simulation window (needs specific size)
-    const isSimulationWindow = url.includes('simulation.html');
-
     // Default window options for most windows
-    let windowOptions = {
+    const windowOptions = {
       width: 1500,
       height: 850,
       resizable: true,
@@ -96,34 +93,10 @@ function createWindow() {
       }
     };
 
-    // Special configuration for simulation window (maximized)
-    if (isSimulationWindow) {
-      windowOptions = {
-        width: 1920,
-        height: 1080,
-        resizable: true,
-        icon: path.join(__dirname, 'assets', 'favicon.ico'),
-        autoHideMenuBar: true,
-        webPreferences: {
-          nodeIntegration: false,
-          contextIsolation: true
-        }
-      };
-    }
-
     return {
       action: 'allow',
       overrideBrowserWindowOptions: windowOptions
     };
-  });
-
-  // Maximize simulation window when it's created
-  mainWindow.webContents.on('did-create-window', (childWindow, details) => {
-    if (details.url && details.url.includes('simulation.html')) {
-      childWindow.once('ready-to-show', () => {
-        childWindow.maximize();
-      });
-    }
   });
 
   // Show window when ready (with minimum splash screen display time)
@@ -1115,6 +1088,23 @@ ipcMain.handle('send-cooler', async (event, value) => {
     const bytes = [0x3A, 0x50]; // ':' and 'P'
     bytes.push(v); // value as single byte (0 or 1)
     bytes.push(0x3B, 0x0A); // ';' and '\n'
+    const payload = Buffer.from(bytes);
+    await new Promise((resolve, reject) => {
+      serialPort.write(payload, (err) => { if (err) reject(err); else resolve(); });
+    });
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// Send calibration command: format ':C;\n'
+ipcMain.handle('send-calibration-c', async () => {
+  try {
+    if (!serialPort || !serialPort.isOpen) {
+      return { success: false, error: 'Not connected' };
+    }
+    const bytes = [0x3A, 0x43, 0x3B, 0x0A]; // ':' 'C' ';' '\n'
     const payload = Buffer.from(bytes);
     await new Promise((resolve, reject) => {
       serialPort.write(payload, (err) => { if (err) reject(err); else resolve(); });

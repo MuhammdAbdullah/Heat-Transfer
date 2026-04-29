@@ -1,15 +1,5 @@
 // --- Plotly graph state ---
 var chartData = { time: [], series: Array.from({ length: 12 }, function () { return []; }), enabled: Array.from({ length: 12 }, function () { return true; }) };
-window.sharedTemperatures = {
-    t1: 0,
-    t2: 0,
-    t3: 0,
-    t4: 0,
-    t5: 0,
-    t6: 0,
-    t7: 0,
-    t8: 0
-};
 var maxPoints = 50; // show last 50 points by default
 var chartDisplayMode = 'limited'; // 'limited' or 'all' - controls whether to limit points or show all data
 var isSavingCsv = false; // flag to track if CSV saving is active
@@ -343,15 +333,6 @@ function addPoint(timeSec, valuesArray13) {
             lastTemperatureValues[i] = tempValue;
         }
     }
-    // Share the latest temperatures for the STEP viewer
-    window.sharedTemperatures.t1 = lastTemperatureValues[0] || 0;
-    window.sharedTemperatures.t2 = lastTemperatureValues[1] || 0;
-    window.sharedTemperatures.t3 = lastTemperatureValues[2] || 0;
-    window.sharedTemperatures.t4 = lastTemperatureValues[3] || 0;
-    window.sharedTemperatures.t5 = lastTemperatureValues[4] || 0;
-    window.sharedTemperatures.t6 = lastTemperatureValues[5] || 0;
-    window.sharedTemperatures.t7 = lastTemperatureValues[6] || 0;
-    window.sharedTemperatures.t8 = lastTemperatureValues[7] || 0;
     // Only limit points if in 'limited' mode
     if (chartDisplayMode === 'limited' && chartData.time.length > maxPoints) {
         chartData.time.shift();
@@ -832,7 +813,6 @@ const fan50Btn = document.getElementById('fan50');
 const fan100Btn = document.getElementById('fan100');
 var heaterMode = 0; // 0=off,1=left,2=right,3=cooler
 var coolerEnabled = false; // Track cooler state: false=off, true=on
-var simulationWindow = null; // Track simulation window reference
 var curriculumWindow = null; // Track curriculum window reference
 var graphWindow = null; // Track graph window reference
 var heaterLeftTemp = 0; // Store left heater temperature
@@ -854,6 +834,7 @@ function ensureElectronAPI() {
             getAvailablePorts: async function () { return []; },
             connectToPort: async function () { return { success: false, error: 'electronAPI unavailable' }; },
             disconnectFromPort: async function () { return { success: true }; },
+            sendCalibrationC: async function () { return { success: false, error: 'electronAPI unavailable' }; },
             onDataReceived: function () { },
             onConnectionStatus: function () { },
             onPortsUpdate: function () { },
@@ -1949,11 +1930,20 @@ function clearLog() {
 
 
 function startCsvSaving() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var day = String(now.getDate()).padStart(2, '0');
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    var seconds = String(now.getSeconds()).padStart(2, '0');
+    var suggestedFileName = 'Heat Transfer Data ' + year + '-' + month + '-' + day + ' ' + hours + '-' + minutes + '-' + seconds + '.csv';
+
     // Ask user for save location
     if (window.electronAPI && window.electronAPI.showSaveDialog) {
         window.electronAPI.showSaveDialog({
             title: 'Save Heat Transfer Data',
-            defaultPath: 'Heat Transfer Data.csv',
+            defaultPath: suggestedFileName,
             filters: [
                 { name: 'CSV Files', extensions: ['csv'] },
                 { name: 'All Files', extensions: ['*'] }
@@ -2000,27 +1990,27 @@ function stopCsvSaving() {
 
     for (var i = 0; i < csvData.length; i++) {
         var data = csvData[i];
-        var time = data.time.toFixed(1);
+        var time = data.time.toFixed(3);
         var row = time + ',';
 
         // Add temperature data (T1-T8)
         for (var j = 0; j < 8; j++) {
             var val = data.temps[j];
-            row += (typeof val === 'number' && isFinite(val) ? val.toFixed(1) : '') + ',';
+            row += (typeof val === 'number' && isFinite(val) ? val.toFixed(3) : '') + ',';
         }
 
         // Add heater data
-        row += (typeof data.heaterL === 'number' && isFinite(data.heaterL) ? data.heaterL.toFixed(1) : '') + ',';
-        row += (typeof data.heaterR === 'number' && isFinite(data.heaterR) ? data.heaterR.toFixed(1) : '') + ',';
+        row += (typeof data.heaterL === 'number' && isFinite(data.heaterL) ? data.heaterL.toFixed(3) : '') + ',';
+        row += (typeof data.heaterR === 'number' && isFinite(data.heaterR) ? data.heaterR.toFixed(3) : '') + ',';
 
         // Add power
-        row += (typeof data.power === 'number' && isFinite(data.power) ? data.power.toFixed(2) : '') + ',';
+        row += (typeof data.power === 'number' && isFinite(data.power) ? data.power.toFixed(3) : '') + ',';
 
         // Add target
-        row += (typeof data.target === 'number' && isFinite(data.target) ? data.target.toFixed(1) : '') + ',';
+        row += (typeof data.target === 'number' && isFinite(data.target) ? data.target.toFixed(3) : '') + ',';
 
         // Add air speed
-        row += (typeof data.airSpeed === 'number' && isFinite(data.airSpeed) ? data.airSpeed.toFixed(2) : '') + ',';
+        row += (typeof data.airSpeed === 'number' && isFinite(data.airSpeed) ? data.airSpeed.toFixed(3) : '') + ',';
 
         // Add fan speed
         row += data.fanSpeed;
@@ -3247,42 +3237,21 @@ document.addEventListener('DOMContentLoaded', function () {
         if (layoutSel) layoutSel.addEventListener('change', function () { applyLayout(layoutSel.value); localStorage.setItem('appLayout', layoutSel.value); });
     } catch (e) { /* ignore */ }
 
-    // Simulation window button (no chart data changes)
+    // Calibrate Temperature button sends C command
     var simulateBtn = document.getElementById('simulateBtn');
     if (simulateBtn) {
-        simulateBtn.addEventListener('click', function () {
-            // Check if window is already open
-            if (simulationWindow && !simulationWindow.closed) {
-                // Window is open - close it first
-                simulationWindow.close();
-                simulationWindow = null;
-                addToLog('Simulation window closed.');
-                // Small delay before reopening to ensure it's fully closed
-                setTimeout(function () {
-                    openSimulationWindow();
-                }, 100);
-            } else {
-                // Window is not open - just open it
-                openSimulationWindow();
+        simulateBtn.addEventListener('click', async function () {
+            try {
+                var result = await window.electronAPI.sendCalibrationC();
+                if (result && result.success) {
+                    addToLog('Calibration command C sent successfully.');
+                } else {
+                    addToLog('Failed to send calibration command C: ' + (result && result.error ? result.error : 'Unknown error'));
+                }
+            } catch (error) {
+                addToLog('Error sending calibration command C: ' + error.message);
             }
         });
-    }
-
-    // Helper function to open simulation window
-    function openSimulationWindow() {
-        // Only open the STEP viewer window
-        simulationWindow = window.open('simulation.html', 'simulationWindow', 'width=450,height=320,resizable=yes');
-        if (simulationWindow) {
-            simulationWindow.focus();
-            // Track when window is closed
-            var checkClosed = setInterval(function () {
-                if (simulationWindow.closed) {
-                    clearInterval(checkClosed);
-                    simulationWindow = null;
-                }
-            }, 500);
-            addToLog('Simulation window opened (STEP preview only).');
-        }
     }
 
     // Curriculum button - opens Curriculum menu

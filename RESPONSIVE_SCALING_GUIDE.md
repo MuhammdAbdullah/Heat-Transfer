@@ -57,7 +57,6 @@ I added the script to every HTML file:
 - ✅ `curriculum.html`
 - ✅ `chart.html`
 - ✅ `admin.html`
-- ✅ `simulation.html`
 
 ---
 
